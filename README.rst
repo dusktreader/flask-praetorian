@@ -1,6 +1,6 @@
 ******************
  flask-praetorian
-*****************
+******************
 
 .. contents:: Table of Contents
    :depth: 1
@@ -8,7 +8,7 @@
 Overview
 ========
 
-.. todo:: Write this!
+TODO: Write this!
 
 Developer Quick Start
 =====================
@@ -43,7 +43,7 @@ $ pip install --process-dependency-links -e .[dev]
 
 The full list of dependencies can be found in ``setup.py``
 
-.. todo:: figure out what database setup we need to do
+TODO: figure out what database setup we need to do
 
 Running tests
 =============
@@ -62,7 +62,7 @@ The -ra option is recommended as it will report skipped tests
 Generating the documentation
 ----------------------------
 
-.. todo:: add document generation!
+TODO: add document generation!
 
 Simply execute the following script within an active virtual environment::
 
@@ -109,14 +109,6 @@ Here is an example method with marked up docstring:
       """
       return 'yo'
 
-Useful Tools
-------------
-
-reStructuredText documents can be previewed as they are edited on your
-workstation using a tool called `restview <https://mg.pov.lt/restview/>`_. It
-is indispensible when updating this README.rst document or one of the templates
-for the autognerated sphinx documentation.
-
 Code Style
 ==========
 
@@ -128,6 +120,15 @@ during code reviews.
 
 Useful tools
 ------------
+
+reStructuredText viewer
+.......................
+
+reStructuredText documents can be previewed as they are edited on your
+workstation using a tool called `restview <https://mg.pov.lt/restview/>`_. It
+is indispensible when updating this README.rst document or one of the templates
+for the autognerated sphinx documentation.
+
 
 flake8
 ......
@@ -157,3 +158,4 @@ all python source files::
   # autocmd BufWritePost *.py call Flake8()
 
 It is most useful to include that in your ``.vimrc`` file
+
