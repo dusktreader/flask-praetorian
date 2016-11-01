@@ -68,13 +68,22 @@ initialized like::
     ...
     guard.init_app(app, user_class)
 
-TODO: Expand me a lot
-
 flask-praetorian Developer Guide
 ================================
 
 This developer guide will help you get started on working on flask-praetorian
 in a development environment so that you can add features and run tests
+
+TODO list
+---------
+
+* Add a thin wrapper for @jwt.jwt_required so that you can use flask-praetorian
+  by itself if you want
+* Describe requirements for user_class in the documentation
+* get doc generation up and going
+* expand the Quickstart documentation a bit
+* find some lineart for the documentation
+* get it up on pypi!
 
 Dependencies
 ------------
@@ -119,8 +128,6 @@ The -ra option is recommended as it will report skipped tests
 
 Generating the documentation
 ----------------------------
-
-TODO: add document generation!
 
 Simply execute the following script within an active virtual environment::
 
