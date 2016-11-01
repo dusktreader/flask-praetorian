@@ -13,6 +13,7 @@ setup(
     install_requires=[
         'flask-jwt',
         'passlib',
+        'bcrypt',
     ],
     extras_require={
         'dev': [
@@ -20,6 +21,7 @@ setup(
             'freezegun',
             'pytest-capturelog',
             'pytest-flask',
+            'flask-sqlalchemy',
         ],
     },
     include_package_data=True,

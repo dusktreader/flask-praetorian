@@ -1,0 +1,12 @@
+env/*
+*egg-info/*
+.eggs/*
+*.egg
+*__pycache__*
+*.pyc
+*~
+build/*
+dist/*
+docs/source/*
+docs/build/*
+.cache/*

@@ -1,16 +1,12 @@
-import base64
-import hashlib
-import hmac
-import passlib.context
+from passlib.context import CryptContext
 
 from flask_jwt import JWT
 
 from flask_praetorian.exceptions import PraetorianError
 
-# TODO: Figure out how to register the /auth endpoint with swagger
-
 
 class Praetorian:
+    # TODO: Figure out how to register the /auth endpoint with swagger
 
     def __init__(self, app=None, user_class=None):
 
@@ -22,37 +18,38 @@ class Praetorian:
             self.init_app(app, user_class)
 
     def init_app(self, app, user_class):
+        PraetorianError.require_condition(
+            app.config.get('SECRET_KEY') is not None,
+            "There must be a SECRET_KEY app config setting set",
+        )
         # TODO: add error handler stuff
 
+        possible_schemes = [
+            # TODO: Add argon2 support when passlib 1.7 is released (soon)
+            #       https://bitbucket.org/ecollins/passlib/wiki/Home
+            #       at that time, argon2 should be come the default
+            # 'argon2',
+            'bcrypt',
+            'pbkdf2_sha512',
+        ]
         # TODO: make sure to add test for a few non plaintext hash methods
-        self.pwd_ctx = passlib.context.CryptContext(
-            default=app.config.get('SECURITY_PASSWORD_HASH', 'plaintext'),
-            schemes=[
-                'bcrypt',
-                'des_crypt',
-                'pbkdf2_sha256',
-                'pbkdf2_sha512',
-                'sha256_crypt',
-                'sha512_crypt',
-                # plaintext needs to be last
-                # TODO: Figure out a more elegant way to do this
-                'plaintext'
-            ],
-            deprecated=['auto'],
+        self.pwd_ctx = CryptContext(
+            default='bcrypt',
+            schemes=possible_schemes + ['plaintext'],
+            deprecated=[],
         )
 
-        self.hash_scheme = app.config.get('SECURITY_PASSWORD_HASH')
-        if self.hash_scheme == 'plaintext':
-            self.hash_scheme = None
-
-        self.salt = app.config.get('SECURITY_PASSWORD_SALT')
-        PraetorianError.require_condition(
-            self.salt is not None,
-            'SECURITY_PASSWORD_SALT must be set in the app configuration',
-        )
+        self.hash_scheme = app.config.get('PRAETORIAN_HASH_SCHEME')
 
         self.user_class = user_class
-        self.jwt = JWT(app, self._authenticate, self._identity)
+        # TODO: let jwt be passed in as a parameter and optionally init_app
+        self.jwt = JWT(
+            app,
+            authentication_handler=self._authenticate,
+            identity_handler=self._identity,
+        )
+
+        app.errorhandler(PraetorianError)(self.error_handler)
 
         # TODO: figure out extension nameing convention
         if not hasattr(app, 'extensions'):
@@ -60,41 +57,20 @@ class Praetorian:
         app.extensions['jwt_roles'] = self
 
     def _authenticate(self, username, password):
-        user = self.user_class.query.filter_by(username=username).one()
-        if not self.verify_password(password, user.password):
+        user = self.user_class.query.filter_by(username=username).one_or_none()
+        if user is None or not self.verify_password(password, user.password):
             return None
         return user
 
     def _identity(self, payload):
         user_id = payload['identity']
-        return self.user_class.get(user_id)
-
-    def get_hmac(self, password):
-        """
-        Returns a Base64 encoded HMAC+SHA512 of the password signed with the
-        salt specified by ``SECURITY_PASSWORD_SALT``.
-        """
-        if self.hash_scheme is None:
-            return password
-
-        h = hmac.new(
-            self.salt.encode('utf-8'),
-            password.encode('utf-8'),
-            hashlib.sha512,
-        )
-        return base64.b64encode(h.digest())
+        return self.user_class.query.get(user_id)
 
     def verify_password(self, raw_password, hashed_password):
-        return self.pwd_ctx.verify(
-            self.get_hmac(raw_password),
-            hashed_password,
-        )
+        return self.pwd_ctx.verify(raw_password, hashed_password)
 
     def encrypt_password(self, raw_password):
-        if self.hash_scheme is None:
-            return raw_password
+        return self.pwd_ctx.encrypt(raw_password, scheme=self.hash_scheme)
 
-        # TODO: do we really need to decode to f'in ascii here?
-        return self.pwd_ctx.encrypt(
-            self.get_hmac(raw_password).decode('ascii')
-        )
+    def error_handler(self, error):
+        return error.jsonify(), error.status_code, error.headers

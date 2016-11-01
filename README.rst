@@ -14,7 +14,7 @@ Developer Quick Start
 =====================
 
 This Quick Start guide will help you get started on working on flask-praetorian
-in a development environment so that you can add features and run t3ests
+in a development environment so that you can add features and run tests
 
 Dependencies
 ------------
@@ -42,8 +42,6 @@ dependencies (via pip), execute this command::
 $ pip install --process-dependency-links -e .[dev]
 
 The full list of dependencies can be found in ``setup.py``
-
-TODO: figure out what database setup we need to do
 
 Running tests
 =============
