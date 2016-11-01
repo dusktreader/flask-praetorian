@@ -8,12 +8,72 @@
 Overview
 ========
 
-TODO: Write this!
+API security should be simple, precise, and powerful like a Roman Legionary.
+This package aims to provide that. Using `JWT <https://jwt.io/>`_ as
+implemented by the `Flask-JWT <https://pythonhosted.org/Flask-JWT/>`_,
+flask_praetorian uses a very simple interface to make sure that the users
+accessing your APIs endpoints are provisioned with the correct roles for
+access.
 
-Developer Quick Start
-=====================
+This project was heavily influenced by
+`Flask-Security <https://pythonhosted.org/Flask-Security/>`_, but intents
+do supply only essential functionality. Instead of trying to anticipate the
+needs of all users, flask-praetorian will provide a simple and secure mechanism
+to provide security to your API.
 
-This Quick Start guide will help you get started on working on flask-praetorian
+Installation
+============
+
+This package is not yet available on PyPi, so you will need to clone it from
+github prior to installation:
+
+Install with *pip*::
+
+    git clone https://github.com/dusktreader/flask-praetorian.git
+    pip install flask-praetorian
+
+Quickstart
+==========
+
+This is a minimal example of how to use the flask-praetorian decorators::
+
+    import flask_jwt
+    import flask_praetorian
+
+    @app.route('/example_admin_required')
+    @flask_jwt.jwt_required()
+    @flask_praetorian.roles_required('admin')
+    def route1():
+        return 'success'
+
+    @app.route('/example_admin_accepted')
+    @flask_jwt.jwt_required()
+    @flask_praetorian.roles_accepted('admin')
+    def route1():
+        return 'success'
+
+Since flask-praetorian is a flask extension, it is initialized in the usual
+manner. You must also supply the user class that will be used to for
+authorization::
+
+    import flask_praetorian
+    flask_praetorian.Praetorian(app, user_class)
+
+If you are using an `app factory pattern
+<http://flask.pocoo.org/docs/0.11/patterns/appfactories/>`_, it can be
+initialized like::
+
+    import flask_praetorian
+    guard = flask_praetorian.Praetorian()
+    ...
+    guard.init_app(app, user_class)
+
+TODO: Expand me a lot
+
+flask-praetorian Developer Guide
+================================
+
+This developer guide will help you get started on working on flask-praetorian
 in a development environment so that you can add features and run tests
 
 Dependencies
@@ -53,7 +113,7 @@ This project uses `pytest <http://doc.pytest.org/en/latest/>`_
 
 Tests are executed by invoke pytest directly from the root of the project::
 
-$ py.test -ra tests
+$ py.test -ra test
 
 The -ra option is recommended as it will report skipped tests
 
