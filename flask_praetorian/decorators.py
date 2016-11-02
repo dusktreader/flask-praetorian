@@ -1,11 +1,11 @@
 import functools
+import flask_jwt
 
-from flask_jwt import current_identity
 from flask_praetorian.exceptions import PraetorianError
 
 
 def _current_rolenames():
-    user = current_identity
+    user = flask_jwt.current_identity
     PraetorianError.require_condition(
         user._get_current_object() is not None,
         """
@@ -20,6 +20,10 @@ def _current_rolenames():
         return set(['non-empty-but-definitely-not-matching-subset'])
     else:
         return set(rolenames)
+
+
+def auth_required(*args, **kwargs):
+    return flask_jwt.jwt_required(*args, **kwargs)
 
 
 def roles_required(*required_rolenames):

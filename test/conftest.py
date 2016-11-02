@@ -1,6 +1,5 @@
 import pytest
 
-import flask_jwt
 import flask_praetorian
 
 from flask import Flask
@@ -48,24 +47,24 @@ def app(tmpdir_factory):
         return 'success'
 
     @app.route('/protected')
-    @flask_jwt.jwt_required()
+    @flask_praetorian.auth_required()
     def protected():
         return 'success'
 
     @app.route('/protected_admin_required')
-    @flask_jwt.jwt_required()
+    @flask_praetorian.auth_required()
     @flask_praetorian.roles_required('admin')
     def protected_admin_required():
         return 'success'
 
     @app.route('/protected_admin_and_operator_required')
-    @flask_jwt.jwt_required()
+    @flask_praetorian.auth_required()
     @flask_praetorian.roles_required('admin', 'operator')
     def protected_admin_and_operator_required():
         return 'success'
 
     @app.route('/protected_admin_and_operator_accepted')
-    @flask_jwt.jwt_required()
+    @flask_praetorian.auth_required()
     @flask_praetorian.roles_accepted('admin', 'operator')
     def protected_admin_and_operator_accepted():
         return 'success'

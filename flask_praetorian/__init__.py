@@ -10,5 +10,5 @@ check the current users roles
 :license: MIT License (see LICENSE for more information)
 """
 from flask_praetorian.base import Praetorian  # noqa
-from flask_praetorian.decorators import roles_required, roles_accepted  # noqa
+from flask_praetorian.decorators import auth_required, roles_required, roles_accepted  # noqa
 from flask_praetorian.exceptions import PraetorianError  # noqa
