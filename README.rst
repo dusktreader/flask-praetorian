@@ -8,18 +8,31 @@
 Overview
 ========
 
-API security should be simple, precise, and powerful like a Roman Legionary.
+API security should be strong, simple, and precise like a Roman Legionary.
 This package aims to provide that. Using `JWT <https://jwt.io/>`_ as
-implemented by the `Flask-JWT <https://pythonhosted.org/Flask-JWT/>`_,
+implemented by `Flask-JWT <https://pythonhosted.org/Flask-JWT/>`_,
 flask_praetorian uses a very simple interface to make sure that the users
-accessing your APIs endpoints are provisioned with the correct roles for
+accessing your API's endpoints are provisioned with the correct roles for
 access.
 
 This project was heavily influenced by
-`Flask-Security <https://pythonhosted.org/Flask-Security/>`_, but intents
-do supply only essential functionality. Instead of trying to anticipate the
+`Flask-Security <https://pythonhosted.org/Flask-Security/>`_, but intends
+to supply only essential functionality. Instead of trying to anticipate the
 needs of all users, flask-praetorian will provide a simple and secure mechanism
-to provide security to your API.
+to provide security for APIs specifically.
+
+The flask-praetorian package can be used to:
+
+* Encrypt (hash) passwords for storing in your database
+* Verify plaintext passwords against the encrypted, stored versions
+* Generate authorization tokens using a ``/auth`` api endpoint
+* Check requests to secured endpoints for authorized tokens
+* Ensure that the users associated with tokens have necessary roles for access
+
+All of this is provided in a very simple to confiure and initialize flask
+extension. Though simple, the security provided by flask-praetorian is strong
+due to the usage of the proven security technology of JWT
+and python's `PassLib <http://pythonhosted.org/passlib/>`_ package.
 
 Installation
 ============
@@ -27,10 +40,17 @@ Installation
 This package is not yet available on PyPi, so you will need to clone it from
 github prior to installation:
 
-Install with *pip*::
+Install with **pip**::
 
-    git clone https://github.com/dusktreader/flask-praetorian.git
-    pip install flask-praetorian
+$ git clone https://github.com/dusktreader/flask-praetorian.git
+$ pip install flask-praetorian
+
+.. note::
+
+    flask-praetorian does not support distutils or setuptools because the
+    author has very strong feelings about python packaging and the role pip
+    plays in taking us into a bright new future of standardized and usable
+    python packaging
 
 Quickstart
 ==========
@@ -123,9 +143,14 @@ This is a minimal example of how to use the flask-praetorian decorators:
     if __name__ == '__main__':
         app.run()
 
+The above code can be found ``example/basic.py``.  The server can be started by
+calling::
+
+$ python example/basic.py
+
 Once the server is up and running, you can login and get an auth token
 by POSTing to the '/auth' endpoint with a body containing your username and
-password:::
+password::
 
     POST /auth HTTP/1.1
     Host: localhost:5000
@@ -149,6 +174,9 @@ were created above by include the token in the request header like soo::
 
     GET /protected HTTP/1.1
     Authorization: JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6MSwiaWF0IjoxNDQ0OTE3NjQwLCJuYmYiOjE0NDQ5MTc2NDAsImV4cCI6MTQ0NDkxNzk0MH0.KPmI6WSjRjlpzecPvs3q_T3cJQvAgJvaQAPtk1abC_E
+
+You can try out the different endpoints with different users provisioned above
+to see how the role constraining decorators from flask-praetorian work.
 
 flask-praetorian Developer Guide
 ================================
@@ -190,7 +218,7 @@ Install the package for development
 In order to install the package for development and to include all its
 dependencies (via pip), execute this command::
 
-$ pip install --process-dependency-links -e .[dev]
+$ pip install -e .[dev]
 
 The full list of dependencies can be found in ``setup.py``
 
@@ -200,13 +228,14 @@ Running tests
 Invokation
 ----------
 
-This project uses `pytest <http://doc.pytest.org/en/latest/>`_
+This project uses `pytest <http://doc.pytest.org/en/latest/>`_ for its unit
+testing.
 
-Tests are executed by invoke pytest directly from the root of the project::
+Tests are executed by invoking pytest directly from the root of the project::
 
 $ py.test -ra test
 
-The -ra option is recommended as it will report skipped tests
+The ``-ra`` option is recommended as it will report skipped tests
 
 Generating the documentation
 ----------------------------
