@@ -6,7 +6,6 @@ from flask_praetorian.exceptions import PraetorianError
 
 
 class Praetorian:
-    # TODO: Figure out how to register the /auth endpoint with swagger
 
     def __init__(self, app=None, user_class=None):
 
@@ -22,17 +21,12 @@ class Praetorian:
             app.config.get('SECRET_KEY') is not None,
             "There must be a SECRET_KEY app config setting set",
         )
-        # TODO: add error handler stuff
 
         possible_schemes = [
-            # TODO: Add argon2 support when passlib 1.7 is released (soon)
-            #       https://bitbucket.org/ecollins/passlib/wiki/Home
-            #       at that time, argon2 should be come the default
             # 'argon2',
             'bcrypt',
             'pbkdf2_sha512',
         ]
-        # TODO: make sure to add test for a few non plaintext hash methods
         self.pwd_ctx = CryptContext(
             default='bcrypt',
             schemes=possible_schemes + ['plaintext'],
@@ -42,7 +36,6 @@ class Praetorian:
         self.hash_scheme = app.config.get('PRAETORIAN_HASH_SCHEME')
 
         self.user_class = user_class
-        # TODO: let jwt be passed in as a parameter and optionally init_app
         self.jwt = JWT(
             app,
             authentication_handler=self._authenticate,
@@ -51,7 +44,6 @@ class Praetorian:
 
         app.errorhandler(PraetorianError)(self.error_handler)
 
-        # TODO: figure out extension nameing convention
         if not hasattr(app, 'extensions'):
             app.extensions = {}
         app.extensions['jwt_roles'] = self
