@@ -41,8 +41,6 @@ def roles_required(*required_rolenames):
 
 
 def roles_accepted(*accepted_rolenames):
-    # TODO: add docs about order of decorations
-    # TODO: add error checks for jwt decorator being present already
     def decorator(method):
         @functools.wraps(method)
         def wrapper(*args, **kwargs):
