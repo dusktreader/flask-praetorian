@@ -24,12 +24,12 @@ class Praetorian:
         )
 
         possible_schemes = [
-            # 'argon2',
+            'argon2',
             'bcrypt',
             'pbkdf2_sha512',
         ]
         self.pwd_ctx = CryptContext(
-            default='bcrypt',
+            default='argon2',
             schemes=possible_schemes + ['plaintext'],
             deprecated=[],
         )

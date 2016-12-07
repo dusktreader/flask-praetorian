@@ -13,7 +13,7 @@ setup(
     install_requires=[
         'flask-jwt',
         'passlib',
-        'bcrypt',
+        'argon2_cffi',
     ],
     extras_require={
         'dev': [
