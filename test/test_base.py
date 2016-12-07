@@ -1,4 +1,19 @@
+import pytest
+
 from flask_praetorian import Praetorian
+from flask_praetorian.exceptions import PraetorianError
+
+
+class NoLookupUser:
+    @classmethod
+    def identify(cls, id):
+        pass
+
+
+class NoIdentifyUser:
+    @classmethod
+    def lookup(cls, username):
+        pass
 
 
 class TestPraetorian:
@@ -71,3 +86,18 @@ class TestPraetorian:
         assert default_guard._identity({'identity': 7777}) is None
         db.session.delete(the_dude)
         db.session.commit()
+
+    def test__validate_user_class(self, app, user_class):
+        """
+        This test verifies that the _validate_user_class method properly
+        checks the user_class that Praetorian will use for required attributes
+        """
+        with pytest.raises(PraetorianError) as err_info:
+            Praetorian._validate_user_class(NoLookupUser)
+        assert "must have a lookup class method" in err_info.value.message
+
+        with pytest.raises(PraetorianError) as err_info:
+            Praetorian._validate_user_class(NoIdentifyUser)
+        assert "must have an identify class method" in err_info.value.message
+
+        assert Praetorian._validate_user_class(user_class)

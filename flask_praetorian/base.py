@@ -1,4 +1,5 @@
 from passlib.context import CryptContext
+from textwrap import dedent
 
 from flask_jwt import JWT
 
@@ -34,8 +35,16 @@ class Praetorian:
         )
 
         self.hash_scheme = app.config.get('PRAETORIAN_HASH_SCHEME')
+        valid_schemes = self.pwd_ctx.schemes()
+        PraetorianError.require_condition(
+            self.hash_scheme in valid_schemes or self.hash_scheme is None,
+            "If {} is set, it must be one of the following schemes: {}",
+            'PRAETORIAN_HASH_SCHEME',
+            valid_schemes,
+        )
 
-        self.user_class = user_class
+        self.user_class = self._validate_user_class(user_class)
+
         self.jwt = JWT(
             app,
             authentication_handler=self._authenticate,
@@ -47,6 +56,24 @@ class Praetorian:
         if not hasattr(app, 'extensions'):
             app.extensions = {}
         app.extensions['jwt_roles'] = self
+
+    @classmethod
+    def _validate_user_class(cls, user_class):
+        PraetorianError.require_condition(
+            getattr(user_class, 'lookup', None) is not None,
+            dedent("""
+                The user_class must have a lookup class method:
+                user_class.lookup(<str:username>) -> <user instance>
+            """),
+        )
+        PraetorianError.require_condition(
+            getattr(user_class, 'identify', None) is not None,
+            dedent("""
+                The user_class must have an identify class method:
+                user_class.identify(<int:id>) -> <user instance>
+            """),
+        )
+        return user_class
 
     def _authenticate(self, username, password):
         user = self.user_class.query.filter_by(username=username).one_or_none()
