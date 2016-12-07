@@ -111,6 +111,39 @@ class TestPraetorian:
         )
         assert response.status_code == 200
 
+        response = make_request(
+            client,
+            '/undecorated_admin_required',
+            get_token(client, 'Walter', 'calmerthanyouare'),
+        )
+        assert response.status_code == 401
+        assert (
+            "Cannot check roles without identity set"
+            in response.json['description']
+        )
+
+        response = make_request(
+            client,
+            '/undecorated_admin_accepted',
+            get_token(client, 'Walter', 'calmerthanyouare'),
+        )
+        assert response.status_code == 401
+        assert (
+            "Cannot check roles without identity set"
+            in response.json['description']
+        )
+
+        response = make_request(
+            client,
+            '/reversed_decorators',
+            get_token(client, 'Walter', 'calmerthanyouare'),
+        )
+        assert response.status_code == 401
+        assert (
+            "Cannot check roles without identity set"
+            in response.json['description']
+        )
+
     def test_roles_accepted(self, client):
         """
         This test verifies that the @roles_accepted decorator can be used

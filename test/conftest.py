@@ -69,6 +69,22 @@ def app(tmpdir_factory):
     def protected_admin_and_operator_accepted():
         return 'success'
 
+    @app.route('/undecorated_admin_required')
+    @flask_praetorian.roles_required('admin')
+    def undecorated_admin_required():
+        return 'success'
+
+    @app.route('/undecorated_admin_accepted')
+    @flask_praetorian.roles_accepted('admin')
+    def undecorated_admin_accepted():
+        return 'success'
+
+    @app.route('/reversed_decorators')
+    @flask_praetorian.roles_required('admin', 'operator')
+    @flask_praetorian.auth_required()
+    def reversed_decorators():
+        return 'success'
+
     return app
 
 
