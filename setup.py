@@ -12,17 +12,22 @@ setup(
     license='MIT',
     install_requires=[
         'flask-jwt',
-        'passlib',
-        'argon2_cffi',
+        'passlib>=1.7.0',
+        'argon2-cffi',
     ],
     extras_require={
         'dev': [
-            'flake8',
-            'freezegun',
             'pytest-capturelog',
+            'restview',
+        ],
+        'lint': [
+            'flake8',
+        ],
+        'test': [
+            'pytest',
+            'freezegun',
             'pytest-flask',
             'flask-sqlalchemy',
-            'restview',
         ],
     },
     include_package_data=True,
