@@ -1,0 +1,10 @@
+language: python
+python:
+  - "3.5"
+install:
+  - "pip install --upgrade pip"
+  - "pip install .[lint,test]"
+before_script:
+  - "flake8 flask_praetorian"
+  - "flake8 test"
+script: "py.test test"
