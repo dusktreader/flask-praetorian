@@ -22,9 +22,10 @@ setup(
             'pytest-capturelog',
             'pytest-flask',
             'flask-sqlalchemy',
+            'restview',
         ],
     },
     include_package_data=True,
     packages=find_packages(),
     scripts=glob.glob('bin/*'),
-    )
+)
