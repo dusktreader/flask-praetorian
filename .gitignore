@@ -10,3 +10,4 @@ dist/*
 docs/source/*
 docs/build/*
 .cache/*
+.flake8

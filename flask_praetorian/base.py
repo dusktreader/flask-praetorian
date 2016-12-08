@@ -59,6 +59,14 @@ class Praetorian:
 
     @classmethod
     def _validate_user_class(cls, user_class):
+        """
+        Validates the supplied user_class to make sure that it has the
+        class methods necessary to function correctly.
+
+        Requirements:
+        - ``lookup`` method. Accepts username parameter, returns instance
+        - ``identify`` method. Accepts user id parameter, returns instance
+        """
         PraetorianError.require_condition(
             getattr(user_class, 'lookup', None) is not None,
             dedent("""

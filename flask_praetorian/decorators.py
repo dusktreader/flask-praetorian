@@ -10,8 +10,8 @@ def _current_rolenames():
         user._get_current_object() is not None,
         """
         Cannot check roles without identity set. Add jwt token a la flask_jwt
-        and make sure the @flask_jwt.jwt_required or
-        @flask_praetorian.auth_required decorator is applied to functions
+        and make sure the ``@flask_jwt.jwt_required`` or
+        ``@flask_praetorian.auth_required`` decorator is applied to functions
         using flask_praetorian role checks and is declared *before*
         flask_praetorian decorators
         """,
