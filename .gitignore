@@ -7,7 +7,7 @@ env/*
 *~
 build/*
 dist/*
-docs/source/*
 docs/build/*
+!docs/build/.gitignore
 .cache/*
 .flake8
