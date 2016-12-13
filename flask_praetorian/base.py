@@ -43,11 +43,11 @@ class Praetorian:
             valid_schemes,
         )
 
-        self.user_class = self._validate_user_class(user_class)
+        self.user_class = self.validate_user_class(user_class)
 
         self.jwt = JWT(
             app,
-            authentication_handler=self._authenticate,
+            authentication_handler=self.authenticate,
             identity_handler=self._identity,
         )
 
@@ -58,7 +58,7 @@ class Praetorian:
         app.extensions['jwt_roles'] = self
 
     @classmethod
-    def _validate_user_class(cls, user_class):
+    def validate_user_class(cls, user_class):
         """
         Validates the supplied user_class to make sure that it has the
         class methods necessary to function correctly.
@@ -83,7 +83,7 @@ class Praetorian:
         )
         return user_class
 
-    def _authenticate(self, username, password):
+    def authenticate(self, username, password):
         user = self.user_class.query.filter_by(username=username).one_or_none()
         if user is None or not self.verify_password(password, user.password):
             return None

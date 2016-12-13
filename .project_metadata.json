@@ -1,0 +1,10 @@
+{
+    "name": "flask-praetorian",
+    "description": "Strong, Simple, and Precise security for Flask APIs",
+    "version": "0.2",
+    "release": "0.2.0",
+    "author": "Tucker Beck",
+    "author_email": "tucker.beck@gmail.com",
+    "copyright": "2016, Tucker Beck",
+    "license": "MIT"
+}

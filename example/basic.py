@@ -20,6 +20,14 @@ class User(db.Model):
         except:
             return []
 
+    @classmethod
+    def lookup(cls, username):
+        return cls.query.filter_by(username=username).one_or_none()
+
+    @classmethod
+    def identify(cls, id):
+        return cls.query.get(id)
+
 
 app = flask.Flask(__name__)
 app.debug = True

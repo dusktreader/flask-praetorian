@@ -51,7 +51,7 @@ class TestPraetorian:
 
     def test__authenticate(self, app, user_class, db):
         """
-        This test verifies that the _authenticate function can be used to
+        This test verifies that the authenticate function can be used to
         retrieve a User instance when the correct username and password are
         supplied. It also verifies that None is returned when a matching
         password and username are not supplied
@@ -63,9 +63,9 @@ class TestPraetorian:
         )
         db.session.add(the_dude)
         db.session.commit()
-        assert default_guard._authenticate('TheDude', 'abides') == the_dude
-        assert default_guard._authenticate('TheDude', 'is_undudelike') is None
-        assert default_guard._authenticate('Walter', 'abides') is None
+        assert default_guard.authenticate('TheDude', 'abides') == the_dude
+        assert default_guard.authenticate('TheDude', 'is_undudelike') is None
+        assert default_guard.authenticate('Walter', 'abides') is None
         db.session.delete(the_dude)
         db.session.commit()
 
@@ -89,15 +89,15 @@ class TestPraetorian:
 
     def test__validate_user_class(self, app, user_class):
         """
-        This test verifies that the _validate_user_class method properly
+        This test verifies that the validate_user_class method properly
         checks the user_class that Praetorian will use for required attributes
         """
         with pytest.raises(PraetorianError) as err_info:
-            Praetorian._validate_user_class(NoLookupUser)
+            Praetorian.validate_user_class(NoLookupUser)
         assert "must have a lookup class method" in err_info.value.message
 
         with pytest.raises(PraetorianError) as err_info:
-            Praetorian._validate_user_class(NoIdentifyUser)
+            Praetorian.validate_user_class(NoIdentifyUser)
         assert "must have an identify class method" in err_info.value.message
 
-        assert Praetorian._validate_user_class(user_class)
+        assert Praetorian.validate_user_class(user_class)

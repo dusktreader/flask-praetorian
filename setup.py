@@ -1,15 +1,18 @@
 import glob
+import json
 
 from setuptools import setup, find_packages
 
+with open('.project_metadata.json') as meta_file:
+    project_metadata = json.loads(meta_file.read())
 
 setup(
-    name='flask-praetorian',
-    version='0.1.0',
-    author='Tucker Beck',
-    author_email='tucker.beck@gmail.com',
-    description='light-weight security for flask api apps using flask-jwt',
-    license='MIT',
+    name=project_metadata['name'],
+    version=project_metadata['version'],
+    author=project_metadata['author'],
+    author_email=project_metadata['author_email'],
+    description=project_metadata['description'],
+    license=project_metadata['license'],
     install_requires=[
         'flask-jwt',
         'passlib>=1.7.0',
@@ -28,6 +31,9 @@ setup(
             'freezegun',
             'pytest-flask',
             'flask-sqlalchemy',
+        ],
+        'doc': [
+            'sphinx',
         ],
     },
     include_package_data=True,
