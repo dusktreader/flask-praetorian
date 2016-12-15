@@ -27,7 +27,7 @@ class TestPraetorian:
         """
         default_guard = Praetorian(app, user_class)
         secret = default_guard.encrypt_password('some password')
-        assert default_guard.pwd_ctx.identify(secret) == 'argon2'
+        assert default_guard.pwd_ctx.identify(secret) == 'bcrypt'
 
         app.config['PRAETORIAN_HASH_SCHEME'] = 'pbkdf2_sha512'
         specified_guard = Praetorian(app, user_class)

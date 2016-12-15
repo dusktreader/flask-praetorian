@@ -29,7 +29,7 @@ class Praetorian:
             'pbkdf2_sha512',
         ]
         self.pwd_ctx = CryptContext(
-            default='argon2',
+            default='bcrypt',
             schemes=possible_schemes + ['plaintext'],
             deprecated=[],
         )
