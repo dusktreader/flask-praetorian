@@ -1,10 +1,19 @@
 language: python
 python:
-  - "3.5"
+- '3.5'
 install:
-  - "pip install --upgrade pip"
-  - "pip install .[lint,test]"
+- pip install --upgrade pip
+- pip install .[lint,test]
 before_script:
-  - "flake8 flask_praetorian"
-  - "flake8 tests"
-script: "py.test tests"
+- flake8 flask_praetorian
+- flake8 tests
+script: py.test tests
+deploy:
+  provider: pypi
+  user: dusktreader
+  password:
+    secure: CnnySb9f2jdanhSglep2HxAUKJOb1zMaIDkuc/pY4wiNIgkg8WzPZZiT+mVyDHB1RPJ3yPbXvroRxbUww2VVeSwNLZIdXUTmrSywyhk3xHM7XOAphnloNi7mSV8gupSWxmM9elE8qi/Mr3B40aEox/wJjpq1DBTmYo4047JvmTaDNM46ABZMG+bSfZ0Q9+gR7MEsWmfeoA5XVVJULjpJDwOQNSwHg0FrYCHtFgNI0oOm84Uvt8tSimfIZflkXA8iE0b4KCNqRxi5SlISQZSBEH55wmM5uMDcYJS9tD4kGalbRad/XUTPyXja8FifyGlkU6y/bnQu3CDNA5v9+laqFeDAuPrLhAq8cy1+ouqv6XlCbxLJKYpD204Q6cEp301nB3azlMo0qMpN0u1rJANZgACZbd4UTh9E8MCHgTuWizyGqF9Wz73CdQaRfTp7KgK8E0zeU7L5RSJ7UgNxqJoj9BEevLpMuLsqXwgmjoOdtBGfoFhVk9+b4JKi7kUNfY1ghSHXr6qLS51ITvSpy5GiBakYLpXQDgDYyTgyuCjChLy/5RnxcYfcOTnJvpi6qEQivdBkDcat9MMGw7RHhbkWqbFcuUFV3aFe7fIeAwPYYOxABOSzwzLGZyNIPdBTzq89p2Z+7S3tf5j6KwqOeRWkEM2u3pzRUQhhvmNwtBcMN7k=
+  on:
+    tags: true
+    distributions: sdist bdist_wheel
+    repo: dusktreader/flask-praetorian
