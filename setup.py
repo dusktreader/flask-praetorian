@@ -15,13 +15,12 @@ setup(
     license=project_metadata['license'],
     install_requires=[
         'flask-jwt',
-        'passlib>=1.7.0',
-        'argon2-cffi',
+        'passlib',
+        'bcrypt',
     ],
     extras_require={
         'dev': [
             'pytest-capturelog',
-            'restview',
         ],
         'lint': [
             'flake8',
