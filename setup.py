@@ -17,6 +17,7 @@ setup(
         'flask-jwt',
         'passlib',
         'bcrypt',
+        'buzz-lightyear',
     ],
     extras_require={
         'dev': [
