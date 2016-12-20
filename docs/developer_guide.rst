@@ -87,17 +87,14 @@ The ``-ra`` option is recommended as it will report skipped tests
 Documentation
 -------------
 
-Generating the documentation
-............................
+readthedocs.org
+...............
 
-Simply execute the following script within an active virtual environment::
-
-  $ bin/generate-docs
-
-This will generate html documentation in docs/build
-
-In the future, we will probably add extra arguments that will allow generation
-of pdf or latex output for the docs as well.
+Documentation for the flask-praetorian package is available on
+`readthedocs.org <http://flask-praetorian.readthedocs.io/en/latest/>`_. It is
+configured so that new documentation is generated from the flask-praetorian
+docs directory automatically whenever a new commit is pushed to the master
+branch. So, developers need not do anything to build documentation.
 
 Adding further documentation
 ............................
