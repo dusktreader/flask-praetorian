@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Unreleased
 ----------
+- Converted PraetorianError to be based on Buzz exceptions
+- Updated documentation to reflect pypi availability of flask-praetorian
 
 v0.2.0 - 2016-12-15
 -------------------

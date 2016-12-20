@@ -17,13 +17,27 @@ features only available in python 3.5.
 Installation
 ------------
 
-This package is not yet available on PyPi, so you will need to clone it from
-github prior to installation:
+Install from pypi
+.................
+This will install the latest release of flask-praetorian from pypi via pip::
 
-Install with **pip**::
+$ pip install flask-praetorian
+
+Install latest version from github
+..................................
+If you would like a version other than the latest published on pypi, you may
+do so by cloning the git repostiory::
 
 $ git clone https://github.com/dusktreader/flask-praetorian.git
-$ pip install flask-praetorian
+
+Next, checkout the branch or tag that you wish to use::
+
+$ cd flask-praetorian
+$ git checkout integration
+
+Finally, use pip to install from the local directory::
+
+$ pip install .
 
 .. note::
 
