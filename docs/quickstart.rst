@@ -17,6 +17,13 @@ features only available in python 3.5.
 Installation
 ------------
 
+.. note::
+
+    flask-praetorian does not support distutils or setuptools because the
+    author has very strong feelings about python packaging and the role pip
+    plays in taking us into a bright new future of standardized and usable
+    python packaging
+
 Install from pypi
 .................
 This will install the latest release of flask-praetorian from pypi via pip::
@@ -38,14 +45,6 @@ $ git checkout integration
 Finally, use pip to install from the local directory::
 
 $ pip install .
-
-.. note::
-
-    flask-praetorian does not support distutils or setuptools because the
-    author has very strong feelings about python packaging and the role pip
-    plays in taking us into a bright new future of standardized and usable
-    python packaging
-
 
 Example
 -------
