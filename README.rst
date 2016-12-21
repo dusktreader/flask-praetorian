@@ -40,11 +40,14 @@ extension. Though simple, the security provided by flask-praetorian is strong
 due to the usage of the proven security technology of JWT
 and python's `PassLib <http://pythonhosted.org/passlib/>`_ package.
 
+Super-quick Start
+-----------------
+ - requirements: `python3.5`
+ - install through pip: `$ pip install flask-praetorian`
+ - minimal usage example: `example/basic.py <https://github.com/dusktreader/flask-praetorian/tree/master/example/basic.py>`_
+
 Documentation
 -------------
 
-All documentation can be viewed in raw form in
-`docs/source <https://github.com/dusktreader/flask-praetorian/tree/master/docs/source>`_
-
-Documentation webpage is
-`here <http://flask-praetorian.readthedocs.io>`_
+ - `flask-praetorian documentation home <http://flask-praetorian.readthedocs.io>`_
+ - `raw reStructuredText docs  <https://github.com/dusktreader/flask-praetorian/tree/master/docs>`_

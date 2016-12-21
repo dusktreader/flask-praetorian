@@ -8,16 +8,24 @@ from flask_praetorian.exceptions import PraetorianError
 
 class Praetorian:
 
-    def __init__(self, app=None, user_class=None):
+    def __init__(self, app=None, user_class=None, jwt=None):
 
         self.pwd_ctx = None
         self.hash_scheme = None
         self.salt = None
 
         if app is not None and user_class is not None:
-            self.init_app(app, user_class)
+            self.init_app(app, user_class, jwt)
 
-    def init_app(self, app, user_class):
+    def init_app(self, app, user_class, jwt=None):
+        """
+        Initializes the Praetorian extension
+
+        :param: app:        The flask app to which this extension is bound
+        :param: user_class: The class used to interact with user information
+        :param: jwt:        An instance of a jwt extension that should be used
+                            if None, a new jwt instance will be used instead
+        """
         PraetorianError.require_condition(
             app.config.get('SECRET_KEY') is not None,
             "There must be a SECRET_KEY app config setting set",
@@ -45,17 +53,22 @@ class Praetorian:
 
         self.user_class = self.validate_user_class(user_class)
 
-        self.jwt = JWT(
-            app,
-            authentication_handler=self.authenticate,
-            identity_handler=self._identity,
-        )
+        if jwt is None:
+            jwt = JWT(
+                app,
+                authentication_handler=self.authenticate,
+                identity_handler=self._identity,
+            )
+        else:
+            jwt.authentication_callback = self.authenticate
+            jwt.identity_callback = self._identity
+        self.jwt = jwt
 
         app.errorhandler(PraetorianError)(self.error_handler)
 
         if not hasattr(app, 'extensions'):
             app.extensions = {}
-        app.extensions['jwt_roles'] = self
+        app.extensions['praetorian'] = self
 
     @classmethod
     def validate_user_class(cls, user_class):
@@ -84,20 +97,54 @@ class Praetorian:
         return user_class
 
     def authenticate(self, username, password):
-        user = self.user_class.query.filter_by(username=username).one_or_none()
+        """
+        Verifies that a password matches the stored password for that username.
+        If verification passes, the matching user instance is returned
+        """
+        PraetorianError.require_condition(
+            self.user_class is not None,
+            "Praetorian must be initialized before this method is available",
+        )
+        user = self.user_class.lookup(username)
         if user is None or not self.verify_password(password, user.password):
             return None
         return user
 
     def _identity(self, payload):
+        """
+        A helper method for JWT identity handlers. Extracts a user identity
+        from a json payload and returns the associated user instance
+        """
+        PraetorianError.require_condition(
+            self.user_class is not None,
+            "Praetorian must be initialized before this method is available",
+        )
         user_id = payload['identity']
-        return self.user_class.query.get(user_id)
+        return self.user_class.identify(user_id)
 
     def verify_password(self, raw_password, hashed_password):
+        """
+        Verifies that a plaintext password matches the hashed version of that
+        password using the stored passlib password context
+        """
+        PraetorianError.require_condition(
+            self.pwd_ctx is not None,
+            "Praetorian must be initialized before this method is available",
+        )
         return self.pwd_ctx.verify(raw_password, hashed_password)
 
     def encrypt_password(self, raw_password):
+        """
+        Encrypts a plaintext password using the stored passlib password context
+        """
+        PraetorianError.require_condition(
+            self.pwd_ctx is not None,
+            "Praetorian must be initialized before this method is available",
+        )
         return self.pwd_ctx.encrypt(raw_password, scheme=self.hash_scheme)
 
     def error_handler(self, error):
+        """
+        Provides a flask error handler
+        """
         return error.jsonify(), error.status_code, error.headers

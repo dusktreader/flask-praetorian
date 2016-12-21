@@ -11,6 +11,9 @@ _db = SQLAlchemy()
 
 
 class User(_db.Model):
+    """
+    Provides a basic user model for use in the tests
+    """
     id = _db.Column(_db.Integer, primary_key=True)
     username = _db.Column(_db.Text, unique=True)
     password = _db.Column(_db.Text)
@@ -34,8 +37,15 @@ class User(_db.Model):
 
 @pytest.fixture(scope='session')
 def app(tmpdir_factory):
+    """
+    Initializes the flask app for the test suite. Also prepares a set of routes
+    to use in testing with varying levels of protections
+    """
     app = Flask(__name__)
-    app.debug = True
+    # In order to process more requests after initializing the app,
+    # we have to set degug to false so that it will not check to see if there
+    # has already been a request before a setup function
+    app.debug = False
     app.config['TESTING'] = True
     app.config['SECRET_KEY'] = 'top secret'
     # TODO: Add the rest of the configuration stuff here
@@ -98,16 +108,26 @@ def app(tmpdir_factory):
 
 @pytest.fixture(scope='session')
 def user_class():
+    """
+    This fixture simply fetches the user_class to be used in testing
+    """
     return User
 
 
 @pytest.fixture(scope='session')
 def db():
+    """
+    This fixture simply fetches the db instance to be used in testing
+    """
     return _db
 
 
 @pytest.yield_fixture(autouse=True)
 def db_setup(app, db):
+    """
+    Prepares the testing database to hold testing data by creating the schema
+    anew for each test function and then dropping all data after the test runs
+    """
     with app.app_context():
         db.create_all()
         db.session.commit()
@@ -118,4 +138,8 @@ def db_setup(app, db):
 
 @pytest.fixture(scope='session')
 def default_guard(app, user_class):
+    """
+    Creates and returns a basic instance of Praetorian using the testing
+    user_class and initialized app
+    """
     return Praetorian(app, user_class)

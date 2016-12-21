@@ -1,6 +1,8 @@
 import pytest
 import json
 
+from flask_praetorian.exceptions import PraetorianError
+
 
 def get_token(client, username, password):
     """
@@ -11,6 +13,11 @@ def get_token(client, username, password):
         '/auth',
         headers={'Content-Type': 'application/json'},
         data=json.dumps({'username': username, 'password': password}),
+    )
+    PraetorianError.require_condition(
+        response.status_code == 200,
+        "Couldn't fetch a token {}",
+        str(response.status),
     )
     return response.json['access_token']
 
