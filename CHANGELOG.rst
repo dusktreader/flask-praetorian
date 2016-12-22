@@ -11,6 +11,8 @@ Unreleased
 ----------
 - Converted PraetorianError to be based on Buzz exceptions
 - Updated documentation to reflect pypi availability of flask-praetorian
+- Added support for using extant instance of jwt in new Praetorian instances
+- Added a few integration tests
 
 v0.2.0 - 2016-12-15
 -------------------
