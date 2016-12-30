@@ -17,18 +17,18 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-import os
-import sys
 import json
+import os
+import setuptools
+import sys
 
-project_root = os.path.abspath('..')
+project_root = os.path.dirname(os.path.dirname(__file__))
 with open(os.path.join(project_root, '.project_metadata.json')) as meta_file:
     project_metadata = json.loads(meta_file.read())
-source_folder = os.path.join(
-    project_root,
-    project_metadata['name'].lower().replace('-', '_'),
-)
-sys.path.insert(0, source_folder)
+packages = setuptools.find_packages(where=project_root, exclude=['test*'])
+unique_roots = set([p.split('.')[0] for p in packages])
+full_paths = [os.path.join(project_root, p) for p in unique_roots]
+[sys.path.insert(0, p) for p in full_paths]
 
 # -- General configuration ------------------------------------------------
 
@@ -39,9 +39,7 @@ sys.path.insert(0, source_folder)
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [
-    'sphinx.ext.autodoc',
-]
+extensions = ['sphinx.ext.autodoc']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

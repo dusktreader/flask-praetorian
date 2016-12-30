@@ -29,13 +29,6 @@ dependencies (via pip), execute this command::
 
 $ pip install -e .[dev]
 
-If you would like to be able to run tests also, include the test 'extras'::
-
-$ pip install -e .[dev,test]
-
-Additional options for 'extras' include 'lint' for style checking and 'doc'
-for document generation
-
 The full list of dependencies can be found in ``setup.py``
 
 Functional Requirements
@@ -148,8 +141,9 @@ reStructuredText viewer
 .......................
 
 reStructuredText documents can be previewed as they are edited on your
-workstation using a tool called `restview <https://mg.pov.lt/restview/>`_. It
-is indispensible when updating this README.rst document or one of the templates
+workstation using a tool called
+`sphinx-view <https://github.com/dusktreader/sphinx-view>`_. It is
+indispensible when updating this README.rst document or one of the templates
 for the autognerated sphinx documentation.
 
 
@@ -181,4 +175,3 @@ all python source files::
   # autocmd BufWritePost *.py call Flake8()
 
 It is most useful to include that in your ``.vimrc`` file
-
