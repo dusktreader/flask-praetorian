@@ -3,12 +3,14 @@ import json
 
 from setuptools import setup, find_packages
 
+
 with open('.project_metadata.json') as meta_file:
     project_metadata = json.loads(meta_file.read())
 
+
 setup(
     name=project_metadata['name'],
-    version=project_metadata['version'],
+    version=project_metadata['release'],
     author=project_metadata['author'],
     author_email=project_metadata['author_email'],
     description=project_metadata['description'],
@@ -17,26 +19,27 @@ setup(
         'flask-jwt',
         'passlib',
         'bcrypt',
-        'buzz-lightyear',
+        'py-buzz',
     ],
     extras_require={
         'dev': [
-            'pytest-capturelog',
-        ],
-        'lint': [
             'flake8',
-        ],
-        'test': [
-            'pytest',
-            'freezegun',
-            'pytest-flask',
             'flask-sqlalchemy',
-        ],
-        'doc': [
+            'freezegun',
+            'pytest',
+            'pytest-capturelog',
+            'pytest-flask',
             'sphinx',
         ],
     },
     include_package_data=True,
     packages=find_packages(),
     scripts=glob.glob('bin/*'),
+    classifiers=[
+        'Intended Audience :: Developers',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+    ],
 )

@@ -9,9 +9,28 @@ flask_praetorian package
 Submodules
 ----------
 
-.. toctree::
+flask_praetorian.base module
+----------------------------
 
-   flask_praetorian.base
-   flask_praetorian.decorators
-   flask_praetorian.exceptions
+.. automodule:: flask_praetorian.base
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+flask_praetorian.decorators module
+----------------------------------
+
+.. automodule:: flask_praetorian.decorators
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+flask_praetorian.exceptions module
+----------------------------------
+
+.. automodule:: flask_praetorian.exceptions
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
