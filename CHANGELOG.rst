@@ -13,13 +13,11 @@ Unreleased
 - Updated documentation to reflect pypi availability of flask-praetorian
 - Added support for using extant instance of jwt in new Praetorian instances
 - Added a few integration tests
+- Fixed up the documentation and README a little bit
 
 v0.2.0 - 2016-12-15
 -------------------
-
-Added
-.....
 - First release of flask-praetorian and contained functionality
-- This CHANGELOG
-- README providing a brief overview of the project
-- Documentation on a readthedocs site include full module docs
+- Added this CHANGELOG
+- Added a README providing a brief overview of the project
+- Added documentation on a readthedocs site include full module docs
