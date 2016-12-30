@@ -3,7 +3,7 @@ python:
 - '3.5'
 install:
 - pip install --upgrade pip
-- pip install .[lint,test]
+- pip install .[dev]
 before_script:
 - flake8 flask_praetorian
 - flake8 tests
