@@ -23,3 +23,31 @@ class PraetorianError(buzz.Buzz):
             'error': repr(self),
             'description': self.message,
         })
+
+
+class MissingClaimError(PraetorianError):
+    pass
+
+
+class BlacklistedError(PraetorianError):
+    pass
+
+
+class ExpiredAccessError(PraetorianError):
+    pass
+
+
+class EarlyRefreshError(PraetorianError):
+    pass
+
+
+class ExpiredRefreshError(PraetorianError):
+    pass
+
+
+class MissingTokenHeader(PraetorianError):
+    pass
+
+
+class InvalidTokenHeader(PraetorianError):
+    pass
