@@ -28,6 +28,10 @@ class User(db.Model):
     def identify(cls, id):
         return cls.query.get(id)
 
+    @property
+    def indentity(self):
+        return self.id
+
 
 app = flask.Flask(__name__)
 app.debug = True
@@ -62,6 +66,15 @@ with app.app_context():
     db.session.commit()
 
 
+@app.route('/login', methods=['POST'])
+def login():
+    username = flask.request.json.get('username', None)
+    password = flask.request.json.get('password', None)
+    user = guard.authenticate(username, password)
+    ret = {'access_token': guard.create_access_token(user)}
+    return flask.jsonify(ret), 200
+
+
 @app.route('/')
 def root():
     return 'root endpoint'
@@ -70,7 +83,9 @@ def root():
 @app.route('/protected')
 @flask_praetorian.auth_required()
 def protected():
-    return 'protected endpoint'
+    return 'protected endpoint (allowed user {})'.format(
+        flask_praetorian.current_user().username,
+    )
 
 
 @app.route('/protected_admin_required')

@@ -16,7 +16,8 @@ setup(
     description=project_metadata['description'],
     license=project_metadata['license'],
     install_requires=[
-        'flask-jwt',
+        'pyjwt',
+        'pendulum',
         'passlib',
         'bcrypt',
         'py-buzz',

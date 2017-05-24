@@ -2,7 +2,7 @@ import pytest
 
 import flask_praetorian
 
-from flask import Flask
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_praetorian import Praetorian
 
@@ -34,6 +34,10 @@ class User(_db.Model):
     def identify(cls, id):
         return cls.query.get(id)
 
+    @property
+    def identity(self):
+        return self.id
+
 
 @pytest.fixture(scope='session')
 def app(tmpdir_factory):
@@ -48,7 +52,6 @@ def app(tmpdir_factory):
     app.debug = False
     app.config['TESTING'] = True
     app.config['SECRET_KEY'] = 'top secret'
-    # TODO: Add the rest of the configuration stuff here
 
     db_path = tmpdir_factory.mktemp(
         'flask-praetorian-test',
@@ -60,48 +63,47 @@ def app(tmpdir_factory):
         _db.create_all()
 
     @app.route('/unprotected')
-    @flask_praetorian.roles_required('admin')
     def unprotected():
-        return 'success'
+        return jsonify(message='success')
 
     @app.route('/protected')
-    @flask_praetorian.auth_required()
+    @flask_praetorian.auth_required
     def protected():
-        return 'success'
+        return jsonify(message='success')
 
     @app.route('/protected_admin_required')
-    @flask_praetorian.auth_required()
+    @flask_praetorian.auth_required
     @flask_praetorian.roles_required('admin')
     def protected_admin_required():
-        return 'success'
+        return jsonify(message='success')
 
     @app.route('/protected_admin_and_operator_required')
-    @flask_praetorian.auth_required()
+    @flask_praetorian.auth_required
     @flask_praetorian.roles_required('admin', 'operator')
     def protected_admin_and_operator_required():
-        return 'success'
+        return jsonify(message='success')
 
     @app.route('/protected_admin_and_operator_accepted')
-    @flask_praetorian.auth_required()
+    @flask_praetorian.auth_required
     @flask_praetorian.roles_accepted('admin', 'operator')
     def protected_admin_and_operator_accepted():
-        return 'success'
+        return jsonify(message='success')
 
     @app.route('/undecorated_admin_required')
     @flask_praetorian.roles_required('admin')
     def undecorated_admin_required():
-        return 'success'
+        return jsonify(message='success')
 
     @app.route('/undecorated_admin_accepted')
     @flask_praetorian.roles_accepted('admin')
     def undecorated_admin_accepted():
-        return 'success'
+        return jsonify(message='success')
 
     @app.route('/reversed_decorators')
     @flask_praetorian.roles_required('admin', 'operator')
-    @flask_praetorian.auth_required()
+    @flask_praetorian.auth_required
     def reversed_decorators():
-        return 'success'
+        return jsonify(message='success')
 
     return app
 
