@@ -84,7 +84,11 @@ Once you have provisioned a token, you can try out the various endpoints that
 were created above by include the token in the request header like soo::
 
     GET /protected HTTP/1.1
-    Authorization: JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6MSwiaWF0IjoxNDQ0OTE3NjQwLCJuYmYiOjE0NDQ5MTc2NDAsImV4cCI6MTQ0NDkxNzk0MH0.KPmI6WSjRjlpzecPvs3q_T3cJQvAgJvaQAPtk1abC_E
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6MSwiaWF0IjoxNDQ0OTE3NjQwLCJuYmYiOjE0NDQ5MTc2NDAsImV4cCI6MTQ0NDkxNzk0MH0.KPmI6WSjRjlpzecPvs3q_T3cJQvAgJvaQAPtk1abC_E
 
+The name for the authorization header is configurable in the application by
+setting the JWT_HEADER_NAME field in the app config (this defaults to
+'Authorization'). The type of the token may also be configured in the app
+config by setting the JWT_HEADER_TYPE field (this defaults to 'Bearer').
 You can try out the different endpoints with different users provisioned above
 to see how the role constraining decorators from flask-praetorian work.

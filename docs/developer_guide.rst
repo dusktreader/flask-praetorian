@@ -62,6 +62,10 @@ satisfy the following requirements:
 
   * should return the hashed password assigned to the user
 
+* Provide an ``identity`` instance attribute
+
+  * should return the unique id of the user
+
 Although the example given in this readme uses a SQLAlchemy model for the
 userclass, this is not a requirement.
 
@@ -137,11 +141,11 @@ during code reviews.
 Useful tools
 ------------
 
-reStructuredText viewer
-.......................
+sphnx-view
+..........
 
-reStructuredText documents can be previewed as they are edited on your
-workstation using a tool called
+reStructuredText documents and sphinx documentation can be previewed as they
+are edited on your workstation using a tool called
 `sphinx-view <https://github.com/dusktreader/sphinx-view>`_. It is
 indispensible when updating this README.rst document or one of the templates
 for the autognerated sphinx documentation.

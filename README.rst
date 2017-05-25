@@ -19,8 +19,8 @@ Strong, Simple, and Precise security for Flask APIs
 ---------------------------------------------------
 
 API security should be strong, simple, and precise like a Roman Legionary.
-This package aims to provide that. Using `JWT <https://jwt.io/>`_ as
-implemented by `Flask-JWT <https://pythonhosted.org/Flask-JWT/>`_,
+This package aims to provide that. Using `JWT <https://jwt.io/>`_ tokens as
+implemented by `PyJWT <https://pyjwt.readthedocs.io/en/latest/>`_,
 *flask_praetorian* uses a very simple interface to make sure that the users
 accessing your API's endpoints are provisioned with the correct roles for
 access.
@@ -35,9 +35,10 @@ The *flask-praetorian* package can be used to:
 
 * Encrypt (hash) passwords for storing in your database
 * Verify plaintext passwords against the encrypted, stored versions
-* Generate authorization tokens using a ``/auth`` api endpoint
+* Generate authorization tokens upon verification of passwords
 * Check requests to secured endpoints for authorized tokens
 * Ensure that the users associated with tokens have necessary roles for access
+* Parse user information from request headers for use in client route handlers
 
 All of this is provided in a very simple to confiure and initialize flask
 extension. Though simple, the security provided by *flask-praetorian* is strong
