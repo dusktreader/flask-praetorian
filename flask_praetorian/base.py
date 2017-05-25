@@ -31,9 +31,13 @@ from flask_praetorian.constants import (
 
 
 class Praetorian:
+    """
+    Comprises the implementation for the flask-praetorian flask extension.
+    Provides a tool that allows password authentication and token provision
+    for applications and designated endpoints
+    """
 
     def __init__(self, app=None, user_class=None, is_blacklisted=None):
-
         self.pwd_ctx = None
         self.hash_scheme = None
         self.salt = None
@@ -105,6 +109,8 @@ class Praetorian:
 
         app.errorhandler(PraetorianError)(self.error_handler)
 
+        self.is_testing = app.config.get('TESTING', False)
+
         if not hasattr(app, 'extensions'):
             app.extensions = {}
         app.extensions['praetorian'] = self
@@ -116,6 +122,7 @@ class Praetorian:
         class methods necessary to function correctly.
 
         Requirements:
+
         - ``lookup`` method. Accepts a string parameter, returns instance
         - ``identify`` method. Accepts an identity parameter, returns instance
         """
@@ -173,11 +180,16 @@ class Praetorian:
 
     def error_handler(self, error):
         """
-        Provides a flask error handler
+        Provides a flask error handler that is used for PraetorianErrors
+        (and derived exceptions).
         """
         return error.jsonify(), error.status_code, error.headers
 
     def encode_jwt_token(self, user):
+        """
+        Encodes user data into a jwt token that can be used for authorization
+        at protected endpoints
+        """
         moment = pendulum.utcnow()
         payload_parts = dict(
             iat=moment.int_timestamp,
@@ -192,6 +204,12 @@ class Praetorian:
         ).decode('utf-8')
 
     def refresh_jwt_token(self, token):
+        """
+        Creates a new token for a user if and only if the old token's access
+        permission is expired but its refresh permission is not yet expired.
+        The new token's refresh expiration moment is the same as the old
+        token's, but the new token's access expiration is refreshed
+        """
         moment = datetime.datetime.utcnow()
         # Note: we disable exp verification because we do custom checks here
         data = jwt.decode(
@@ -219,6 +237,9 @@ class Praetorian:
         ).decode('utf-8')
 
     def extract_jwt_token(self, token):
+        """
+        Extracts a data dictionary from a jwt token
+        """
         # Note: we disable exp verification because we will do it ourselves
         with PraetorianError.handle_errors('failed to decode JWT token'):
             data = jwt.decode(
@@ -230,6 +251,9 @@ class Praetorian:
         return data
 
     def validate_jwt_data(self, data, access_type):
+        """
+        Validates that the data for a jwt token is valid
+        """
         MissingClaimError.require_condition(
             'jti' in data,
             'Token is missing jti claim',
@@ -267,6 +291,9 @@ class Praetorian:
             )
 
     def unpack_header(self, headers):
+        """
+        Unpacks a jwt token from a request header
+        """
         jwt_header = headers.get(self.header_name)
         MissingTokenHeader.require_condition(
             jwt_header is not None,
@@ -283,9 +310,19 @@ class Praetorian:
         return token
 
     def read_token_from_header(self):
+        """
+        Unpacks a jwt token from the current flask request
+        """
         return self.unpack_header(flask.request.headers)
 
     def pack_header_for_user(self, user):
-        # Note: for testing only
+        """
+        A method that may only be used for testing that packages a jwt token
+        into a header dict for a given user
+        """
+        PraetorianError.require_condition(
+            self.is_testing,
+            "Pack header may only be used for testing",
+        )
         token = self.encode_jwt_token(user)
         return {self.header_name: self.header_type + ' ' + token}

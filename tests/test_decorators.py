@@ -6,7 +6,7 @@ import freezegun
 class TestPraetorianDecorators:
 
     @pytest.fixture(autouse=True)
-    def setup(self, app, db, user_class, default_guard):
+    def setup(self, db, user_class, default_guard):
         """
         This fixture creates 4 users with different roles to test the
         decorators thoroughly

@@ -102,6 +102,12 @@ class TestPraetorian:
         assert Praetorian.validate_user_class(user_class)
 
     def test_validate_jwt_data(self, app, user_class):
+        """
+        This test verifies that the validate_jwt_data method properly validates
+        the data for a jwt token. It checks that the proper exceptions are
+        raised when validation fails and that no exceptions are raised when
+        validation passes
+        """
         guard = Praetorian(
             app, user_class,
             is_blacklisted=(lambda jti: jti == 'blacklisted'),
@@ -188,6 +194,10 @@ class TestPraetorian:
             guard.validate_jwt_data(data, AccessType.refresh)
 
     def test_encode_jwt_token(self, app, user_class):
+        """
+        This test verifies that the encode_jwt_token correctly encodes jwt
+        data based on a user instance
+        """
         guard = Praetorian(app, user_class)
         the_dude = user_class(
             username='TheDude',
@@ -211,6 +221,13 @@ class TestPraetorian:
             assert token_data['rls'] == 'admin,operator'
 
     def test_refresh_jwt_token(self, app, db, user_class):
+        """
+        This test  verifies that the refresh_jwt_token properly generates
+        a refreshed jwt token. It ensures that a token who's access permission
+        has not expired may not be refreshed. It also ensures that a token
+        who's access permission has expired must not have an expired refresh
+        permission for a new token to be issued
+        """
         guard = Praetorian(app, user_class)
         the_dude = user_class(
             username='TheDude',
@@ -245,6 +262,11 @@ class TestPraetorian:
             assert new_token_data['rls'] == 'admin,operator'
 
     def test_read_token_from_header(self, app, db, user_class, client):
+        """
+        This test verifies that a token may be properly read from a flask
+        request's header using the configuration settings for header name and
+        type
+        """
         guard = Praetorian(app, user_class)
         the_dude = user_class(
             username='TheDude',
