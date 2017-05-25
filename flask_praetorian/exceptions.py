@@ -5,7 +5,7 @@ import buzz
 class PraetorianError(buzz.Buzz):
     """
     Provides a custom exception class for flask-praetorian based on Buzz.
-    `buzz-lightyear on gitub <https://github.com/dusktreader/buzz-lightyear>`_
+    `py-buzz on gitub <https://github.com/dusktreader/py-buzz>`_
     """
 
     def __init__(self, *format_args, status_code=401, **format_kwds):

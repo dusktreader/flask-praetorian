@@ -8,6 +8,7 @@ from flask_praetorian import Praetorian
 
 
 _db = SQLAlchemy()
+_guard = Praetorian()
 
 
 class User(_db.Model):
@@ -52,6 +53,8 @@ def app(tmpdir_factory):
     app.debug = False
     app.config['TESTING'] = True
     app.config['SECRET_KEY'] = 'top secret'
+
+    _guard.init_app(app, User)
 
     db_path = tmpdir_factory.mktemp(
         'flask-praetorian-test',
@@ -139,9 +142,8 @@ def db_setup(app, db):
 
 
 @pytest.fixture(scope='session')
-def default_guard(app, user_class):
+def default_guard():
     """
-    Creates and returns a basic instance of Praetorian using the testing
-    user_class and initialized app
+    This fixtures fetches the flask-praetorian instance to be used in testing
     """
-    return Praetorian(app, user_class)
+    return _guard

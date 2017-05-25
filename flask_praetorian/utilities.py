@@ -4,6 +4,10 @@ from flask_praetorian.exceptions import PraetorianError
 
 
 def current_guard():
+    """
+    Fetches the current instance of flask-praetorian that is attached to the
+    current flask app
+    """
     guard = flask.current_app.extensions.get('praetorian', None)
     PraetorianError.require_condition(
         guard is not None,
@@ -13,11 +17,18 @@ def current_guard():
 
 
 def add_jwt_data_to_app_context(jwt_data):
+    """
+    Adds a dictionary of jwt data (presumably unpacked from a token) to the
+    top of the flask app's context
+    """
     ctx = flask._app_ctx_stack.top
     ctx.jwt_data = jwt_data
 
 
 def get_jwt_data_from_app_context():
+    """
+    Fetches a dict of jwt token data from the top of the flask app's context
+    """
     ctx = flask._app_ctx_stack.top
     jwt_data = getattr(ctx, 'jwt_data', None)
     PraetorianError.require_condition(
@@ -31,13 +42,17 @@ def get_jwt_data_from_app_context():
 
 
 def remove_jwt_data_from_app_context():
+    """
+    Removes the dict of jwt token data from the top of the flask app's context
+    """
     ctx = flask._app_ctx_stack.top
     del ctx.jwt_data
 
 
 def current_user():
     """
-    This method returns a user instance for the current identity
+    This method returns a user instance for jwt token data attached to the
+    current flask app's context
     """
     jwt_data = get_jwt_data_from_app_context()
     user_id = jwt_data.get('id')

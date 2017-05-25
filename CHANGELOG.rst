@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Unreleased
 ----------
+- Removed dependence on flask-jwt. Provides jwt support via PyJWT
 - Converted PraetorianError to be based on Buzz exceptions
 - Updated documentation to reflect pypi availability of flask-praetorian
 - Added support for using extant instance of jwt in new Praetorian instances
