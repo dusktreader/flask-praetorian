@@ -55,16 +55,20 @@ class TestPraetorian:
         dumb_guard = Praetorian(app, user_class)
         assert dumb_guard.encrypt_password('some password') == 'some password'
 
-    def test_verify_passord(self, app, user_class):
+    def test_verify_passord(self, app, user_class, default_guard):
         """
         This test verifies that the verify_password function can be used to
         successfully compare a raw password against its hashed version
         """
-        # TODO: Add verify_and_update_support and testing
-        default_guard = Praetorian(app, user_class)
         secret = default_guard.encrypt_password('some password')
         assert default_guard.verify_password('some password', secret)
         assert not default_guard.verify_password('not right', secret)
+
+        app.config['PRAETORIAN_HASH_SCHEME'] = 'pbkdf2_sha512'
+        specified_guard = Praetorian(app, user_class)
+        secret = specified_guard.encrypt_password('some password')
+        assert specified_guard.verify_password('some password', secret)
+        assert not specified_guard.verify_password('not right', secret)
 
     def test_authenticate(self, app, user_class, db):
         """
