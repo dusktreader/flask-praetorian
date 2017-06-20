@@ -13,7 +13,8 @@ def auth_required(method):
     """
     This decorator is used to ensure that a user is authenticated before
     being able to access a flask route. It also adds the current user to the
-    current flask context
+    current flask context. This decorator should come first when using with
+    other flask_praetorian decorators.
     """
     @functools.wraps(method)
     def wrapper(*args, **kwargs):
@@ -30,7 +31,8 @@ def auth_required(method):
 def roles_required(*required_rolenames):
     """
     This decorator ensures that any uses accessing the decorated route have all
-    the needed roles to access it
+    the needed roles to access it. This decorator must follow the
+    @auth_required decorator.
     """
     def decorator(method):
         @functools.wraps(method)
@@ -48,7 +50,8 @@ def roles_required(*required_rolenames):
 def roles_accepted(*accepted_rolenames):
     """
     This decorator ensures that any uses accessing the decorated route have one
-    of the needed roles to access it
+    of the needed roles to access it. This decorator must follow the
+    @auth_required decorator.
     """
     def decorator(method):
         @functools.wraps(method)
