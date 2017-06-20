@@ -7,8 +7,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-Unreleased
-----------
+v0.3.0 - 2017-06-20
+-------------------
 - Removed dependence on flask-jwt. Provides jwt support via PyJWT
 - Converted PraetorianError to be based on Buzz exceptions
 - Updated documentation to reflect pypi availability of flask-praetorian
