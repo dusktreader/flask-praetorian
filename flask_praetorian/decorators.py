@@ -1,38 +1,44 @@
 import functools
-import flask_jwt
 
 from flask_praetorian.exceptions import PraetorianError
+from flask_praetorian.utilities import (
+    current_guard,
+    add_jwt_data_to_app_context,
+    remove_jwt_data_from_app_context,
+    current_rolenames,
+)
 
 
-def _current_rolenames():
-    user = flask_jwt.current_identity
-    PraetorianError.require_condition(
-        user._get_current_object() is not None,
-        """
-        Cannot check roles without identity set. Add jwt token a la flask_jwt
-        and make sure the ``@flask_jwt.jwt_required`` or
-        ``@flask_praetorian.auth_required`` decorator is applied to functions
-        using flask_praetorian role checks and is declared *before*
-        flask_praetorian decorators
-        """,
-    )
-    rolenames = user.rolenames
-    if len(rolenames) == 0:
-        return set(['non-empty-but-definitely-not-matching-subset'])
-    else:
-        return set(rolenames)
-
-
-def auth_required(*args, **kwargs):
-    return flask_jwt.jwt_required(*args, **kwargs)
+def auth_required(method):
+    """
+    This decorator is used to ensure that a user is authenticated before
+    being able to access a flask route. It also adds the current user to the
+    current flask context. This decorator should come first when using with
+    other flask_praetorian decorators.
+    """
+    @functools.wraps(method)
+    def wrapper(*args, **kwargs):
+        guard = current_guard()
+        token = guard.read_token_from_header()
+        jwt_data = guard.extract_jwt_token(token)
+        add_jwt_data_to_app_context(jwt_data)
+        retval = method(*args, **kwargs)
+        remove_jwt_data_from_app_context()
+        return retval
+    return wrapper
 
 
 def roles_required(*required_rolenames):
+    """
+    This decorator ensures that any uses accessing the decorated route have all
+    the needed roles to access it. This decorator must follow the
+    @auth_required decorator.
+    """
     def decorator(method):
         @functools.wraps(method)
         def wrapper(*args, **kwargs):
             PraetorianError.require_condition(
-                _current_rolenames().issuperset(set(required_rolenames)),
+                current_rolenames().issuperset(set(required_rolenames)),
                 "This endpoint requires all the following roles: {}",
                 [', '.join(required_rolenames)],
             )
@@ -42,11 +48,16 @@ def roles_required(*required_rolenames):
 
 
 def roles_accepted(*accepted_rolenames):
+    """
+    This decorator ensures that any uses accessing the decorated route have one
+    of the needed roles to access it. This decorator must follow the
+    @auth_required decorator.
+    """
     def decorator(method):
         @functools.wraps(method)
         def wrapper(*args, **kwargs):
             PraetorianError.require_condition(
-                _current_rolenames().issubset(set(accepted_rolenames)),
+                current_rolenames().issubset(set(accepted_rolenames)),
                 "This endpoint requires one of the following roles: {}",
                 [', '.join(accepted_rolenames)],
             )

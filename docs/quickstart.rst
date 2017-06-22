@@ -17,14 +17,6 @@ features only available in python 3.5.
 Installation
 ------------
 
-This package is not yet available on PyPi, so you will need to clone it from
-github prior to installation:
-
-Install with **pip**::
-
-$ git clone https://github.com/dusktreader/flask-praetorian.git
-$ pip install flask-praetorian
-
 .. note::
 
     flask-praetorian does not support distutils or setuptools because the
@@ -32,6 +24,27 @@ $ pip install flask-praetorian
     plays in taking us into a bright new future of standardized and usable
     python packaging
 
+Install from pypi
+.................
+This will install the latest release of flask-praetorian from pypi via pip::
+
+$ pip install flask-praetorian
+
+Install latest version from github
+..................................
+If you would like a version other than the latest published on pypi, you may
+do so by cloning the git repostiory::
+
+$ git clone https://github.com/dusktreader/flask-praetorian.git
+
+Next, checkout the branch or tag that you wish to use::
+
+$ cd flask-praetorian
+$ git checkout integration
+
+Finally, use pip to install from the local directory::
+
+$ pip install .
 
 Example
 -------
@@ -71,7 +84,11 @@ Once you have provisioned a token, you can try out the various endpoints that
 were created above by include the token in the request header like soo::
 
     GET /protected HTTP/1.1
-    Authorization: JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6MSwiaWF0IjoxNDQ0OTE3NjQwLCJuYmYiOjE0NDQ5MTc2NDAsImV4cCI6MTQ0NDkxNzk0MH0.KPmI6WSjRjlpzecPvs3q_T3cJQvAgJvaQAPtk1abC_E
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6MSwiaWF0IjoxNDQ0OTE3NjQwLCJuYmYiOjE0NDQ5MTc2NDAsImV4cCI6MTQ0NDkxNzk0MH0.KPmI6WSjRjlpzecPvs3q_T3cJQvAgJvaQAPtk1abC_E
 
+The name for the authorization header is configurable in the application by
+setting the JWT_HEADER_NAME field in the app config (this defaults to
+'Authorization'). The type of the token may also be configured in the app
+config by setting the JWT_HEADER_TYPE field (this defaults to 'Bearer').
 You can try out the different endpoints with different users provisioned above
 to see how the role constraining decorators from flask-praetorian work.

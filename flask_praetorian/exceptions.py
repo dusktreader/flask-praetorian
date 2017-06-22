@@ -1,46 +1,17 @@
 import flask
+import buzz
 
-from textwrap import dedent
 
-
-class PraetorianError(Exception):
+class PraetorianError(buzz.Buzz):
     """
-    Provides a custom exception class for flask-praetorian. This class is fancy
-    because it has the ability to automatically format its message string with
-    additional args and kwargs
+    Provides a custom exception class for flask-praetorian based on Buzz.
+    `py-buzz on gitub <https://github.com/dusktreader/py-buzz>`_
     """
 
-    @classmethod
-    def require_condition(cls, expr, failure_message, *format_args,
-                          status_code=401, **format_kwds):
-        """
-        This utility method checks a boolean expression for truth. If that
-        check fails, it raises an exception with a cutomizable message
-
-        :param expr:         The expression to test for truthiness
-        :param fail_message: The message to attach to the exception on failure
-        """
-        if not expr:
-            raise cls(failure_message, *format_args,
-                      status_code=status_code, **format_kwds)
-
-    def __init__(self, message, *format_args, status_code=401, **format_kwds):
-        """
-        Initializes the exception
-
-        :param message:     The message to return. May have formatting marks
-        :param format_args: Format arguments. Follows str.format convention
-        :param format_kwds: Format keyword args. Follows str.format convetion
-        """
-        self.message = dedent(message).format(*format_args, **format_kwds)
+    def __init__(self, *format_args, status_code=401, **format_kwds):
+        super().__init__(*format_args, **format_kwds)
         self.status_code = status_code
         self.headers = None
-
-    def __repr__(self):
-        return self.__class__.__name__
-
-    def __str__(self):
-        return self.message
 
     def jsonify(self):
         """
@@ -52,3 +23,31 @@ class PraetorianError(Exception):
             'error': repr(self),
             'description': self.message,
         })
+
+
+class MissingClaimError(PraetorianError):
+    pass
+
+
+class BlacklistedError(PraetorianError):
+    pass
+
+
+class ExpiredAccessError(PraetorianError):
+    pass
+
+
+class EarlyRefreshError(PraetorianError):
+    pass
+
+
+class ExpiredRefreshError(PraetorianError):
+    pass
+
+
+class MissingTokenHeader(PraetorianError):
+    pass
+
+
+class InvalidTokenHeader(PraetorianError):
+    pass

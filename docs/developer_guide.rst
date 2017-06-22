@@ -29,13 +29,6 @@ dependencies (via pip), execute this command::
 
 $ pip install -e .[dev]
 
-If you would like to be able to run tests also, include the test 'extras'::
-
-$ pip install -e .[dev,test]
-
-Additional options for 'extras' include 'lint' for style checking and 'doc'
-for document generation
-
 The full list of dependencies can be found in ``setup.py``
 
 Functional Requirements
@@ -69,6 +62,10 @@ satisfy the following requirements:
 
   * should return the hashed password assigned to the user
 
+* Provide an ``identity`` instance attribute
+
+  * should return the unique id of the user
+
 Although the example given in this readme uses a SQLAlchemy model for the
 userclass, this is not a requirement.
 
@@ -87,17 +84,14 @@ The ``-ra`` option is recommended as it will report skipped tests
 Documentation
 -------------
 
-Generating the documentation
-............................
+readthedocs.org
+...............
 
-Simply execute the following script within an active virtual environment::
-
-  $ bin/generate-docs
-
-This will generate html documentation in docs/build
-
-In the future, we will probably add extra arguments that will allow generation
-of pdf or latex output for the docs as well.
+Documentation for the flask-praetorian package is available on
+`readthedocs.org <http://flask-praetorian.readthedocs.io/en/latest/>`_. It is
+configured so that new documentation is generated from the flask-praetorian
+docs directory automatically whenever a new commit is pushed to the master
+branch. So, developers need not do anything to build documentation.
 
 Adding further documentation
 ............................
@@ -147,12 +141,13 @@ during code reviews.
 Useful tools
 ------------
 
-reStructuredText viewer
-.......................
+sphnx-view
+..........
 
-reStructuredText documents can be previewed as they are edited on your
-workstation using a tool called `restview <https://mg.pov.lt/restview/>`_. It
-is indispensible when updating this README.rst document or one of the templates
+reStructuredText documents and sphinx documentation can be previewed as they
+are edited on your workstation using a tool called
+`sphinx-view <https://github.com/dusktreader/sphinx-view>`_. It is
+indispensible when updating this README.rst document or one of the templates
 for the autognerated sphinx documentation.
 
 
@@ -184,4 +179,3 @@ all python source files::
   # autocmd BufWritePost *.py call Flake8()
 
 It is most useful to include that in your ``.vimrc`` file
-
