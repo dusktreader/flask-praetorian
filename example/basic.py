@@ -73,15 +73,19 @@ with app.app_context():
 
 
 # Set up some routes for the example
+
+# curl -X POST -d '{"username":"Walter","password":"calmerthanyouare"}' http://localhost/login
 @app.route('/login', methods=['POST'])
 def login():
-    username = flask.request.json.get('username', None)
-    password = flask.request.json.get('password', None)
+    req = flask.request.get_json(force=True)
+    username = req.get('username', None)
+    password = req.get('password', None)
     user = guard.authenticate(username, password)
     ret = {'access_token': guard.encode_jwt_token(user)}
     return flask.jsonify(ret), 200
 
 
+# curl -H "Authorization: Bearer <your_token>" http://localhost/refresh
 @app.route('/refresh', methods=['GET'])
 def refresh():
     old_token = guard.read_token_from_header()
@@ -95,6 +99,7 @@ def root():
     return flask.jsonify(message='root endpoint')
 
 
+# curl -H "Authorization: Bearer <your_token>" http://localhost/protected
 @app.route('/protected')
 @flask_praetorian.auth_required
 def protected():
@@ -103,6 +108,7 @@ def protected():
     ))
 
 
+# curl -H "Authorization: Bearer <your_token>" http://localhost/protected_admin_required
 @app.route('/protected_admin_required')
 @flask_praetorian.auth_required
 @flask_praetorian.roles_required('admin')
@@ -110,6 +116,7 @@ def protected_admin_required():
     return flask.jsonify(message='protected_admin_required endpoint')
 
 
+# curl -H "Authorization: Bearer <your_token>" http://localhost/protected_admin_accepted
 @app.route('/protected_admin_accepted')
 @flask_praetorian.auth_required
 @flask_praetorian.roles_accepted('admin', 'operator')
