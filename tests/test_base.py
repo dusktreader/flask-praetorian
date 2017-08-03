@@ -44,12 +44,12 @@ class TestPraetorian:
         """
         default_guard = Praetorian(app, user_class)
         secret = default_guard.encrypt_password('some password')
-        assert default_guard.pwd_ctx.identify(secret) == 'bcrypt'
+        assert default_guard.pwd_ctx.identify(secret) == 'pbkdf2_sha512'
 
-        app.config['PRAETORIAN_HASH_SCHEME'] = 'pbkdf2_sha512'
+        app.config['PRAETORIAN_HASH_SCHEME'] = 'bcrypt'
         specified_guard = Praetorian(app, user_class)
         secret = specified_guard.encrypt_password('some password')
-        assert specified_guard.pwd_ctx.identify(secret) == 'pbkdf2_sha512'
+        assert specified_guard.pwd_ctx.identify(secret) == 'bcrypt'
 
         app.config['PRAETORIAN_HASH_SCHEME'] = 'plaintext'
         dumb_guard = Praetorian(app, user_class)

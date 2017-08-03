@@ -19,7 +19,6 @@ setup(
         'pyjwt',
         'pendulum',
         'passlib',
-        'bcrypt',
         'py-buzz',
     ],
     extras_require={
