@@ -1,4 +1,3 @@
-import datetime
 import flask
 import jwt
 import pendulum
@@ -210,7 +209,7 @@ class Praetorian:
         The new token's refresh expiration moment is the same as the old
         token's, but the new token's access expiration is refreshed
         """
-        moment = datetime.datetime.utcnow()
+        moment = pendulum.utcnow()
         # Note: we disable exp verification because we do custom checks here
         data = jwt.decode(
             token, self.encode_key,
