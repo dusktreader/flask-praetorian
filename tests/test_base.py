@@ -50,7 +50,7 @@ class TestPraetorian:
         dumb_guard = Praetorian(app, user_class)
         assert dumb_guard.encrypt_password('some password') == 'some password'
 
-    def test_verify_passord(self, app, user_class, default_guard):
+    def test_verify_password(self, app, user_class, default_guard):
         """
         This test verifies that the verify_password function can be used to
         successfully compare a raw password against its hashed version
