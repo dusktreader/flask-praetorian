@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+v0.3.3 - 2017-09-11
+-------------------
+- Updated quickstart documentation
+
 v0.3.2 - 2017-09-11
 -------------------
 - Converted all timestamping to pendulum (for freezing time in tests)
