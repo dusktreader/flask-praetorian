@@ -1,10 +1,10 @@
 {
-    "license": "MIT",
-    "author": "Tucker Beck",
+    "copyright": "2016, Tucker Beck",
     "description": "Strong, Simple, and Precise security for Flask APIs",
-    "name": "flask-praetorian",
+    "release": "0.3.4",
     "version": "0.3",
-    "author_email": "tucker.beck@gmail.com",
-    "release": "0.3.3",
-    "copyright": "2016, Tucker Beck"
+    "name": "flask-praetorian",
+    "author": "Tucker Beck",
+    "license": "MIT",
+    "author_email": "tucker.beck@gmail.com"
 }
