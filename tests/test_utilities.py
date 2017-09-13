@@ -3,12 +3,29 @@ import pytest
 from flask_praetorian.utilities import (
     add_jwt_data_to_app_context,
     current_user,
+    current_user_id,
     current_rolenames,
 )
 from flask_praetorian.exceptions import PraetorianError
 
 
 class TestPraetorianUtilities:
+
+    def test_current_user_id(self, user_class, db, default_guard):
+        """
+        This test verifies that the current user id can be successfully
+        determined based on jwt token data that has been added to the current
+        flask app's context.
+        """
+        jwt_data = {}
+        add_jwt_data_to_app_context(jwt_data)
+        with pytest.raises(PraetorianError) as err_info:
+            current_user()
+        assert 'Could not fetch an id' in str(err_info.value)
+
+        jwt_data = {'id': 31}
+        add_jwt_data_to_app_context(jwt_data)
+        assert current_user_id() == 31
 
     def test_current_user(self, user_class, db, default_guard):
         """
