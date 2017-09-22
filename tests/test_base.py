@@ -11,6 +11,7 @@ from flask_praetorian.exceptions import (
     ExpiredRefreshError,
     InvalidUserError,
     MissingClaimError,
+    MissingUserError,
     PraetorianError,
 )
 from flask_praetorian.constants import (
@@ -294,7 +295,9 @@ class TestPraetorian:
         of the instance's access_lifespan. Also ensures that the
         access_lifespan may not exceed the refresh lifespan. Also ensures that
         if the user_class has the instance method validate(), it is called an
-        any exceptions it raises are wrapped in an InvalidUserError
+        any exceptions it raises are wrapped in an InvalidUserError. Also
+        verifies that if a user is no longer identifiable that a
+        MissingUserError is raised
         """
         guard = Praetorian(app, user_class)
         the_dude = user_class(
@@ -394,6 +397,28 @@ class TestPraetorian:
             with pytest.raises(InvalidUserError) as err_info:
                 validating_guard.refresh_jwt_token(token)
         expected_message = 'The user is not valid or has had access revoked'
+        assert expected_message in str(err_info.value)
+
+        expiring_interval = (
+            DEFAULT_JWT_ACCESS_LIFESPAN + pendulum.Interval(minutes=1)
+        )
+        guard = Praetorian(app, user_class)
+        bunny = user_class(
+            username='bunny',
+            password=guard.encrypt_password("can't blow that far"),
+        )
+        db.session.add(bunny)
+        db.session.commit()
+        moment = pendulum.parse('2017-05-21 18:39:55')
+        with freezegun.freeze_time(moment):
+            token = guard.encode_jwt_token(bunny)
+        db.session.delete(bunny)
+        db.session.commit()
+        new_moment = moment + expiring_interval
+        with freezegun.freeze_time(new_moment):
+            with pytest.raises(MissingUserError) as err_info:
+                validating_guard.refresh_jwt_token(token)
+        expected_message = 'Could not find an active user'
         assert expected_message in str(err_info.value)
 
     def test_read_token_from_header(self, app, db, user_class, client):

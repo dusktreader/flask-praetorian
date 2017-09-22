@@ -86,3 +86,9 @@ class MissingRoleError(PraetorianError):
     The token is missing a required role
     """
     pass
+
+
+class MissingUserError(PraetorianError):
+    """
+    The user could not be identified
+    """
