@@ -195,7 +195,10 @@ class TestPraetorian:
     def test_encode_jwt_token(self, app, user_class):
         """
         This test verifies that the encode_jwt_token correctly encodes jwt
-        data based on a user instance
+        data based on a user instance. Also verifies that if a user specifies
+        an override for the access lifespan it is used in lieu of the
+        instance's access_lifespan. Also verifies taht the access_lifespan
+        cannot exceed the refresh lifespan
         """
         guard = Praetorian(app, user_class)
         the_dude = user_class(
@@ -219,13 +222,58 @@ class TestPraetorian:
             assert token_data['id'] == the_dude.id
             assert token_data['rls'] == 'admin,operator'
 
+        moment = pendulum.parse('2017-05-21 18:39:55')
+        override_access_lifespan = pendulum.Interval(minutes=1)
+        override_refresh_lifespan = pendulum.Interval(hours=1)
+        with freezegun.freeze_time(moment):
+            token = guard.encode_jwt_token(
+                the_dude,
+                override_access_lifespan=override_access_lifespan,
+                override_refresh_lifespan=override_refresh_lifespan,
+            )
+            token_data = jwt.decode(
+                token, guard.encode_key, algorithms=guard.allowed_algorithms,
+            )
+            assert token_data['iat'] == moment.int_timestamp
+            assert token_data['exp'] == (
+                moment + override_access_lifespan
+            ).int_timestamp
+            assert token_data['rf_exp'] == (
+                moment + override_refresh_lifespan
+            ).int_timestamp
+            assert token_data['id'] == the_dude.id
+            assert token_data['rls'] == 'admin,operator'
+
+        moment = pendulum.parse('2017-05-21 18:39:55')
+        override_access_lifespan = pendulum.Interval(hours=1)
+        override_refresh_lifespan = pendulum.Interval(minutes=1)
+        with freezegun.freeze_time(moment):
+            token = guard.encode_jwt_token(
+                the_dude,
+                override_access_lifespan=override_access_lifespan,
+                override_refresh_lifespan=override_refresh_lifespan,
+            )
+            token_data = jwt.decode(
+                token, guard.encode_key, algorithms=guard.allowed_algorithms,
+            )
+            assert token_data['iat'] == moment.int_timestamp
+            assert token_data['exp'] == token_data['rf_exp']
+            assert token_data['rf_exp'] == (
+                moment + override_refresh_lifespan
+            ).int_timestamp
+            assert token_data['id'] == the_dude.id
+            assert token_data['rls'] == 'admin,operator'
+
     def test_refresh_jwt_token(self, app, db, user_class):
         """
         This test  verifies that the refresh_jwt_token properly generates
         a refreshed jwt token. It ensures that a token who's access permission
         has not expired may not be refreshed. It also ensures that a token
         who's access permission has expired must not have an expired refresh
-        permission for a new token to be issued
+        permission for a new token to be issued. Also ensures that if an
+        override_access_lifespan argument is supplied that it is used instead
+        of the instance's access_lifespan. Also ensures that the
+        access_lifespan may not exceed the refresh lifespan
         """
         guard = Praetorian(app, user_class)
         the_dude = user_class(
@@ -235,10 +283,10 @@ class TestPraetorian:
         )
         db.session.add(the_dude)
         db.session.commit()
+
         moment = pendulum.parse('2017-05-21 18:39:55')
         with freezegun.freeze_time(moment):
             token = guard.encode_jwt_token(the_dude)
-
         new_moment = (
             pendulum.parse('2017-05-21 18:39:55')
             .add_timedelta(DEFAULT_JWT_ACCESS_LIFESPAN)
@@ -259,6 +307,46 @@ class TestPraetorian:
             ).int_timestamp
             assert new_token_data['id'] == the_dude.id
             assert new_token_data['rls'] == 'admin,operator'
+
+        moment = pendulum.parse('2017-05-21 18:39:55')
+        with freezegun.freeze_time(moment):
+            token = guard.encode_jwt_token(the_dude)
+        new_moment = (
+            pendulum.parse('2017-05-21 18:39:55')
+            .add_timedelta(DEFAULT_JWT_ACCESS_LIFESPAN)
+            .add(minutes=1)
+        )
+        with freezegun.freeze_time(new_moment):
+            new_token = guard.refresh_jwt_token(
+                token,
+                override_access_lifespan=pendulum.Interval(hours=2),
+            )
+            new_token_data = jwt.decode(
+                new_token, guard.encode_key,
+                algorithms=guard.allowed_algorithms,
+            )
+            assert new_token_data['exp'] == (
+                new_moment + pendulum.Interval(hours=2)
+            ).int_timestamp
+
+        moment = pendulum.parse('2017-05-21 18:39:55')
+        with freezegun.freeze_time(moment):
+            token = guard.encode_jwt_token(
+                the_dude,
+                override_refresh_lifespan=pendulum.Interval(hours=2),
+                override_access_lifespan=pendulum.Interval(minutes=30),
+            )
+        new_moment = moment + pendulum.Interval(minutes=31)
+        with freezegun.freeze_time(new_moment):
+            new_token = guard.refresh_jwt_token(
+                token,
+                override_access_lifespan=pendulum.Interval(hours=2),
+            )
+            new_token_data = jwt.decode(
+                new_token, guard.encode_key,
+                algorithms=guard.allowed_algorithms,
+            )
+            assert new_token_data['exp'] == new_token_data['rf_exp']
 
     def test_read_token_from_header(self, app, db, user_class, client):
         """
