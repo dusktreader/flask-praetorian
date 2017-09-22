@@ -16,6 +16,7 @@ from flask_praetorian.exceptions import (
     InvalidUserError,
     MissingClaimError,
     MissingTokenHeader,
+    MissingUserError,
     PraetorianError,
 )
 
@@ -279,7 +280,7 @@ class Praetorian:
         self.validate_jwt_data(data, access_type=AccessType.refresh)
 
         user = self.user_class.identify(data['id'])
-        PraetorianError.require_condition(
+        MissingUserError.require_condition(
             user is not None,
             'Could not find an active user for the token',
         )
