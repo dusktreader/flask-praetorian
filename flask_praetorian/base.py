@@ -279,15 +279,15 @@ class Praetorian:
         self.validate_jwt_data(data, access_type=AccessType.refresh)
 
         user = self.user_class.identify(data['id'])
-        if hasattr(user, 'validate'):
-            message = "The user is not valid or has had access revoked"
-            with InvalidUserError.handle_errors(message):
-                user.validate()
-
         PraetorianError.require_condition(
             user is not None,
             'Could not find an active user for the token',
         )
+
+        if hasattr(user, 'validate'):
+            message = "The user is not valid or has had access revoked"
+            with InvalidUserError.handle_errors(message):
+                user.validate()
 
         if override_access_lifespan is None:
             access_lifespan = self.access_lifespan
