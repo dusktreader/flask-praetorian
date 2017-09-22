@@ -9,6 +9,8 @@ DEFAULT_JWT_REFRESH_LIFESPAN = pendulum.Interval(days=30)
 DEFAULT_JWT_ALGORITHM = 'HS256'
 DEFAULT_JWT_ALLOWED_ALGORITHMS = ['HS256']
 
+VITAM_AETERNUM = pendulum.Interval.max
+
 
 class AccessType(enum.Enum):
 

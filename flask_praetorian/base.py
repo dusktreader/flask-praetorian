@@ -25,6 +25,7 @@ from flask_praetorian.constants import (
     DEFAULT_JWT_HEADER_NAME,
     DEFAULT_JWT_HEADER_TYPE,
     DEFAULT_JWT_REFRESH_LIFESPAN,
+    VITAM_AETERNUM,
     AccessType,
 )
 
@@ -230,6 +231,22 @@ class Praetorian:
         return jwt.encode(
             payload_parts, self.encode_key, self.encode_algorithm,
         ).decode('utf-8')
+
+    def encode_eternal_jwt_token(self, user):
+        """
+        This utility function encodes a jwt token that never expires
+
+        .. note:: This should be used sparingly since the token could become
+                  a security concern if it is ever lost. If you use this
+                  method, you should be sure that your application also
+                  implements a blacklist so that a given token can be blocked
+                  should it be lost or become a security concern
+        """
+        return self.encode_jwt_token(
+            user,
+            override_access_lifespan=VITAM_AETERNUM,
+            override_refresh_lifespan=VITAM_AETERNUM,
+        )
 
     def refresh_jwt_token(self, token, override_access_lifespan=None):
         """
