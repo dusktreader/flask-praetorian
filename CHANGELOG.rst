@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+v0.3.6 - 2017-09-22
+-------------------
+- Changed role decorators to raise MissingRoleError on failure
+
 v0.3.5 - 2017-09-22
 -------------------
 - Added support for user models containing a validate method
