@@ -2,6 +2,8 @@ import pendulum
 import pytest
 import freezegun
 
+from flask_praetorian.exceptions import MissingRoleError
+
 
 class TestPraetorianDecorators:
 
@@ -128,6 +130,7 @@ class TestPraetorianDecorators:
             headers=default_guard.pack_header_for_user(self.walter),
         )
         assert response.status_code == 401
+        assert MissingRoleError.__name__ in response.json['error']
         assert (
             "This endpoint requires all the following roles"
             in response.json['description']
@@ -178,6 +181,7 @@ class TestPraetorianDecorators:
             headers=default_guard.pack_header_for_user(self.the_dude),
         )
         assert response.status_code == 401
+        assert MissingRoleError.__name__ in response.json['error']
         assert (
             "This endpoint requires one of the following roles"
             in response.json['description']
