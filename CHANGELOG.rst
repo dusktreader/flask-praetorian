@@ -7,6 +7,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+v0.3.5 - 2017-09-22
+-------------------
+- Added support for user models containing a validate method
+- Added abilitiy to provision tokens that don't expire
+- Added ability to override expiration times
+
 v0.3.4 - 2017-09-13
 -------------------
 - Added utility function to fetch just user_id
