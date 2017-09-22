@@ -1,6 +1,7 @@
 import functools
 
-from flask_praetorian.exceptions import PraetorianError
+from flask_praetorian.exceptions import MissingRoleError
+
 from flask_praetorian.utilities import (
     current_guard,
     add_jwt_data_to_app_context,
@@ -37,7 +38,7 @@ def roles_required(*required_rolenames):
     def decorator(method):
         @functools.wraps(method)
         def wrapper(*args, **kwargs):
-            PraetorianError.require_condition(
+            MissingRoleError.require_condition(
                 current_rolenames().issuperset(set(required_rolenames)),
                 "This endpoint requires all the following roles: {}",
                 [', '.join(required_rolenames)],
@@ -56,7 +57,7 @@ def roles_accepted(*accepted_rolenames):
     def decorator(method):
         @functools.wraps(method)
         def wrapper(*args, **kwargs):
-            PraetorianError.require_condition(
+            MissingRoleError.require_condition(
                 current_rolenames().issubset(set(accepted_rolenames)),
                 "This endpoint requires one of the following roles: {}",
                 [', '.join(accepted_rolenames)],

@@ -79,3 +79,10 @@ class InvalidUserError(PraetorianError):
     The user is no longer valid and is now not authorized
     """
     pass
+
+
+class MissingRoleError(PraetorianError):
+    """
+    The token is missing a required role
+    """
+    pass
