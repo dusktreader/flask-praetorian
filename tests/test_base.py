@@ -9,6 +9,7 @@ from flask_praetorian.exceptions import (
     EarlyRefreshError,
     ExpiredAccessError,
     ExpiredRefreshError,
+    InvalidUserError,
     MissingClaimError,
     PraetorianError,
 )
@@ -40,7 +41,7 @@ class TestPraetorian:
         This test verifies that Praetorian encrypts passwords using the scheme
         specified by the HASH_SCHEME setting. If no scheme is supplied, the
         test verifies that the default scheme is used. Otherwise, the test
-        verifies that the encrypted password matches the supplied scheme
+        verifies that the encrypted password matches the supplied scheme.
         """
         default_guard = Praetorian(app, user_class)
         secret = default_guard.encrypt_password('some password')
@@ -192,13 +193,15 @@ class TestPraetorian:
         with freezegun.freeze_time(moment):
             guard.validate_jwt_data(data, AccessType.refresh)
 
-    def test_encode_jwt_token(self, app, user_class):
+    def test_encode_jwt_token(self, app, user_class, validating_user_class):
         """
         This test verifies that the encode_jwt_token correctly encodes jwt
         data based on a user instance. Also verifies that if a user specifies
         an override for the access lifespan it is used in lieu of the
         instance's access_lifespan. Also verifies taht the access_lifespan
-        cannot exceed the refresh lifespan
+        cannot exceed the refresh lifespan.  Also ensures that if the
+        user_class has the instance method validate(), it is called an any
+        exceptions it raises are wrapped in an InvalidUserError
         """
         guard = Praetorian(app, user_class)
         the_dude = user_class(
@@ -264,7 +267,23 @@ class TestPraetorian:
             assert token_data['id'] == the_dude.id
             assert token_data['rls'] == 'admin,operator'
 
-    def test_refresh_jwt_token(self, app, db, user_class):
+        validating_guard = Praetorian(app, validating_user_class)
+        brandt = validating_user_class(
+            username='brandt',
+            password=guard.encrypt_password("can't watch"),
+            is_active=True,
+        )
+        validating_guard.encode_jwt_token(brandt)
+        brandt.is_active = False
+        with pytest.raises(InvalidUserError) as err_info:
+            validating_guard.encode_jwt_token(brandt)
+        expected_message = 'The user is not valid or has had access revoked'
+        assert expected_message in str(err_info.value)
+
+    def test_refresh_jwt_token(
+            self, app, db,
+            user_class, validating_user_class,
+    ):
         """
         This test  verifies that the refresh_jwt_token properly generates
         a refreshed jwt token. It ensures that a token who's access permission
@@ -273,7 +292,9 @@ class TestPraetorian:
         permission for a new token to be issued. Also ensures that if an
         override_access_lifespan argument is supplied that it is used instead
         of the instance's access_lifespan. Also ensures that the
-        access_lifespan may not exceed the refresh lifespan
+        access_lifespan may not exceed the refresh lifespan. Also ensures that
+        if the user_class has the instance method validate(), it is called an
+        any exceptions it raises are wrapped in an InvalidUserError
         """
         guard = Praetorian(app, user_class)
         the_dude = user_class(
@@ -347,6 +368,33 @@ class TestPraetorian:
                 algorithms=guard.allowed_algorithms,
             )
             assert new_token_data['exp'] == new_token_data['rf_exp']
+
+        expiring_interval = (
+            DEFAULT_JWT_ACCESS_LIFESPAN + pendulum.Interval(minutes=1)
+        )
+        validating_guard = Praetorian(app, validating_user_class)
+        brandt = validating_user_class(
+            username='brandt',
+            password=guard.encrypt_password("can't watch"),
+            is_active=True,
+        )
+        db.session.add(brandt)
+        db.session.commit()
+        moment = pendulum.parse('2017-05-21 18:39:55')
+        with freezegun.freeze_time(moment):
+            token = guard.encode_jwt_token(brandt)
+        new_moment = moment + expiring_interval
+        with freezegun.freeze_time(new_moment):
+            validating_guard.refresh_jwt_token(token)
+        brandt.is_active = False
+        db.session.merge(brandt)
+        db.session.commit()
+        new_moment = new_moment + expiring_interval
+        with freezegun.freeze_time(new_moment):
+            with pytest.raises(InvalidUserError) as err_info:
+                validating_guard.refresh_jwt_token(token)
+        expected_message = 'The user is not valid or has had access revoked'
+        assert expected_message in str(err_info.value)
 
     def test_read_token_from_header(self, app, db, user_class, client):
         """
