@@ -13,6 +13,7 @@ class User(db.Model):
     username = db.Column(db.Text, unique=True)
     password = db.Column(db.Text)
     roles = db.Column(db.Text)
+    is_acitve = db.Column(db.Boolean, default=True, server_default='true')
 
     @property
     def rolenames(self):
@@ -32,6 +33,10 @@ class User(db.Model):
     @property
     def identity(self):
         return self.id
+
+    def validate(self):
+        if not self.is_active:
+            raise Exception("user has been disabled")
 
 
 # Initialize flask app for the example

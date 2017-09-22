@@ -40,6 +40,21 @@ class User(_db.Model):
         return self.id
 
 
+class ValidatingUser(User):
+    __tablename__ = 'validating_users'
+    id = _db.Column(_db.Integer, primary_key=True)
+    username = _db.Column(_db.Text, unique=True)
+    password = _db.Column(_db.Text)
+    roles = _db.Column(_db.Text)
+    is_active = _db.Column(_db.Boolean, default=True, server_default='true')
+
+    def validate(self):
+        if not self.is_active:
+            raise Exception("user {} is not valid".format(self.username))
+
+    __mapper_args__ = {'concrete': True}
+
+
 @pytest.fixture(scope='session')
 def app(tmpdir_factory):
     """
@@ -117,6 +132,14 @@ def user_class():
     This fixture simply fetches the user_class to be used in testing
     """
     return User
+
+
+@pytest.fixture(scope='session')
+def validating_user_class():
+    """
+    This fixture simply fetches the validating user_class to be used in testing
+    """
+    return ValidatingUser
 
 
 @pytest.fixture(scope='session')

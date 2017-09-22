@@ -26,28 +26,56 @@ class PraetorianError(buzz.Buzz):
 
 
 class MissingClaimError(PraetorianError):
+    """
+    The jwt token is missing a required claim
+    """
     pass
 
 
 class BlacklistedError(PraetorianError):
+    """
+    The jwt token has been blacklisted and may not be used any more
+    """
     pass
 
 
 class ExpiredAccessError(PraetorianError):
+    """
+    The jwt token has expired for access and must be refreshed
+    """
     pass
 
 
 class EarlyRefreshError(PraetorianError):
+    """
+    The jwt token has not yet expired for access and may not be refreshed
+    """
     pass
 
 
 class ExpiredRefreshError(PraetorianError):
+    """
+    The jwt token has expired for refresh. An entirely new token must be issued
+    """
     pass
 
 
 class MissingTokenHeader(PraetorianError):
+    """
+    The header is missing the required jwt token
+    """
     pass
 
 
 class InvalidTokenHeader(PraetorianError):
+    """
+    The token contained in the header is invalid
+    """
+    pass
+
+
+class InvalidUserError(PraetorianError):
+    """
+    The user is no longer valid and is now not authorized
+    """
     pass
