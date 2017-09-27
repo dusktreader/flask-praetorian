@@ -96,12 +96,12 @@ class Praetorian:
         self.encode_algorithm = app.config.get(
             'JWT_ALGORITHM', DEFAULT_JWT_ALGORITHM,
         )
-        self.access_lifespan = app.config.get(
+        self.access_lifespan = pendulum.interval(**app.config.get(
             'JWT_ACCESS_LIFESPAN', DEFAULT_JWT_ACCESS_LIFESPAN,
-        )
-        self.refresh_lifespan = app.config.get(
+        ))
+        self.refresh_lifespan = pendulum.interval(**app.config.get(
             'JWT_REFRESH_LIFESPAN', DEFAULT_JWT_REFRESH_LIFESPAN,
-        )
+        ))
         self.header_name = app.config.get(
             'JWT_HEADER_NAME', DEFAULT_JWT_HEADER_NAME,
         )
