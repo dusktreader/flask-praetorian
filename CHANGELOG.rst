@@ -7,11 +7,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-v0.3.7 - 2017-09-27
+v0.3.9 - 2017-09-27
+-------------------
+- Added overrides for pack_header_for_user
+
+v0.3.8 - 2017-09-27
 -------------------
 - Allowed pack_user_for_header to be used outside of tests
 
-v0.3.6 - 2017-09-22
+v0.3.7 - 2017-09-22
 -------------------
 - Added special exception for missing user
 
