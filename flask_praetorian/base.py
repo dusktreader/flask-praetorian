@@ -391,9 +391,27 @@ class Praetorian:
         """
         return self.unpack_header(flask.request.headers)
 
-    def pack_header_for_user(self, user):
+    def pack_header_for_user(
+            self, user,
+            override_access_lifespan=None, override_refresh_lifespan=None
+    ):
         """
-        Packages a jwt token into a header dict for a given user
+        Encodes a jwt token and packages it into a header dict for a given user
+
+        :param: user:                      The user to package the header for
+        :param: override_access_lifespan:  Override's the instance's access
+                                           lifespan to set a custom duration
+                                           after which the new token's
+                                           accessability will expire. May not
+                                           exceed the refresh_lifespan
+        :param: override_refresh_lifespan: Override's the instance's refresh
+                                           lifespan to set a custom duration
+                                           after which the new token's
+                                           refreshability will expire.
         """
-        token = self.encode_jwt_token(user)
+        token = self.encode_jwt_token(
+            user,
+            override_access_lifespan=override_access_lifespan,
+            override_refresh_lifespan=override_refresh_lifespan,
+        )
         return {self.header_name: self.header_type + ' ' + token}

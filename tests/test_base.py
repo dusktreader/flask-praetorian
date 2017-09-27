@@ -449,3 +449,59 @@ class TestPraetorian:
         )
 
         assert guard.read_token_from_header() == token
+
+    def test_pack_header_for_user(self, app, user_class):
+        """
+        This test verifies that the pack_header_for_user method can be used to
+        package a token into a header dict for a specified user
+        """
+        guard = Praetorian(app, user_class)
+        the_dude = user_class(
+            username='TheDude',
+            password=guard.encrypt_password('abides'),
+            roles='admin,operator',
+        )
+
+        moment = pendulum.parse('2017-05-21 18:39:55')
+        with freezegun.freeze_time(moment):
+            header_dict = guard.pack_header_for_user(the_dude)
+            token_header = header_dict.get(DEFAULT_JWT_HEADER_NAME)
+            assert token_header is not None
+            token = token_header.replace(DEFAULT_JWT_HEADER_TYPE, '')
+            token = token.strip()
+            token_data = jwt.decode(
+                token, guard.encode_key, algorithms=guard.allowed_algorithms,
+            )
+            assert token_data['iat'] == moment.int_timestamp
+            assert token_data['exp'] == (
+                moment + DEFAULT_JWT_ACCESS_LIFESPAN
+            ).int_timestamp
+            assert token_data['rf_exp'] == (
+                moment + DEFAULT_JWT_REFRESH_LIFESPAN
+            ).int_timestamp
+            assert token_data['id'] == the_dude.id
+            assert token_data['rls'] == 'admin,operator'
+
+        moment = pendulum.parse('2017-05-21 18:39:55')
+        override_access_lifespan = pendulum.Interval(minutes=1)
+        override_refresh_lifespan = pendulum.Interval(hours=1)
+        with freezegun.freeze_time(moment):
+            header_dict = guard.pack_header_for_user(
+                the_dude,
+                override_access_lifespan=override_access_lifespan,
+                override_refresh_lifespan=override_refresh_lifespan,
+            )
+            token_header = header_dict.get(DEFAULT_JWT_HEADER_NAME)
+            assert token_header is not None
+            token = token_header.replace(DEFAULT_JWT_HEADER_TYPE, '')
+            token = token.strip()
+            token_data = jwt.decode(
+                token, guard.encode_key, algorithms=guard.allowed_algorithms,
+            )
+            assert token_data['exp'] == (
+                moment + override_access_lifespan
+            ).int_timestamp
+            assert token_data['rf_exp'] == (
+                moment + override_refresh_lifespan
+            ).int_timestamp
+            assert token_data['id'] == the_dude.id
