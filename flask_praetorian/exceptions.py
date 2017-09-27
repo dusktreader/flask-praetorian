@@ -13,16 +13,22 @@ class PraetorianError(buzz.Buzz):
         self.status_code = status_code
         self.headers = None
 
-    def jsonify(self):
+    def jsonify(self, status_code=None, message=None):
         """
         Returns a representation of the error in a jsonic form that is
         compatible with flask's error handling
         """
-        return flask.jsonify({
-            'status_code': self.status_code,
+        if status_code is None:
+            status_code = self.status_code
+        if message is None:
+            message = self.message
+        response = flask.jsonify({
+            'status_code': status_code,
             'error': repr(self),
-            'description': self.message,
+            'message': message,
         })
+        response.status_code = status_code
+        return response
 
 
 class MissingClaimError(PraetorianError):
