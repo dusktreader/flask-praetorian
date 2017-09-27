@@ -393,12 +393,7 @@ class Praetorian:
 
     def pack_header_for_user(self, user):
         """
-        A method that may only be used for testing that packages a jwt token
-        into a header dict for a given user
+        Packages a jwt token into a header dict for a given user
         """
-        PraetorianError.require_condition(
-            self.is_testing,
-            "Pack header may only be used for testing",
-        )
         token = self.encode_jwt_token(user)
         return {self.header_name: self.header_type + ' ' + token}
