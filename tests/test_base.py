@@ -20,6 +20,7 @@ from flask_praetorian.constants import (
     DEFAULT_JWT_REFRESH_LIFESPAN,
     DEFAULT_JWT_HEADER_NAME,
     DEFAULT_JWT_HEADER_TYPE,
+    VITAM_AETERNUM,
 )
 
 
@@ -218,10 +219,10 @@ class TestPraetorian:
             )
             assert token_data['iat'] == moment.int_timestamp
             assert token_data['exp'] == (
-                moment + DEFAULT_JWT_ACCESS_LIFESPAN
+                moment + pendulum.Interval(**DEFAULT_JWT_ACCESS_LIFESPAN)
             ).int_timestamp
             assert token_data['rf_exp'] == (
-                moment + DEFAULT_JWT_REFRESH_LIFESPAN
+                moment + pendulum.Interval(**DEFAULT_JWT_REFRESH_LIFESPAN)
             ).int_timestamp
             assert token_data['id'] == the_dude.id
             assert token_data['rls'] == 'admin,operator'
@@ -281,6 +282,35 @@ class TestPraetorian:
         expected_message = 'The user is not valid or has had access revoked'
         assert expected_message in str(err_info.value)
 
+    def test_encode_eternal_jwt_token(
+            self, app, user_class, validating_user_class,
+    ):
+        """
+        This test verifies that the encode_eternal_jwt_token correctly encodes
+        jwt data based on a user instance. Also verifies that the lifespan is
+        set to the constant VITAM_AETERNUM
+        """
+        guard = Praetorian(app, user_class)
+        the_dude = user_class(
+            username='TheDude',
+            password=guard.encrypt_password('abides'),
+            roles='admin,operator',
+        )
+        moment = pendulum.parse('2017-05-21 18:39:55')
+        with freezegun.freeze_time(moment):
+            token = guard.encode_eternal_jwt_token(the_dude)
+            token_data = jwt.decode(
+                token, guard.encode_key, algorithms=guard.allowed_algorithms,
+            )
+            assert token_data['iat'] == moment.int_timestamp
+            assert token_data['exp'] == (
+                moment + VITAM_AETERNUM
+            ).int_timestamp
+            assert token_data['rf_exp'] == (
+                moment + VITAM_AETERNUM
+            ).int_timestamp
+            assert token_data['id'] == the_dude.id
+
     def test_refresh_jwt_token(
             self, app, db,
             user_class, validating_user_class,
@@ -312,9 +342,9 @@ class TestPraetorian:
         with freezegun.freeze_time(moment):
             token = guard.encode_jwt_token(the_dude)
         new_moment = (
-            pendulum.parse('2017-05-21 18:39:55')
-            .add_timedelta(DEFAULT_JWT_ACCESS_LIFESPAN)
-            .add(minutes=1)
+            pendulum.parse('2017-05-21 18:39:55') +
+            pendulum.Interval(**DEFAULT_JWT_ACCESS_LIFESPAN) +
+            pendulum.Interval(minutes=1)
         )
         with freezegun.freeze_time(new_moment):
             new_token = guard.refresh_jwt_token(token)
@@ -324,10 +354,10 @@ class TestPraetorian:
             )
             assert new_token_data['iat'] == new_moment.int_timestamp
             assert new_token_data['exp'] == (
-                new_moment + DEFAULT_JWT_ACCESS_LIFESPAN
+                new_moment + pendulum.Interval(**DEFAULT_JWT_ACCESS_LIFESPAN)
             ).int_timestamp
             assert new_token_data['rf_exp'] == (
-                moment + DEFAULT_JWT_REFRESH_LIFESPAN
+                moment + pendulum.Interval(**DEFAULT_JWT_REFRESH_LIFESPAN)
             ).int_timestamp
             assert new_token_data['id'] == the_dude.id
             assert new_token_data['rls'] == 'admin,operator'
@@ -336,9 +366,9 @@ class TestPraetorian:
         with freezegun.freeze_time(moment):
             token = guard.encode_jwt_token(the_dude)
         new_moment = (
-            pendulum.parse('2017-05-21 18:39:55')
-            .add_timedelta(DEFAULT_JWT_ACCESS_LIFESPAN)
-            .add(minutes=1)
+            pendulum.parse('2017-05-21 18:39:55') +
+            pendulum.interval(**DEFAULT_JWT_ACCESS_LIFESPAN) +
+            pendulum.interval(minutes=1)
         )
         with freezegun.freeze_time(new_moment):
             new_token = guard.refresh_jwt_token(
@@ -373,7 +403,8 @@ class TestPraetorian:
             assert new_token_data['exp'] == new_token_data['rf_exp']
 
         expiring_interval = (
-            DEFAULT_JWT_ACCESS_LIFESPAN + pendulum.Interval(minutes=1)
+            pendulum.Interval(**DEFAULT_JWT_ACCESS_LIFESPAN) +
+            pendulum.Interval(minutes=1)
         )
         validating_guard = Praetorian(app, validating_user_class)
         brandt = validating_user_class(
@@ -400,7 +431,8 @@ class TestPraetorian:
         assert expected_message in str(err_info.value)
 
         expiring_interval = (
-            DEFAULT_JWT_ACCESS_LIFESPAN + pendulum.Interval(minutes=1)
+            pendulum.Interval(**DEFAULT_JWT_ACCESS_LIFESPAN) +
+            pendulum.Interval(minutes=1)
         )
         guard = Praetorian(app, user_class)
         bunny = user_class(
@@ -474,10 +506,10 @@ class TestPraetorian:
             )
             assert token_data['iat'] == moment.int_timestamp
             assert token_data['exp'] == (
-                moment + DEFAULT_JWT_ACCESS_LIFESPAN
+                moment + pendulum.Interval(**DEFAULT_JWT_ACCESS_LIFESPAN)
             ).int_timestamp
             assert token_data['rf_exp'] == (
-                moment + DEFAULT_JWT_REFRESH_LIFESPAN
+                moment + pendulum.Interval(**DEFAULT_JWT_REFRESH_LIFESPAN)
             ).int_timestamp
             assert token_data['id'] == the_dude.id
             assert token_data['rls'] == 'admin,operator'
