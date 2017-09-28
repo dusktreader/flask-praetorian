@@ -48,9 +48,8 @@ class ValidatingUser(User):
     roles = _db.Column(_db.Text)
     is_active = _db.Column(_db.Boolean, default=True, server_default='true')
 
-    def validate(self):
-        if not self.is_active:
-            raise Exception("user {} is not valid".format(self.username))
+    def is_valid(self):
+        return self.is_active
 
     __mapper_args__ = {'concrete': True}
 

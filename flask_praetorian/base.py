@@ -27,6 +27,7 @@ from flask_praetorian.constants import (
     DEFAULT_JWT_HEADER_NAME,
     DEFAULT_JWT_HEADER_TYPE,
     DEFAULT_JWT_REFRESH_LIFESPAN,
+    DEFAULT_USER_CLASS_VALIDATION_METHOD,
     VITAM_AETERNUM,
     AccessType,
 )
@@ -107,6 +108,9 @@ class Praetorian:
         )
         self.header_type = app.config.get(
             'JWT_HEADER_TYPE', DEFAULT_JWT_HEADER_TYPE,
+        )
+        self.user_class_validation_method = app.config.get(
+            'USER_CLASS_VALIDATION_METHOD', DEFAULT_USER_CLASS_VALIDATION_METHOD,
         )
 
         app.errorhandler(PraetorianError)(self.error_handler)
@@ -205,10 +209,9 @@ class Praetorian:
                                            after which the new token's
                                            refreshability will expire.
         """
-        if hasattr(user, 'validate'):
-            message = "The user is not valid or has had access revoked"
-            with InvalidUserError.handle_errors(message):
-                user.validate()
+        user_validate_method = getattr(user, self.user_class_validation_method, None)
+        if user_validate_method is not None and not user_validate_method():
+            raise InvalidUserError("The user is not valid or has had access revoked")
 
         moment = pendulum.utcnow()
 
@@ -285,10 +288,9 @@ class Praetorian:
             'Could not find an active user for the token',
         )
 
-        if hasattr(user, 'validate'):
-            message = "The user is not valid or has had access revoked"
-            with InvalidUserError.handle_errors(message):
-                user.validate()
+        user_validate_method = getattr(user, self.user_class_validation_method, None)
+        if user_validate_method is not None and not user_validate_method():
+            raise InvalidUserError("The user is not valid or has had access revoked")
 
         if override_access_lifespan is None:
             access_lifespan = self.access_lifespan
