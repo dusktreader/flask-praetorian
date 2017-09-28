@@ -282,9 +282,7 @@ class TestPraetorian:
         expected_message = 'The user is not valid or has had access revoked'
         assert expected_message in str(err_info.value)
 
-    def test_encode_eternal_jwt_token(
-            self, app, user_class, validating_user_class,
-    ):
+    def test_encode_eternal_jwt_token(self, app, user_class):
         """
         This test verifies that the encode_eternal_jwt_token correctly encodes
         jwt data based on a user instance. Also verifies that the lifespan is
@@ -450,7 +448,7 @@ class TestPraetorian:
         with freezegun.freeze_time(new_moment):
             with pytest.raises(MissingUserError) as err_info:
                 validating_guard.refresh_jwt_token(token)
-        expected_message = 'Could not find an active user'
+        expected_message = 'Could not find the requested user'
         assert expected_message in str(err_info.value)
 
     def test_read_token_from_header(self, app, db, user_class, client):

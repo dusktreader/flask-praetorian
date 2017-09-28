@@ -92,25 +92,32 @@ class Praetorian:
 
         self.encode_key = app.config['SECRET_KEY']
         self.allowed_algorithms = app.config.get(
-            'JWT_ALLOWED_ALGORITHMS', DEFAULT_JWT_ALLOWED_ALGORITHMS,
+            'JWT_ALLOWED_ALGORITHMS',
+            DEFAULT_JWT_ALLOWED_ALGORITHMS,
         )
         self.encode_algorithm = app.config.get(
-            'JWT_ALGORITHM', DEFAULT_JWT_ALGORITHM,
+            'JWT_ALGORITHM',
+            DEFAULT_JWT_ALGORITHM,
         )
         self.access_lifespan = pendulum.interval(**app.config.get(
-            'JWT_ACCESS_LIFESPAN', DEFAULT_JWT_ACCESS_LIFESPAN,
+            'JWT_ACCESS_LIFESPAN',
+            DEFAULT_JWT_ACCESS_LIFESPAN,
         ))
         self.refresh_lifespan = pendulum.interval(**app.config.get(
-            'JWT_REFRESH_LIFESPAN', DEFAULT_JWT_REFRESH_LIFESPAN,
+            'JWT_REFRESH_LIFESPAN',
+            DEFAULT_JWT_REFRESH_LIFESPAN,
         ))
         self.header_name = app.config.get(
-            'JWT_HEADER_NAME', DEFAULT_JWT_HEADER_NAME,
+            'JWT_HEADER_NAME',
+            DEFAULT_JWT_HEADER_NAME,
         )
         self.header_type = app.config.get(
-            'JWT_HEADER_TYPE', DEFAULT_JWT_HEADER_TYPE,
+            'JWT_HEADER_TYPE',
+            DEFAULT_JWT_HEADER_TYPE,
         )
         self.user_class_validation_method = app.config.get(
-            'USER_CLASS_VALIDATION_METHOD', DEFAULT_USER_CLASS_VALIDATION_METHOD,
+            'USER_CLASS_VALIDATION_METHOD',
+            DEFAULT_USER_CLASS_VALIDATION_METHOD,
         )
 
         app.errorhandler(PraetorianError)(self.error_handler)
@@ -191,6 +198,28 @@ class Praetorian:
         """
         return error.jsonify(), error.status_code, error.headers
 
+    def _check_user(self, user):
+        """
+        Checks to make sure that a user is valid. First, checks that the user
+        is not None. If this check fails, a MissingUserError is raised. Next,
+        checks if the user has a validation method. If the method does not
+        exist, the check passes. If the method exists, it is called. If the
+        result of the call is not truthy, an InvalidUserError is raised
+        """
+        MissingUserError.require_condition(
+            user is not None,
+            'Could not find the requested user',
+        )
+        user_validate_method = getattr(
+            user, self.user_class_validation_method, None
+        )
+        if user_validate_method is None:
+            return
+        InvalidUserError.require_condition(
+            user_validate_method(),
+            "The user is not valid or has had access revoked",
+        )
+
     def encode_jwt_token(
             self, user,
             override_access_lifespan=None, override_refresh_lifespan=None
@@ -209,9 +238,7 @@ class Praetorian:
                                            after which the new token's
                                            refreshability will expire.
         """
-        user_validate_method = getattr(user, self.user_class_validation_method, None)
-        if user_validate_method is not None and not user_validate_method():
-            raise InvalidUserError("The user is not valid or has had access revoked")
+        self._check_user(user)
 
         moment = pendulum.utcnow()
 
@@ -283,14 +310,7 @@ class Praetorian:
         self.validate_jwt_data(data, access_type=AccessType.refresh)
 
         user = self.user_class.identify(data['id'])
-        MissingUserError.require_condition(
-            user is not None,
-            'Could not find an active user for the token',
-        )
-
-        user_validate_method = getattr(user, self.user_class_validation_method, None)
-        if user_validate_method is not None and not user_validate_method():
-            raise InvalidUserError("The user is not valid or has had access revoked")
+        self._check_user(user)
 
         if override_access_lifespan is None:
             access_lifespan = self.access_lifespan
