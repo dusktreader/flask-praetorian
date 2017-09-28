@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+v0.3.12 - 2017-09-28
+--------------------
+- Made user validation more configurable, and condensed validation code
+
 v0.3.11 - 2017-09-27
 --------------------
 - Added capability for user to override fields for PraetorianError's in jsonify
