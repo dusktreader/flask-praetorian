@@ -305,8 +305,10 @@ class Praetorian:
         # Note: we disable exp verification because we do custom checks here
         with InvalidTokenHeader.handle_errors('failed to decode JWT token'):
             data = jwt.decode(
-                token, self.encode_key,
-                algorithms=self.allowed_algorithms, options={'verify_exp': False},
+                token,
+                self.encode_key,
+                algorithms=self.allowed_algorithms,
+                options={'verify_exp': False},
             )
 
         self.validate_jwt_data(data, access_type=AccessType.refresh)
@@ -343,7 +345,8 @@ class Praetorian:
         # Note: we disable exp verification because we will do it ourselves
         with InvalidTokenHeader.handle_errors('failed to decode JWT token'):
             data = jwt.decode(
-                token, self.encode_key,
+                token,
+                self.encode_key,
                 algorithms=self.allowed_algorithms,
                 options={'verify_exp': False},
             )
