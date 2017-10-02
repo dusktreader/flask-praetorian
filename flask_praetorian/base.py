@@ -303,10 +303,14 @@ class Praetorian:
         """
         moment = pendulum.utcnow()
         # Note: we disable exp verification because we do custom checks here
-        data = jwt.decode(
-            token, self.encode_key,
-            algorithms=self.allowed_algorithms, options={'verify_exp': False},
-        )
+        with InvalidTokenHeader.handle_errors('failed to decode JWT token'):
+            data = jwt.decode(
+                token,
+                self.encode_key,
+                algorithms=self.allowed_algorithms,
+                options={'verify_exp': False},
+            )
+
         self.validate_jwt_data(data, access_type=AccessType.refresh)
 
         user = self.user_class.identify(data['id'])
@@ -339,9 +343,10 @@ class Praetorian:
         Extracts a data dictionary from a jwt token
         """
         # Note: we disable exp verification because we will do it ourselves
-        with PraetorianError.handle_errors('failed to decode JWT token'):
+        with InvalidTokenHeader.handle_errors('failed to decode JWT token'):
             data = jwt.decode(
-                token, self.encode_key,
+                token,
+                self.encode_key,
                 algorithms=self.allowed_algorithms,
                 options={'verify_exp': False},
             )
