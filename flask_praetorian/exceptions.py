@@ -62,7 +62,7 @@ class InvalidUserError(PraetorianError):
     """
     The user is no longer valid and is now not authorized
     """
-    pass
+    status_code = 403
 
 
 class MissingRoleError(PraetorianError):
