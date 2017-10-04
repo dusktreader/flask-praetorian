@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+v0.3.14 - 2017-10-04
+--------------------
+- Revised exceptions to derive from FlaskBuzz
+
 v0.3.13 - 2017-10-01
 --------------------
 - Errors decoding JWT tokens now raise InvalidTokenHeader
