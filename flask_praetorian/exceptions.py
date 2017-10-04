@@ -1,34 +1,12 @@
-import flask
-import buzz
+import flask_buzz
 
 
-class PraetorianError(buzz.Buzz):
+class PraetorianError(flask_buzz.FlaskBuzz):
     """
-    Provides a custom exception class for flask-praetorian based on Buzz.
-    `py-buzz on gitub <https://github.com/dusktreader/py-buzz>`_
+    Provides a custom exception class for flask-praetorian based on flask-buzz.
+    `flask-buzz on gitub <https://github.com/dusktreader/flask-buzz>`_
     """
-
-    def __init__(self, *format_args, status_code=401, **format_kwds):
-        super().__init__(*format_args, **format_kwds)
-        self.status_code = status_code
-        self.headers = None
-
-    def jsonify(self, status_code=None, message=None):
-        """
-        Returns a representation of the error in a jsonic form that is
-        compatible with flask's error handling
-        """
-        if status_code is None:
-            status_code = self.status_code
-        if message is None:
-            message = self.message
-        response = flask.jsonify({
-            'status_code': status_code,
-            'error': repr(self),
-            'message': message,
-        })
-        response.status_code = status_code
-        return response
+    status_code = 401
 
 
 class MissingClaimError(PraetorianError):
@@ -42,7 +20,7 @@ class BlacklistedError(PraetorianError):
     """
     The jwt token has been blacklisted and may not be used any more
     """
-    pass
+    status_code = 403
 
 
 class ExpiredAccessError(PraetorianError):
@@ -91,7 +69,7 @@ class MissingRoleError(PraetorianError):
     """
     The token is missing a required role
     """
-    pass
+    status_code = 403
 
 
 class MissingUserError(PraetorianError):

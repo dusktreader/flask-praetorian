@@ -111,7 +111,7 @@ class TestPraetorianDecorators:
             '/protected_admin_required',
             headers=default_guard.pack_header_for_user(self.the_dude),
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
         assert (
             "This endpoint requires all the following roles"
             in response.json['message']
@@ -129,7 +129,7 @@ class TestPraetorianDecorators:
             '/protected_admin_and_operator_required',
             headers=default_guard.pack_header_for_user(self.walter),
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
         assert MissingRoleError.__name__ in response.json['error']
         assert (
             "This endpoint requires all the following roles"
@@ -180,7 +180,7 @@ class TestPraetorianDecorators:
             '/protected_admin_and_operator_accepted',
             headers=default_guard.pack_header_for_user(self.the_dude),
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
         assert MissingRoleError.__name__ in response.json['error']
         assert (
             "This endpoint requires one of the following roles"
