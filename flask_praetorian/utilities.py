@@ -49,10 +49,10 @@ def remove_jwt_data_from_app_context():
     del ctx.jwt_data
 
 
-def current_user():
+def current_user_id():
     """
-    This method returns a user instance for jwt token data attached to the
-    current flask app's context
+    This method returns the user id retrieved from jwt token data attached to
+    the current flask app's context
     """
     jwt_data = get_jwt_data_from_app_context()
     user_id = jwt_data.get('id')
@@ -60,6 +60,15 @@ def current_user():
         user_id is not None,
         "Could not fetch an id for the current user",
     )
+    return user_id
+
+
+def current_user():
+    """
+    This method returns a user instance for jwt token data attached to the
+    current flask app's context
+    """
+    user_id = current_user_id()
     guard = current_guard()
     user = guard.user_class.identify(user_id)
     PraetorianError.require_condition(

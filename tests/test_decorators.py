@@ -2,6 +2,8 @@ import pendulum
 import pytest
 import freezegun
 
+from flask_praetorian.exceptions import MissingRoleError
+
 
 class TestPraetorianDecorators:
 
@@ -52,7 +54,7 @@ class TestPraetorianDecorators:
         )
         assert (
             "JWT token not found"
-            in response.json['description']
+            in response.json['message']
         )
         assert response.status_code == 401
 
@@ -63,7 +65,7 @@ class TestPraetorianDecorators:
         )
         assert (
             "JWT header structure is invalid"
-            in response.json['description']
+            in response.json['message']
         )
         assert response.status_code == 401
 
@@ -82,7 +84,7 @@ class TestPraetorianDecorators:
             assert response.status_code == 401
             assert (
                 "access permission has expired"
-                in response.json['description']
+                in response.json['message']
             )
 
         # Token is present and valid
@@ -109,10 +111,10 @@ class TestPraetorianDecorators:
             '/protected_admin_required',
             headers=default_guard.pack_header_for_user(self.the_dude),
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
         assert (
             "This endpoint requires all the following roles"
-            in response.json['description']
+            in response.json['message']
         )
 
         # Has one of one required roles
@@ -127,10 +129,11 @@ class TestPraetorianDecorators:
             '/protected_admin_and_operator_required',
             headers=default_guard.pack_header_for_user(self.walter),
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
+        assert MissingRoleError.__name__ in response.json['error']
         assert (
             "This endpoint requires all the following roles"
-            in response.json['description']
+            in response.json['message']
         )
 
         # Has two of two required roles
@@ -147,7 +150,7 @@ class TestPraetorianDecorators:
         assert response.status_code == 401
         assert (
             "No jwt_data found in app context"
-            in response.json['description']
+            in response.json['message']
         )
 
         response = client.get(
@@ -157,7 +160,7 @@ class TestPraetorianDecorators:
         assert response.status_code == 401
         assert (
             "No jwt_data found in app context"
-            in response.json['description']
+            in response.json['message']
         )
 
     def test_roles_accepted(self, client, default_guard):
@@ -177,10 +180,11 @@ class TestPraetorianDecorators:
             '/protected_admin_and_operator_accepted',
             headers=default_guard.pack_header_for_user(self.the_dude),
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
+        assert MissingRoleError.__name__ in response.json['error']
         assert (
             "This endpoint requires one of the following roles"
-            in response.json['description']
+            in response.json['message']
         )
 
         response = client.get(

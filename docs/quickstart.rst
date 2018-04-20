@@ -60,10 +60,10 @@ calling::
 $ python example/basic.py
 
 Once the server is up and running, you can login and get an auth token
-by POSTing to the '/auth' endpoint with a body containing your username and
+by POSTing to the '/login' endpoint with a body containing your username and
 password::
 
-    POST /auth HTTP/1.1
+    POST /login HTTP/1.1
     Host: localhost:5000
     Content-Type: application/json
     {

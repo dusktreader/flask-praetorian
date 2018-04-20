@@ -1,4 +1,3 @@
-import datetime
 import flask
 import jwt
 import pendulum
@@ -14,8 +13,10 @@ from flask_praetorian.exceptions import (
     ExpiredAccessError,
     ExpiredRefreshError,
     InvalidTokenHeader,
+    InvalidUserError,
     MissingClaimError,
     MissingTokenHeader,
+    MissingUserError,
     PraetorianError,
 )
 
@@ -26,6 +27,8 @@ from flask_praetorian.constants import (
     DEFAULT_JWT_HEADER_NAME,
     DEFAULT_JWT_HEADER_TYPE,
     DEFAULT_JWT_REFRESH_LIFESPAN,
+    DEFAULT_USER_CLASS_VALIDATION_METHOD,
+    VITAM_AETERNUM,
     AccessType,
 )
 
@@ -70,7 +73,7 @@ class Praetorian:
             'pbkdf2_sha512',
         ]
         self.pwd_ctx = CryptContext(
-            default='bcrypt',
+            default='pbkdf2_sha512',
             schemes=possible_schemes + ['plaintext'],
             deprecated=[],
         )
@@ -89,22 +92,32 @@ class Praetorian:
 
         self.encode_key = app.config['SECRET_KEY']
         self.allowed_algorithms = app.config.get(
-            'JWT_ALLOWED_ALGORITHMS', DEFAULT_JWT_ALLOWED_ALGORITHMS,
+            'JWT_ALLOWED_ALGORITHMS',
+            DEFAULT_JWT_ALLOWED_ALGORITHMS,
         )
         self.encode_algorithm = app.config.get(
-            'JWT_ALGORITHM', DEFAULT_JWT_ALGORITHM,
+            'JWT_ALGORITHM',
+            DEFAULT_JWT_ALGORITHM,
         )
-        self.access_lifespan = app.config.get(
-            'JWT_ACCESS_LIFESPAN', DEFAULT_JWT_ACCESS_LIFESPAN,
-        )
-        self.refresh_lifespan = app.config.get(
-            'JWT_REFRESH_LIFESPAN', DEFAULT_JWT_REFRESH_LIFESPAN,
-        )
+        self.access_lifespan = pendulum.interval(**app.config.get(
+            'JWT_ACCESS_LIFESPAN',
+            DEFAULT_JWT_ACCESS_LIFESPAN,
+        ))
+        self.refresh_lifespan = pendulum.interval(**app.config.get(
+            'JWT_REFRESH_LIFESPAN',
+            DEFAULT_JWT_REFRESH_LIFESPAN,
+        ))
         self.header_name = app.config.get(
-            'JWT_HEADER_NAME', DEFAULT_JWT_HEADER_NAME,
+            'JWT_HEADER_NAME',
+            DEFAULT_JWT_HEADER_NAME,
         )
         self.header_type = app.config.get(
-            'JWT_HEADER_TYPE', DEFAULT_JWT_HEADER_TYPE,
+            'JWT_HEADER_TYPE',
+            DEFAULT_JWT_HEADER_TYPE,
+        )
+        self.user_class_validation_method = app.config.get(
+            'USER_CLASS_VALIDATION_METHOD',
+            DEFAULT_USER_CLASS_VALIDATION_METHOD,
         )
 
         app.errorhandler(PraetorianError)(self.error_handler)
@@ -185,16 +198,69 @@ class Praetorian:
         """
         return error.jsonify(), error.status_code, error.headers
 
-    def encode_jwt_token(self, user):
+    def _check_user(self, user):
+        """
+        Checks to make sure that a user is valid. First, checks that the user
+        is not None. If this check fails, a MissingUserError is raised. Next,
+        checks if the user has a validation method. If the method does not
+        exist, the check passes. If the method exists, it is called. If the
+        result of the call is not truthy, an InvalidUserError is raised
+        """
+        MissingUserError.require_condition(
+            user is not None,
+            'Could not find the requested user',
+        )
+        user_validate_method = getattr(
+            user, self.user_class_validation_method, None
+        )
+        if user_validate_method is None:
+            return
+        InvalidUserError.require_condition(
+            user_validate_method(),
+            "The user is not valid or has had access revoked",
+        )
+
+    def encode_jwt_token(
+            self, user,
+            override_access_lifespan=None, override_refresh_lifespan=None
+    ):
         """
         Encodes user data into a jwt token that can be used for authorization
         at protected endpoints
+
+        :param: override_access_lifespan:  Override's the instance's access
+                                           lifespan to set a custom duration
+                                           after which the new token's
+                                           accessability will expire. May not
+                                           exceed the refresh_lifespan
+        :param: override_refresh_lifespan: Override's the instance's refresh
+                                           lifespan to set a custom duration
+                                           after which the new token's
+                                           refreshability will expire.
         """
+        self._check_user(user)
+
         moment = pendulum.utcnow()
+
+        if override_refresh_lifespan is None:
+            refresh_lifespan = self.refresh_lifespan
+        else:
+            refresh_lifespan = override_refresh_lifespan
+        refresh_expiration = (moment + refresh_lifespan).int_timestamp
+
+        if override_access_lifespan is None:
+            access_lifespan = self.access_lifespan
+        else:
+            access_lifespan = override_access_lifespan
+        access_expiration = min(
+            (moment + access_lifespan).int_timestamp,
+            refresh_expiration,
+        )
+
         payload_parts = dict(
             iat=moment.int_timestamp,
-            exp=(moment + self.access_lifespan).int_timestamp,
-            rf_exp=(moment + self.refresh_lifespan).int_timestamp,
+            exp=access_expiration,
+            rf_exp=refresh_expiration,
             jti=str(uuid.uuid4()),
             id=user.identity,
             rls=','.join(user.rolenames),
@@ -203,31 +269,67 @@ class Praetorian:
             payload_parts, self.encode_key, self.encode_algorithm,
         ).decode('utf-8')
 
-    def refresh_jwt_token(self, token):
+    def encode_eternal_jwt_token(self, user):
+        """
+        This utility function encodes a jwt token that never expires
+
+        .. note:: This should be used sparingly since the token could become
+                  a security concern if it is ever lost. If you use this
+                  method, you should be sure that your application also
+                  implements a blacklist so that a given token can be blocked
+                  should it be lost or become a security concern
+        """
+        return self.encode_jwt_token(
+            user,
+            override_access_lifespan=VITAM_AETERNUM,
+            override_refresh_lifespan=VITAM_AETERNUM,
+        )
+
+    def refresh_jwt_token(self, token, override_access_lifespan=None):
         """
         Creates a new token for a user if and only if the old token's access
         permission is expired but its refresh permission is not yet expired.
         The new token's refresh expiration moment is the same as the old
         token's, but the new token's access expiration is refreshed
+
+        :param: token:                     The existing jwt token that needs to
+                                           be replaced with a new, refreshed
+                                           token
+        :param: override_access_lifespan:  Override's the instance's access
+                                           lifespan to set a custom duration
+                                           after which the new token's
+                                           accessability will expire. May not
+                                           exceed the refresh lifespan
         """
-        moment = datetime.datetime.utcnow()
+        moment = pendulum.utcnow()
         # Note: we disable exp verification because we do custom checks here
-        data = jwt.decode(
-            token, self.encode_key,
-            algorithms=self.allowed_algorithms, options={'verify_exp': False},
-        )
+        with InvalidTokenHeader.handle_errors('failed to decode JWT token'):
+            data = jwt.decode(
+                token,
+                self.encode_key,
+                algorithms=self.allowed_algorithms,
+                options={'verify_exp': False},
+            )
+
         self.validate_jwt_data(data, access_type=AccessType.refresh)
 
         user = self.user_class.identify(data['id'])
-        PraetorianError.require_condition(
-            user is not None,
-            'Could not find an active user for the token',
+        self._check_user(user)
+
+        if override_access_lifespan is None:
+            access_lifespan = self.access_lifespan
+        else:
+            access_lifespan = override_access_lifespan
+        refresh_expiration = data['rf_exp']
+        access_expiration = min(
+            (moment + access_lifespan).int_timestamp,
+            refresh_expiration,
         )
 
         payload_parts = dict(
-            iat=moment,
-            exp=moment + self.access_lifespan,
-            rf_exp=data['rf_exp'],
+            iat=moment.int_timestamp,
+            exp=access_expiration,
+            rf_exp=refresh_expiration,
             jti=data['jti'],
             id=data['id'],
             rls=','.join(user.rolenames),
@@ -241,9 +343,10 @@ class Praetorian:
         Extracts a data dictionary from a jwt token
         """
         # Note: we disable exp verification because we will do it ourselves
-        with PraetorianError.handle_errors('failed to decode JWT token'):
+        with InvalidTokenHeader.handle_errors('failed to decode JWT token'):
             data = jwt.decode(
-                token, self.encode_key,
+                token,
+                self.encode_key,
                 algorithms=self.allowed_algorithms,
                 options={'verify_exp': False},
             )
@@ -315,14 +418,27 @@ class Praetorian:
         """
         return self.unpack_header(flask.request.headers)
 
-    def pack_header_for_user(self, user):
+    def pack_header_for_user(
+            self, user,
+            override_access_lifespan=None, override_refresh_lifespan=None
+    ):
         """
-        A method that may only be used for testing that packages a jwt token
-        into a header dict for a given user
+        Encodes a jwt token and packages it into a header dict for a given user
+
+        :param: user:                      The user to package the header for
+        :param: override_access_lifespan:  Override's the instance's access
+                                           lifespan to set a custom duration
+                                           after which the new token's
+                                           accessability will expire. May not
+                                           exceed the refresh_lifespan
+        :param: override_refresh_lifespan: Override's the instance's refresh
+                                           lifespan to set a custom duration
+                                           after which the new token's
+                                           refreshability will expire.
         """
-        PraetorianError.require_condition(
-            self.is_testing,
-            "Pack header may only be used for testing",
+        token = self.encode_jwt_token(
+            user,
+            override_access_lifespan=override_access_lifespan,
+            override_refresh_lifespan=override_refresh_lifespan,
         )
-        token = self.encode_jwt_token(user)
         return {self.header_name: self.header_type + ' ' + token}
