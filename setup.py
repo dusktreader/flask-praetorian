@@ -17,6 +17,7 @@ setup(
     author=project_metadata['author'],
     author_email=project_metadata['author_email'],
     description=project_metadata['description'],
+    url=project_metadata['url'],
     long_description=long_description,
     long_description_content_type=long_description_content_type,
     license=project_metadata['license'],
