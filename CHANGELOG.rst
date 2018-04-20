@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-v0.3.15 - 2018-04-20
+v0.3.16 - 2018-04-20
 --------------------
 - Fixed long_description to use README
 
