@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+v0.3.17 - 2018-04-20
+--------------------
+- Fixed flake8 error
+- Fixed long_description to pull from README for pypi
+
 v0.3.14 - 2017-10-04
 --------------------
 - Revised exceptions to derive from FlaskBuzz
