@@ -11,3 +11,4 @@ docs/build/*
 !docs/build/.gitignore
 .cache/*
 .flake8
+.pytest_cache/*
