@@ -7,6 +7,9 @@ from setuptools import setup, find_packages
 with open('.project_metadata.json') as meta_file:
     project_metadata = json.loads(meta_file.read())
 
+with open('README.rst') as readme_file:
+    long_description = readme_file.read()
+    long_description_content_type = 'text/x-rst'
 
 setup(
     name=project_metadata['name'],
@@ -14,6 +17,8 @@ setup(
     author=project_metadata['author'],
     author_email=project_metadata['author_email'],
     description=project_metadata['description'],
+    long_description=long_description,
+    long_description_content_type=long_description_content_type,
     license=project_metadata['license'],
     install_requires=[
         'flask',
