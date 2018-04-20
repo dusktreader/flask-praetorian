@@ -24,7 +24,7 @@ class User(_db.Model):
     def rolenames(self):
         try:
             return self.roles.split(',')
-        except:
+        except Exception:
             return []
 
     @classmethod
