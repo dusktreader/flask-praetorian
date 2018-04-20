@@ -5,6 +5,7 @@
     "license": "MIT",
     "author": "Tucker Beck",
     "name": "flask-praetorian",
+    "url": "https://github.com/dusktreader/flask-praetorian",
     "description": "Strong, Simple, and Precise security for Flask APIs",
     "version": "0.3"
 }
