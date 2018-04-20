@@ -33,7 +33,6 @@ setup(
             'flask-sqlalchemy',
             'freezegun',
             'pytest',
-            'pytest-capturelog',
             'pytest-flask',
             'sphinx',
         ],
