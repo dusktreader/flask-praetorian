@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+v0.3.20 - 2018-04-23
+--------------------
+- Added a logo!
+
 v0.3.19 - 2018-04-20
 --------------------
 - Added homepage to setup.py
