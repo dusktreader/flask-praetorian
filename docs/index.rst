@@ -1,10 +1,7 @@
-******************
- flask-praetorian
-******************
+.. image:: images/logo.png
+    :align: center
 
----------------------------------------------------
-Strong, Simple, and Precise security for Flask APIs
----------------------------------------------------
+*Strong, Simple, and Precise security for Flask APIs*
 
 .. include:: overview.rst
 
