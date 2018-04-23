@@ -13,7 +13,7 @@ class User(db.Model):
     username = db.Column(db.Text, unique=True)
     password = db.Column(db.Text)
     roles = db.Column(db.Text)
-    is_acitve = db.Column(db.Boolean, default=True, server_default='true')
+    is_active = db.Column(db.Boolean, default=True, server_default='true')
 
     @property
     def rolenames(self):
@@ -35,16 +35,15 @@ class User(db.Model):
         return self.id
 
     def is_valid(self):
-        if not self.is_active:
-            raise Exception("user has been disabled")
+        return self.is_active
 
 
 # Initialize flask app for the example
 app = flask.Flask(__name__)
 app.debug = True
 app.config['SECRET_KEY'] = 'top secret'
-app.config['JWT_ACCESS_LIFESPAN'] = {'hours': 24}
-app.config['JWT_REFRESH_LIFESPAN'] = {'days': 30}
+app.config['JWT_ACCESS_LIFESPAN'] = {'seconds': 30}
+app.config['JWT_REFRESH_LIFESPAN'] = {'minutes': 2}
 
 # Initialize the flask-praetorian instance for the app
 guard.init_app(app, User)
@@ -103,11 +102,6 @@ def refresh():
     return flask.jsonify(ret), 200
 
 
-@app.route('/')
-def root():
-    return flask.jsonify(message='root endpoint')
-
-
 # curl http://localhost:5000/protected -X GET \
 #   -H "Authorization: Bearer <your_token>"
 @app.route('/protected')
@@ -118,30 +112,18 @@ def protected():
     ))
 
 
-# curl http://localhost:5000/protected_admin_required -X GET \
+# curl http://localhost:5000/disable_user -X POST \
 #   -H "Authorization: Bearer <your_token>"
-@app.route('/protected_admin_required')
+#   -d '{"username":"Walter"}'
+@app.route('/disable_user', methods=['POST'])
 @flask_praetorian.auth_required
 @flask_praetorian.roles_required('admin')
-def protected_admin_required():
-    return flask.jsonify(
-        message='protected_admin_required endpoint (allowed user {})'.format(
-            flask_praetorian.current_user().username,
-        )
-    )
-
-
-# curl http://localhost/protected_operator_accepted -X GET \
-#   -H "Authorization: Bearer <your_token>"
-@app.route('/protected_operator_accepted')
-@flask_praetorian.auth_required
-@flask_praetorian.roles_accepted('operator', 'admin')
-def protected_operator_accepted():
-    return flask.jsonify(
-        message='protected_operator_accepted endpoint (allowed usr {})'.format(
-            flask_praetorian.current_user().username,
-        )
-    )
+def disable_user():
+    req = flask.request.get_json(force=True)
+    usr = User.query.filter_by(username=req.get('username', None)).one()
+    usr.is_active = False
+    db.session.commit()
+    return flask.jsonify(message='disabled user {}'.format(usr.username))
 
 
 # Run the example

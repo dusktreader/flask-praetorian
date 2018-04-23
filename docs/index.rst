@@ -14,5 +14,6 @@ Table of Contents
    :caption: Contents:
 
    Quickstart <quickstart>
+   Tutorial <tutorial>
    Developer Guide <developer_guide>
    API <flask_praetorian>
