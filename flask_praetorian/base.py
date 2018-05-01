@@ -8,6 +8,7 @@ import uuid
 from passlib.context import CryptContext
 
 from flask_praetorian.exceptions import (
+    AuthenticationError,
     BlacklistedError,
     EarlyRefreshError,
     ExpiredAccessError,
@@ -166,8 +167,14 @@ class Praetorian:
             "Praetorian must be initialized before this method is available",
         )
         user = self.user_class.lookup(username)
-        if user is None or not self.verify_password(password, user.password):
-            return None
+        MissingUserError.require_condition(
+            user is not None,
+            'Could not find the requested user',
+        )
+        AuthenticationError.require_condition(
+            self.verify_password(password, user.password),
+            'The password is incorrect',
+        )
         return user
 
     def verify_password(self, raw_password, hashed_password):

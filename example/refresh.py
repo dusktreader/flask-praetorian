@@ -1,10 +1,12 @@
 import flask
-import tempfile
-import flask_sqlalchemy
+import flask_cors
 import flask_praetorian
+import flask_sqlalchemy
+import tempfile
 
 db = flask_sqlalchemy.SQLAlchemy()
 guard = flask_praetorian.Praetorian()
+cors = flask_cors.CORS()
 
 
 # A generic user model that might be used by an app powered by flask-praetorian
@@ -52,6 +54,9 @@ guard.init_app(app, User)
 local_database = tempfile.NamedTemporaryFile(prefix='local', suffix='.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(local_database)
 db.init_app(app)
+
+# Initializes CORS so that the api_tool can talk to the example app
+cors.init_app(app)
 
 # Add users for the example
 with app.app_context():
@@ -128,4 +133,4 @@ def disable_user():
 
 # Run the example
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5010)

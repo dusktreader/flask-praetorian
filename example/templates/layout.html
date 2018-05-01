@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="https://gitcdn.link/repo/Chalarangelo/mini.css/master/dist/mini-default.min.css">
+  </head>
+
+  <body>
+    <header class="sticky">
+      <a class="logo">flask-praetorian tutorial</a>
+      <a class="button" href="{{ url_for('basic') }}">Basic Usage</a>
+      <a class="button" href="{{ url_for('refresh') }}">Refreshing Tokens</a>
+      <a class="button" href="{{ url_for('blacklist') }}">Blacklisting Tokens</a>
+    </header>
+
+    <script type="text/javascript">
+      API_PORT = {{ api_port }};
+      ACCESS_LIFESPAN = {{ access_lifespan }};
+      REFRESH_LIFESPAN = {{ refresh_lifespan }};
+    </script>
+
+    {% for script in scripts %}
+    <script type="text/javascript", src={{ url_for('static', filename=script) }}></script>
+    {% endfor %}
+
+    <div class="container">
+      {% block content %}
+      {% endblock %}
+    </div>
+  </body>
+</html>

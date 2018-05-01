@@ -76,3 +76,9 @@ class MissingUserError(PraetorianError):
     """
     The user could not be identified
     """
+
+
+class AuthenticationError(PraetorianError):
+    """
+    The entered user's password did not match the stored password
+    """

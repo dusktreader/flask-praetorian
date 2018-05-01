@@ -2,9 +2,11 @@ import flask
 import tempfile
 import flask_sqlalchemy
 import flask_praetorian
+import flask_cors
 
 db = flask_sqlalchemy.SQLAlchemy()
 guard = flask_praetorian.Praetorian()
+cors = flask_cors.CORS()
 
 
 # A generic user model that might be used by an app powered by flask-praetorian
@@ -13,7 +15,7 @@ class User(db.Model):
     username = db.Column(db.Text, unique=True)
     password = db.Column(db.Text)
     roles = db.Column(db.Text)
-    is_acitve = db.Column(db.Boolean, default=True, server_default='true')
+    is_active = db.Column(db.Boolean, default=True, server_default='true')
 
     @property
     def rolenames(self):
@@ -35,8 +37,7 @@ class User(db.Model):
         return self.id
 
     def is_valid(self):
-        if not self.is_active:
-            raise Exception("user has been disabled")
+        return self.is_active
 
 
 # Initialize flask app for the example
@@ -53,6 +54,9 @@ guard.init_app(app, User)
 local_database = tempfile.NamedTemporaryFile(prefix='local', suffix='.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(local_database)
 db.init_app(app)
+
+# Initializes CORS so that the api_tool can talk to the example app
+cors.init_app(app)
 
 # Add users for the example
 with app.app_context():
@@ -90,7 +94,7 @@ def login():
     password = req.get('password', None)
     user = guard.authenticate(username, password)
     ret = {'access_token': guard.encode_jwt_token(user)}
-    return flask.jsonify(ret), 200
+    return (flask.jsonify(ret), 200)
 
 
 # curl http://localhost:5000/refresh -X GET \
