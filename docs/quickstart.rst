@@ -4,7 +4,7 @@ Quickstart
 Requirements
 ------------
 
-* Python 3.5
+* Python 3.4, 3.5, 3.6, or 3.7
 
 Note on Requirements
 ....................
@@ -12,7 +12,7 @@ Note on Requirements
 I do not currently plan to support older versions of python. Python 2 support
 is very unlikely to arrive as the original author is a die-hard believer in
 python 3. As for older versions of python 3, my test harnesses depend on some
-features only available in python 3.5.
+features only available in python 3.4 and up.
 
 Installation
 ------------
