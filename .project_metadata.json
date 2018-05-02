@@ -1,5 +1,5 @@
 {
-    "release": "0.3.22",
+    "release": "0.4.0",
     "author_email": "tucker.beck@gmail.com",
     "copyright": "2016, Tucker Beck",
     "license": "MIT",
@@ -7,5 +7,5 @@
     "name": "flask-praetorian",
     "url": "https://github.com/dusktreader/flask-praetorian",
     "description": "Strong, Simple, and Precise security for Flask APIs",
-    "version": "0.3"
+    "version": "0.4"
 }

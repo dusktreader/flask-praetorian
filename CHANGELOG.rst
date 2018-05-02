@@ -7,6 +7,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+v0.4.0 - 2018-05-02
+-------------------
+- Lots of updates to make the package compliant with:
+  - awesome-flask
+  - approved flask extensions
+- Verified python 3.4 support
+- Added tutorials to the docs
+- Added a custom logo to the docs!
+
 v0.3.22 - 2018-04-23
 --------------------
 - Added github links to the docs
