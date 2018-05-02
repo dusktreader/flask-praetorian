@@ -179,3 +179,8 @@ all python source files::
   # autocmd BufWritePost *.py call Flake8()
 
 It is most useful to include that in your ``.vimrc`` file
+
+Other notes
+-----------
+
+* flask-praetorian uses the ``pendulum.utcnow()`` to timestamp its JWT tokens
