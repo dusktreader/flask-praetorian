@@ -47,7 +47,7 @@ and python's `PassLib <http://pythonhosted.org/passlib/>`_ package.
 
 Super-quick Start
 -----------------
- - requirements: `python3.5`, `python3.6`, or `python3.7`
+ - requirements: `python` versions 3.4, 3.5, 3.6, and 3.7
  - install through pip: `$ pip install flask-praetorian`
  - minimal usage example: `example/basic.py <https://github.com/dusktreader/flask-praetorian/tree/master/example/basic.py>`_
 
