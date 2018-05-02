@@ -5,6 +5,7 @@ import pytest
 
 from flask_praetorian import Praetorian
 from flask_praetorian.exceptions import (
+    AuthenticationError,
     BlacklistedError,
     EarlyRefreshError,
     ExpiredAccessError,
@@ -72,8 +73,8 @@ class TestPraetorian:
         """
         This test verifies that the authenticate function can be used to
         retrieve a User instance when the correct username and password are
-        supplied. It also verifies that None is returned when a matching
-        password and username are not supplied
+        supplied. It also verifies that exceptions are raised when a user
+        cannot be found or the passwords do not match
         """
         default_guard = Praetorian(app, user_class)
         the_dude = user_class(
@@ -83,8 +84,10 @@ class TestPraetorian:
         db.session.add(the_dude)
         db.session.commit()
         assert default_guard.authenticate('TheDude', 'abides') == the_dude
-        assert default_guard.authenticate('TheDude', 'is_undudelike') is None
-        assert default_guard.authenticate('Walter', 'abides') is None
+        with pytest.raises(MissingUserError):
+            default_guard.authenticate('TheBro', 'abides')
+        with pytest.raises(AuthenticationError):
+            default_guard.authenticate('TheDude', 'is_undudelike')
         db.session.delete(the_dude)
         db.session.commit()
 

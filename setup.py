@@ -30,7 +30,9 @@ setup(
     ],
     extras_require={
         'dev': [
+            'Pallets-Sphinx-Themes',
             'flake8',
+            'flask-cors',
             'flask-sqlalchemy',
             'freezegun',
             'pytest',
@@ -41,6 +43,7 @@ setup(
     include_package_data=True,
     packages=find_packages(),
     scripts=glob.glob('bin/*'),
+    zip_safe=False,
     classifiers=[
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Libraries :: Python Modules',

@@ -1,10 +1,12 @@
 import flask
-import tempfile
-import flask_sqlalchemy
+import flask_cors
 import flask_praetorian
+import flask_sqlalchemy
+import tempfile
 
 db = flask_sqlalchemy.SQLAlchemy()
 guard = flask_praetorian.Praetorian()
+cors = flask_cors.CORS()
 
 
 # A generic user model that might be used by an app powered by flask-praetorian
@@ -60,6 +62,9 @@ local_database = tempfile.NamedTemporaryFile(prefix='local', suffix='.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(local_database)
 db.init_app(app)
 
+# Initializes CORS so that the api_tool can talk to the example app
+cors.init_app(app)
+
 # Add users for the example
 with app.app_context():
     db.create_all()
@@ -99,16 +104,6 @@ def login():
     return flask.jsonify(ret), 200
 
 
-# curl http://localhost:5000/refresh -X GET \
-#   -H "Authorization: Bearer <your_token>"
-@app.route('/refresh', methods=['GET'])
-def refresh():
-    old_token = guard.read_token_from_header()
-    new_token = guard.refresh_jwt_token(old_token)
-    ret = {'access_token': new_token}
-    return flask.jsonify(ret), 200
-
-
 # curl http://localhost:5000/protected -X GET \
 #   -H "Authorization: Bearer <your_token>"
 @app.route('/protected')
@@ -133,4 +128,4 @@ def blacklist_token():
 
 # Run the example
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5020)

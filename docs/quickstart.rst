@@ -54,4 +54,5 @@ A minimal example of how to use the flask-praetorian decorators is included:
 .. literalinclude:: ../example/basic.py
    :language: python
 
-The above code can be found ``example/basic.py``.
+The above code can be found in `example/basic.py
+<https://github.com/dusktreader/flask-praetorian/blob/master/example/basic.py>`_.

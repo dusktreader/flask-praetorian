@@ -73,9 +73,11 @@ class TestPraetorianDecorators:
         moment = pendulum.parse('2017-05-24 10:18:45')
         with freezegun.freeze_time(moment):
             headers = default_guard.pack_header_for_user(self.the_dude)
-        moment = moment.add_timedelta(
-            default_guard.access_lifespan
-        ).add(seconds=1)
+        moment = (
+            moment +
+            default_guard.access_lifespan +
+            pendulum.interval(seconds=1)
+        )
         with freezegun.freeze_time(moment):
             response = client.get(
                 '/protected',
