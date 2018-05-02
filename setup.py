@@ -21,6 +21,12 @@ setup(
     long_description=long_description,
     long_description_content_type=long_description_content_type,
     license=project_metadata['license'],
+    setup_requires=[
+        'pytest-runner',
+    ],
+    tests_require=[
+        'pytest',
+    ],
     install_requires=[
         'flask',
         'pyjwt',
