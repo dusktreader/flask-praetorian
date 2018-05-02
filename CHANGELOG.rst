@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+v0.4.1 - 2018-05-02
+-------------------
+- Fixed failing docs build issue
+
 v0.4.0 - 2018-05-02
 -------------------
 - Lots of updates to make the package compliant with:
