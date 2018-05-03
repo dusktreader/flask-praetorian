@@ -33,7 +33,6 @@ setup(
         'pendulum',
         'passlib',
         'flask-buzz',
-        'Pallets-Sphinx-Themes',
     ],
     extras_require={
         'dev': [
