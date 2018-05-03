@@ -105,20 +105,36 @@ html_theme_options = {}
 html_static_path = ['_static']
 
 # Custom sidebar templates, maps document names to template names.
+
 html_sidebars = {
     '/': [
         'side-links.html',
         'searchbox.html',
     ],
-    '**': [
-        'side-icon.html',
-        'localtoc.html',
-        'relations.html',
+    'index': [
         'side-links.html',
         'searchbox.html',
-    ]
+    ],
+    'overview': [
+        'side-links.html',
+        'searchbox.html',
+    ],
 }
 
+docs_root = os.path.join(project_root, 'docs')
+for (root, dirs, files) in os.walk(docs_root):
+    for file in files:
+        absolute = os.path.join(root, file)
+        relative = os.path.relpath(absolute, start=docs_root)
+        (target, ext) = os.path.splitext(relative)
+        if ext == '.rst' and target not in ['index', 'overview']:
+            html_sidebars[target] = [
+                'side-icon.html',
+                'localtoc.html',
+                'relations.html',
+                'side-links.html',
+                'searchbox.html',
+            ]
 
 # -- Options for HTMLHelp output ------------------------------------------
 
