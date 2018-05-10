@@ -30,7 +30,7 @@ setup(
     install_requires=[
         'Flask>=1.0',
         'pyjwt',
-        'pendulum',
+        'pendulum>=2.0',
         'passlib',
         'flask-buzz',
     ],

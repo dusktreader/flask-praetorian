@@ -11,7 +11,7 @@ DEFAULT_JWT_ALLOWED_ALGORITHMS = ['HS256']
 DEFAULT_USER_CLASS_VALIDATION_METHOD = 'is_valid'
 
 # 1M days seems reasonable. If this code is being used in 3000 years...welp
-VITAM_AETERNUM = pendulum.Interval(days=1000000)
+VITAM_AETERNUM = pendulum.Duration(days=1000000)
 
 
 class AccessType(enum.Enum):

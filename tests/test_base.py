@@ -222,17 +222,17 @@ class TestPraetorian:
             )
             assert token_data['iat'] == moment.int_timestamp
             assert token_data['exp'] == (
-                moment + pendulum.Interval(**DEFAULT_JWT_ACCESS_LIFESPAN)
+                moment + pendulum.Duration(**DEFAULT_JWT_ACCESS_LIFESPAN)
             ).int_timestamp
             assert token_data['rf_exp'] == (
-                moment + pendulum.Interval(**DEFAULT_JWT_REFRESH_LIFESPAN)
+                moment + pendulum.Duration(**DEFAULT_JWT_REFRESH_LIFESPAN)
             ).int_timestamp
             assert token_data['id'] == the_dude.id
             assert token_data['rls'] == 'admin,operator'
 
         moment = pendulum.parse('2017-05-21 18:39:55')
-        override_access_lifespan = pendulum.Interval(minutes=1)
-        override_refresh_lifespan = pendulum.Interval(hours=1)
+        override_access_lifespan = pendulum.Duration(minutes=1)
+        override_refresh_lifespan = pendulum.Duration(hours=1)
         with freezegun.freeze_time(moment):
             token = guard.encode_jwt_token(
                 the_dude,
@@ -253,8 +253,8 @@ class TestPraetorian:
             assert token_data['rls'] == 'admin,operator'
 
         moment = pendulum.parse('2017-05-21 18:39:55')
-        override_access_lifespan = pendulum.Interval(hours=1)
-        override_refresh_lifespan = pendulum.Interval(minutes=1)
+        override_access_lifespan = pendulum.Duration(hours=1)
+        override_refresh_lifespan = pendulum.Duration(minutes=1)
         with freezegun.freeze_time(moment):
             token = guard.encode_jwt_token(
                 the_dude,
@@ -344,8 +344,8 @@ class TestPraetorian:
             token = guard.encode_jwt_token(the_dude)
         new_moment = (
             pendulum.parse('2017-05-21 18:39:55') +
-            pendulum.Interval(**DEFAULT_JWT_ACCESS_LIFESPAN) +
-            pendulum.Interval(minutes=1)
+            pendulum.Duration(**DEFAULT_JWT_ACCESS_LIFESPAN) +
+            pendulum.Duration(minutes=1)
         )
         with freezegun.freeze_time(new_moment):
             new_token = guard.refresh_jwt_token(token)
@@ -355,10 +355,10 @@ class TestPraetorian:
             )
             assert new_token_data['iat'] == new_moment.int_timestamp
             assert new_token_data['exp'] == (
-                new_moment + pendulum.Interval(**DEFAULT_JWT_ACCESS_LIFESPAN)
+                new_moment + pendulum.Duration(**DEFAULT_JWT_ACCESS_LIFESPAN)
             ).int_timestamp
             assert new_token_data['rf_exp'] == (
-                moment + pendulum.Interval(**DEFAULT_JWT_REFRESH_LIFESPAN)
+                moment + pendulum.Duration(**DEFAULT_JWT_REFRESH_LIFESPAN)
             ).int_timestamp
             assert new_token_data['id'] == the_dude.id
             assert new_token_data['rls'] == 'admin,operator'
@@ -368,34 +368,34 @@ class TestPraetorian:
             token = guard.encode_jwt_token(the_dude)
         new_moment = (
             pendulum.parse('2017-05-21 18:39:55') +
-            pendulum.interval(**DEFAULT_JWT_ACCESS_LIFESPAN) +
-            pendulum.interval(minutes=1)
+            pendulum.Duration(**DEFAULT_JWT_ACCESS_LIFESPAN) +
+            pendulum.Duration(minutes=1)
         )
         with freezegun.freeze_time(new_moment):
             new_token = guard.refresh_jwt_token(
                 token,
-                override_access_lifespan=pendulum.Interval(hours=2),
+                override_access_lifespan=pendulum.Duration(hours=2),
             )
             new_token_data = jwt.decode(
                 new_token, guard.encode_key,
                 algorithms=guard.allowed_algorithms,
             )
             assert new_token_data['exp'] == (
-                new_moment + pendulum.Interval(hours=2)
+                new_moment + pendulum.Duration(hours=2)
             ).int_timestamp
 
         moment = pendulum.parse('2017-05-21 18:39:55')
         with freezegun.freeze_time(moment):
             token = guard.encode_jwt_token(
                 the_dude,
-                override_refresh_lifespan=pendulum.Interval(hours=2),
-                override_access_lifespan=pendulum.Interval(minutes=30),
+                override_refresh_lifespan=pendulum.Duration(hours=2),
+                override_access_lifespan=pendulum.Duration(minutes=30),
             )
-        new_moment = moment + pendulum.Interval(minutes=31)
+        new_moment = moment + pendulum.Duration(minutes=31)
         with freezegun.freeze_time(new_moment):
             new_token = guard.refresh_jwt_token(
                 token,
-                override_access_lifespan=pendulum.Interval(hours=2),
+                override_access_lifespan=pendulum.Duration(hours=2),
             )
             new_token_data = jwt.decode(
                 new_token, guard.encode_key,
@@ -404,8 +404,8 @@ class TestPraetorian:
             assert new_token_data['exp'] == new_token_data['rf_exp']
 
         expiring_interval = (
-            pendulum.Interval(**DEFAULT_JWT_ACCESS_LIFESPAN) +
-            pendulum.Interval(minutes=1)
+            pendulum.Duration(**DEFAULT_JWT_ACCESS_LIFESPAN) +
+            pendulum.Duration(minutes=1)
         )
         validating_guard = Praetorian(app, validating_user_class)
         brandt = validating_user_class(
@@ -432,8 +432,8 @@ class TestPraetorian:
         assert expected_message in str(err_info.value)
 
         expiring_interval = (
-            pendulum.Interval(**DEFAULT_JWT_ACCESS_LIFESPAN) +
-            pendulum.Interval(minutes=1)
+            pendulum.Duration(**DEFAULT_JWT_ACCESS_LIFESPAN) +
+            pendulum.Duration(minutes=1)
         )
         guard = Praetorian(app, user_class)
         bunny = user_class(
@@ -507,17 +507,17 @@ class TestPraetorian:
             )
             assert token_data['iat'] == moment.int_timestamp
             assert token_data['exp'] == (
-                moment + pendulum.Interval(**DEFAULT_JWT_ACCESS_LIFESPAN)
+                moment + pendulum.Duration(**DEFAULT_JWT_ACCESS_LIFESPAN)
             ).int_timestamp
             assert token_data['rf_exp'] == (
-                moment + pendulum.Interval(**DEFAULT_JWT_REFRESH_LIFESPAN)
+                moment + pendulum.Duration(**DEFAULT_JWT_REFRESH_LIFESPAN)
             ).int_timestamp
             assert token_data['id'] == the_dude.id
             assert token_data['rls'] == 'admin,operator'
 
         moment = pendulum.parse('2017-05-21 18:39:55')
-        override_access_lifespan = pendulum.Interval(minutes=1)
-        override_refresh_lifespan = pendulum.Interval(hours=1)
+        override_access_lifespan = pendulum.Duration(minutes=1)
+        override_refresh_lifespan = pendulum.Duration(hours=1)
         with freezegun.freeze_time(moment):
             header_dict = guard.pack_header_for_user(
                 the_dude,
