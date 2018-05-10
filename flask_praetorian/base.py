@@ -100,11 +100,11 @@ class Praetorian:
             'JWT_ALGORITHM',
             DEFAULT_JWT_ALGORITHM,
         )
-        self.access_lifespan = pendulum.interval(**app.config.get(
+        self.access_lifespan = pendulum.Duration(**app.config.get(
             'JWT_ACCESS_LIFESPAN',
             DEFAULT_JWT_ACCESS_LIFESPAN,
         ))
-        self.refresh_lifespan = pendulum.interval(**app.config.get(
+        self.refresh_lifespan = pendulum.Duration(**app.config.get(
             'JWT_REFRESH_LIFESPAN',
             DEFAULT_JWT_REFRESH_LIFESPAN,
         ))
@@ -247,7 +247,7 @@ class Praetorian:
         """
         self._check_user(user)
 
-        moment = pendulum.utcnow()
+        moment = pendulum.now('UTC')
 
         if override_refresh_lifespan is None:
             refresh_lifespan = self.refresh_lifespan
@@ -308,7 +308,7 @@ class Praetorian:
                                            accessability will expire. May not
                                            exceed the refresh lifespan
         """
-        moment = pendulum.utcnow()
+        moment = pendulum.now('UTC')
         # Note: we disable exp verification because we do custom checks here
         with InvalidTokenHeader.handle_errors('failed to decode JWT token'):
             data = jwt.decode(
@@ -384,7 +384,7 @@ class Praetorian:
             'rf_exp' in data,
             'Token is missing rf_exp claim',
         )
-        moment = pendulum.utcnow().int_timestamp
+        moment = pendulum.now('UTC').int_timestamp
         if access_type == AccessType.access:
             ExpiredAccessError.require_condition(
                 moment <= data['exp'],

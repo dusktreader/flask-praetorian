@@ -76,7 +76,7 @@ class TestPraetorianDecorators:
         moment = (
             moment +
             default_guard.access_lifespan +
-            pendulum.interval(seconds=1)
+            pendulum.Duration(seconds=1)
         )
         with freezegun.freeze_time(moment):
             response = client.get(
