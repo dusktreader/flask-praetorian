@@ -28,7 +28,7 @@ setup(
         'pytest',
     ],
     install_requires=[
-        'Flask',
+        'Flask>=1.0',
         'pyjwt',
         'pendulum',
         'passlib',
