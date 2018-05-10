@@ -7,6 +7,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+v0.4.4rc - 2018-05-09
+---------------------
+- Got docs working again...by pinning the flask version to 1.0
+- Upgraded to Pendulum 2.0
+- May cause issues downstream. Leaving this an RC release for now
+
 v0.4.3 - 2018-05-03
 -------------------
 - Docs are finally working right. Ready to announce the 0.4 release!
