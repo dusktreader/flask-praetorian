@@ -10,7 +10,7 @@ install:
 before_script:
 - flake8 flask_praetorian
 - flake8 tests
-script: py.test tests
+script: pytest tests
 deploy:
   provider: pypi
   user: dusktreader
