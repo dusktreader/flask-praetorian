@@ -114,12 +114,17 @@ def protected():
     ))
 
 
-# curl http://localhost:5000/blacklist_token -X POST \
-#   -d '{"token":"<your_token>"}'
 @app.route('/blacklist_token', methods=['POST'])
 @flask_praetorian.auth_required
 @flask_praetorian.roles_required('admin')
 def blacklist_token():
+    """
+    Blacklists an existing JWT by registering its jti claim in the blacklist.
+
+    .. example::
+       $ curl http://localhost:5000/blacklist_token -X POST \
+         -d '{"token":"<your_token>"}'
+    """
     req = flask.request.get_json(force=True)
     data = guard.extract_jwt_token(req['token'])
     blacklist.add(data['jti'])

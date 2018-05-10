@@ -85,10 +85,16 @@ with app.app_context():
 
 # Set up some routes for the example
 
-# curl http://localhost:5000/login -X POST \
-#   -d '{"username":"Walter","password":"calmerthanyouare"}'
 @app.route('/login', methods=['POST'])
 def login():
+    """
+    Logs a user in by parsing a POST request containing user credentials and
+    issuing a JWT token.
+
+    .. example::
+       $ curl http://localhost:5000/login -X POST \
+         -d '{"username":"Walter","password":"calmerthanyouare"}'
+    """
     req = flask.request.get_json(force=True)
     username = req.get('username', None)
     password = req.get('password', None)
@@ -97,37 +103,34 @@ def login():
     return (flask.jsonify(ret), 200)
 
 
-# curl http://localhost:5000/refresh -X GET \
-#   -H "Authorization: Bearer <your_token>"
-@app.route('/refresh', methods=['GET'])
-def refresh():
-    old_token = guard.read_token_from_header()
-    new_token = guard.refresh_jwt_token(old_token)
-    ret = {'access_token': new_token}
-    return flask.jsonify(ret), 200
-
-
-@app.route('/')
-def root():
-    return flask.jsonify(message='root endpoint')
-
-
-# curl http://localhost:5000/protected -X GET \
-#   -H "Authorization: Bearer <your_token>"
 @app.route('/protected')
 @flask_praetorian.auth_required
 def protected():
+    """
+    A protected endpoint. The auth_required decorator will require a header
+    containing a valid JWT
+
+    .. example::
+       $ curl http://localhost:5000/protected -X GET \
+         -H "Authorization: Bearer <your_token>"
+    """
     return flask.jsonify(message='protected endpoint (allowed user {})'.format(
         flask_praetorian.current_user().username,
     ))
 
 
-# curl http://localhost:5000/protected_admin_required -X GET \
-#   -H "Authorization: Bearer <your_token>"
 @app.route('/protected_admin_required')
 @flask_praetorian.auth_required
 @flask_praetorian.roles_required('admin')
 def protected_admin_required():
+    """
+    A protected endpoint that requires a role. The roles_required decorator
+    will require that the supplied JWT includes the required roles
+
+    .. example::
+       $ curl http://localhost:5000/protected_admin_required -X GET \
+          -H "Authorization: Bearer <your_token>"
+    """
     return flask.jsonify(
         message='protected_admin_required endpoint (allowed user {})'.format(
             flask_praetorian.current_user().username,
@@ -135,12 +138,19 @@ def protected_admin_required():
     )
 
 
-# curl http://localhost/protected_operator_accepted -X GET \
-#   -H "Authorization: Bearer <your_token>"
 @app.route('/protected_operator_accepted')
 @flask_praetorian.auth_required
 @flask_praetorian.roles_accepted('operator', 'admin')
 def protected_operator_accepted():
+    """
+    A protected endpoint that accepts any of the listed roles. The
+    roles_accepted decorator will require that the supplied JWT includes at
+    least one of th accepted roles
+
+    .. example::
+       $ curl http://localhost/protected_operator_accepted -X GET \
+         -H "Authorization: Bearer <your_token>"
+    """
     return flask.jsonify(
         message='protected_operator_accepted endpoint (allowed usr {})'.format(
             flask_praetorian.current_user().username,
