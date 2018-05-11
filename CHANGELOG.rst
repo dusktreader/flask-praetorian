@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+v0.4.4 - 2018-05-10
+-------------------
+- Did a lot of work on the tutorial including code snippets
+- Flask dependency pinned to >=1.0
+- Pendulum dependency pinned to >=2.0
+- Bug fixes for pendulum version 2.0
+
 v0.4.3 - 2018-05-03
 -------------------
 - Docs are finally working right. Ready to announce the 0.4 release!
