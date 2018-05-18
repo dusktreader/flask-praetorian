@@ -89,7 +89,7 @@ class Praetorian:
             valid_schemes,
         )
 
-        self.user_class = self.validate_user_class(user_class)
+        self.user_class = self._validate_user_class(user_class)
         self.is_blacklisted = is_blacklisted or (lambda t: False)
 
         self.encode_key = app.config['SECRET_KEY']
@@ -135,7 +135,7 @@ class Praetorian:
         app.extensions['praetorian'] = self
 
     @classmethod
-    def validate_user_class(cls, user_class):
+    def _validate_user_class(cls, user_class):
         """
         Validates the supplied user_class to make sure that it has the
         class methods necessary to function correctly.
@@ -177,12 +177,12 @@ class Praetorian:
             'Could not find the requested user',
         )
         AuthenticationError.require_condition(
-            self.verify_password(password, user.password),
+            self._verify_password(password, user.password),
             'The password is incorrect',
         )
         return user
 
-    def verify_password(self, raw_password, hashed_password):
+    def _verify_password(self, raw_password, hashed_password):
         """
         Verifies that a plaintext password matches the hashed version of that
         password using the stored passlib password context
@@ -330,7 +330,7 @@ class Praetorian:
                 options={'verify_exp': False},
             )
 
-        self.validate_jwt_data(data, access_type=AccessType.refresh)
+        self._validate_jwt_data(data, access_type=AccessType.refresh)
 
         user = self.user_class.identify(data['id'])
         self._check_user(user)
@@ -369,10 +369,10 @@ class Praetorian:
                 algorithms=self.allowed_algorithms,
                 options={'verify_exp': False},
             )
-        self.validate_jwt_data(data, access_type=AccessType.access)
+        self._validate_jwt_data(data, access_type=AccessType.access)
         return data
 
-    def validate_jwt_data(self, data, access_type):
+    def _validate_jwt_data(self, data, access_type):
         """
         Validates that the data for a jwt token is valid
         """
@@ -412,7 +412,7 @@ class Praetorian:
                 'refresh permission for token has expired',
             )
 
-    def unpack_header(self, headers):
+    def _unpack_header(self, headers):
         """
         Unpacks a jwt token from a request header
         """
@@ -435,7 +435,7 @@ class Praetorian:
         """
         Unpacks a jwt token from the current flask request
         """
-        return self.unpack_header(flask.request.headers)
+        return self._unpack_header(flask.request.headers)
 
     def pack_header_for_user(
             self, user,
