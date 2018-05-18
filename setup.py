@@ -32,7 +32,7 @@ setup(
         'pyjwt',
         'pendulum>=2.0',
         'passlib',
-        'flask-buzz',
+        'flask-buzz>=0.1.7',
     ],
     extras_require={
         'dev': [
