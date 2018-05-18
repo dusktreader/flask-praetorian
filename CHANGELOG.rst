@@ -7,6 +7,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+v0.4.5 - 2018-05-18
+-------------------
+- Added more documentation:
+  - Config Settings
+  - User class requirements
+  - Other Notes
+- Added configuratbility for error handler
+- Made more internal functions private (leading underscore)
+
 v0.4.4 - 2018-05-10
 -------------------
 - Did a lot of work on the tutorial including code snippets
