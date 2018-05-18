@@ -97,3 +97,41 @@ Configuration Settings
      - Do not register the flask error handler automatically. The user may wish
        to configure the error handler themselves
      - ``None``
+
+
+.. _user-class-requirements:
+
+Requirements for the user_class
+-------------------------------
+
+The ``user_class`` argument supplied during initialization represents the
+class that should be used to check for authorization for decorated routes. The
+class itself may be implemented in any way that you see fit. It must, however,
+satisfy the following requirements:
+
+* Provide a ``lookup`` class method that:
+
+  * should take a single argument of the name of the user
+
+  * should return an instance of the ``user_class`` or ``None``
+
+* Provide an ``identify`` class method
+
+  * should take a single argument of the unique id of the user
+
+  * should return an instance of the ``user_class`` or ``None``
+
+* Provide a ``rolenames`` instance attribute
+
+  * should return a list of string roles assigned to the user
+
+* Provide a ``password`` instance attribute
+
+  * should return the hashed password assigned to the user
+
+* Provide an ``identity`` instance attribute
+
+  * should return the unique id of the user
+
+Although the example given in the documentation uses a SQLAlchemy model for the
+userclass, this is not a requirement.
