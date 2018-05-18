@@ -96,8 +96,8 @@ endpoint:
 In this case, the authorization works, and the response carries the JSON
 payload returned from the  app's ``protected`` endpoint.
 
-The flask-praetorian extension registers an error_handler with the flask app
-when it is initialized. This error handler automatically converts any
+The flask-praetorian extension by default registers an error_handler with the
+flask app when it is initialized. This error handler automatically converts any
 PraetorianError exceptions (or derived exceptions) into a json response that
 carries the status code, message, and error type. The status code and error
 type can be very useful for applications that need to handle specific error

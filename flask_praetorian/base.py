@@ -4,6 +4,7 @@ import pendulum
 import re
 import textwrap
 import uuid
+import warnings
 
 from passlib.context import CryptContext
 
@@ -121,7 +122,11 @@ class Praetorian:
             DEFAULT_USER_CLASS_VALIDATION_METHOD,
         )
 
-        app.errorhandler(PraetorianError)(self.error_handler)
+        if not app.config.get('DISABLE_PRAETORIAN_ERROR_HANDLER'):
+            app.register_error_handler(
+                PraetorianError,
+                PraetorianError.build_error_handler(),
+            )
 
         self.is_testing = app.config.get('TESTING', False)
 
@@ -203,6 +208,13 @@ class Praetorian:
         Provides a flask error handler that is used for PraetorianErrors
         (and derived exceptions).
         """
+        warnings.warn(
+            """
+            error_handler is deprecated.
+            Use FlaskBuzz.build_error_handler instead
+            """,
+            warnings.DeprecationWarning,
+        )
         return error.jsonify(), error.status_code, error.headers
 
     def _check_user(self, user):
