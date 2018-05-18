@@ -31,8 +31,8 @@ the ``login`` endpoint looks like this:
 Of course, to authenticate users, they must be added to whatever data store
 that your application uses. Though flask-praetorian does not depend on a
 particular data mapper (usually an ORM like SQLAlchemy), it does require that
-the user class (TODO: add documentation of this somewhere) supplies specific
-methods and properties.
+the user class supplies specific methods and properties.
+See :ref:`user-class-requirements`.
 
 The example source code uses SQLAlchemy as the data store, and users are added
 as shown:
