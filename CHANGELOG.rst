@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+v0.4.6 - 2018-05-23
+-------------------
+- Fixed a bug with the @roles_accepted operator
+
 v0.4.5 - 2018-05-18
 -------------------
 - Added more documentation:
