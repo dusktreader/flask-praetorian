@@ -32,11 +32,17 @@ class TestPraetorianDecorators:
             password=default_guard.encrypt_password('andthorough'),
             roles='operator,admin'
         )
+        self.jesus = user_class(
+            username='Jesus',
+            password=default_guard.encrypt_password('hecanroll'),
+            roles='admin,god'
+        )
 
         db.session.add(self.the_dude)
         db.session.add(self.walter)
         db.session.add(self.donnie)
         db.session.add(self.maude)
+        db.session.add(self.jesus)
         db.session.commit()
 
     def test_auth_required(self, client, default_guard):
@@ -204,5 +210,11 @@ class TestPraetorianDecorators:
         response = client.get(
             '/protected_admin_and_operator_accepted',
             headers=default_guard.pack_header_for_user(self.maude),
+        )
+        assert response.status_code == 200
+
+        response = client.get(
+            '/protected_admin_and_operator_accepted',
+            headers=default_guard.pack_header_for_user(self.jesus),
         )
         assert response.status_code == 200

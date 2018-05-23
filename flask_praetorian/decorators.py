@@ -58,7 +58,7 @@ def roles_accepted(*accepted_rolenames):
         @functools.wraps(method)
         def wrapper(*args, **kwargs):
             MissingRoleError.require_condition(
-                current_rolenames().issubset(set(accepted_rolenames)),
+                not current_rolenames().isdisjoint(set(accepted_rolenames)),
                 "This endpoint requires one of the following roles: {}",
                 [', '.join(accepted_rolenames)],
             )
