@@ -44,7 +44,7 @@ We will need to start up 4 different python/flask applications:
 
 All four of these should be started. You may kick them off in separate
 terminals, or as daemons. It's nice to watch the output from the apps in
-terminals, but the api_tool should display all of the request/resonse info that
+terminals, but the api_tool should display all of the request/response info that
 you need for this tutorial
 
 The flask applications are started easily::

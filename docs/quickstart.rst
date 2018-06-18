@@ -33,7 +33,7 @@ $ pip install flask-praetorian
 Install latest version from github
 ..................................
 If you would like a version other than the latest published on pypi, you may
-do so by cloning the git repostiory::
+do so by cloning the git repository::
 
 $ git clone https://github.com/dusktreader/flask-praetorian.git
 

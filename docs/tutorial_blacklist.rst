@@ -17,7 +17,7 @@ refresh its token or to 'log in' repeatedly.
 
 So, long-lived JWT are often provisioned for this. The problem is that a
 long-lived token might fall into the wrong hands, and your app needs a
-mechansim to revoke access from a stolen JWT.
+mechanism to revoke access from a stolen JWT.
 
 This is what the blacklist is used for
 
@@ -32,18 +32,18 @@ When a token is refreshed, the new token is given the same 'jti' claim. This
 serves to identify the two tokens as being really the same.
 
 A blacklist is a collection of 'jti' claims for tokens that have had access
-revoked. The blacklist should be very performant and persistant. It is best to
+revoked. The blacklist should be very performant and persistent. It is best to
 use a container that minimizes lookup time.
 
 One common pattern is to have a database table that persists the blacklist
 data. However, this table should not be accessed to check the blacklist on
 every request to a protected endpoint. Instead, when an app loads, the
 blacklist should be loaded into some container that lives in local memory and
-has very rapid lookup. You should use the 'refreesh' operation as a mechanism
-to flush the blacklist back out to the data-store for persistance so that if
+has very rapid lookup. You should use the 'refresh' operation as a mechanism
+to flush the blacklist back out to the data-store for persistence so that if
 your app dies, most of the blacklist is preserved.
 
-For the purposes of our demo, the blacklist is simply a pytyhon ``set`` that is
+For the purposes of our demo, the blacklist is simply a python ``set`` that is
 stored in local memory:
 
 .. literalinclude:: ../example/blacklist.py
@@ -68,7 +68,7 @@ the lifespans provisioned for this demo app are obscenely long
 Blacklisting a Token
 ....................
 
-The expample app has an added 'blacklist_token' endpoint that will blacklist
+The example app has an added 'blacklist_token' endpoint that will blacklist
 the current token:
 
 .. literalinclude:: ../example/blacklist.py
@@ -76,7 +76,7 @@ the current token:
    :lines: 117-131
    :caption: from `example/blacklist.py`_
 
-Let's try blacklisting a token for our admi user, 'Walter':
+Let's try blacklisting a token for our admin user, 'Walter':
 
 .. image:: _static/tutorial-blacklist-1.png
 

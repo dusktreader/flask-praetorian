@@ -45,12 +45,12 @@ The JWTs provisioned by flask-praetorian have two distinct lifespans:
 The 'access' lifespan is the length of time that a token can access protected
 endpoints before it needs to be refreshed.
 
-The 'refresh' lifespan is the length of teim taht a token can be refreshed
+The 'refresh' lifespan is the length of time that a token can be refreshed
 before an entirely new token must be provisioned by 'logging in'.
 
 Both of these lifespans are encoded directly in the JWT. The lifespans that
 are provisioned are configured with the ``JWT_ACCESS_LIFESPAN`` and
-``JWT_REFRESH_LIESPAN`` configuration settings for the flask app. The example
+``JWT_REFRESH_LIFESPAN`` configuration settings for the flask app. The example
 app configures these like so:
 
 .. literalinclude:: ../example/refresh.py
@@ -107,7 +107,7 @@ For subsequent access to protected endpoints, the new 'refreshed' token should
 be used.
 
 Once a token's 'refresh' lifespan is expired, that token is worthless. An
-entirely new token must be provisioned by 'loggin in'. To demonstrate this,
+entirely new token must be provisioned by 'logging in'. To demonstrate this,
 let's try refreshing a token when the 'refresh' lifespan is expired:
 
 .. image:: _static/tutorial-refresh-4.png
@@ -122,7 +122,7 @@ performance gain. Instead of looking the user up, the needed user information
 and authorization information is embedded in the JWT and can be very quickly
 retrieved.
 
-However, it is imporant to validate users regularly. This is the purpose of
+However, it is important to validate users regularly. This is the purpose of
 having to refresh tokens. Because the need to 'refresh' tokens is much more
 infrequent than simply accessing the endpoints, we can safely add more
 expensive operations to the refresh process. Thus, at refresh time, a user is
@@ -165,7 +165,7 @@ restart the ``refresh`` app to re-gain access.
 In Conclusion
 .............
 
-* JWTs are goverend by their 'access' and 'refresh' lifespans
+* JWTs are governed by their 'access' and 'refresh' lifespans
 * A JWT must be refreshed when the 'access' lifespan expires
 * A JWT can be refreshed when the 'access' is expired and the 'refresh' is not
 * Users are validated at refresh time only
