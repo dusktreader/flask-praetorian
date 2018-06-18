@@ -16,11 +16,11 @@ Logging in
 
 To access protected endpoints of our example app, we will need to provision a
 JWT token from our server for the selected user. This token will be used to
-access any proteced endpoints in our app.
+access any protected endpoints in our app.
 
 Usually, you will want to add some endpoint, such as ``login``, to your api.
 This endpoint will parse user credentials from a request, authenticate the
-user and then encode a JWT for ruture requests. In our example application,
+user and then encode a JWT for future requests. In our example application,
 the ``login`` endpoint looks like this:
 
 .. literalinclude:: ../example/basic.py
@@ -63,7 +63,7 @@ Next, we'll click the button to log in:
 The response is a simple json object with one field: ``access_token``.
 This is the token that will be used to access protected endpoints.
 
-Note that when the token is granted, the 'Remaining Acess Lifespan' timer
+Note that when the token is granted, the 'Remaining Access Lifespan' timer
 and the 'Remaining Refresh Lifespan' timers begin counting down. We'll dive
 more into the lifespan concepts in the ``Refresh`` section.
 
@@ -87,7 +87,7 @@ to these endpoints must carry a valid jwt to gain access:
 
 Let's try to access the 'protected' endpoint in the example app
 
-Assuming that you still have the token that you aquired by logging in, all you
+Assuming that you still have the token that you acquired by logging in, all you
 need to do is click the protected button which sends a request to the protected
 endpoint:
 
@@ -144,8 +144,8 @@ JWT token.
 It's also worth noting that with the ``@roles_required`` decorator, *each
 one of the required roles* must be possessed by the user or access will not be
 granted. This means that even if a user has an 'admin' role, they could not
-access an endpont that required 'admin' *and* 'flunky'. They would have to have
-a 'flunky' role. There is no concept of role heirarchy in flask-praetorian.
+access an endpoint that required 'admin' *and* 'flunky'. They would have to have
+a 'flunky' role. There is no concept of role hierarchy in flask-praetorian.
 
 Accessing an endpoint with accepted roles
 .........................................

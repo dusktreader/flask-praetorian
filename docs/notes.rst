@@ -67,7 +67,7 @@ Configuration Settings
    * - ``JWT_ALLOWED_ALGORITHMS``
      - A list of allowed algorithms that may be used to hash the JWT. See `the
        PyJWT docs <https://pyjwt.readthedocs.io/en/latest/algorithms.html>`_
-       for more deails.
+       for more details.
      - ``['HS256']``
    * - ``JWT_ALGORITHM``
      - The jwt hashing algorithm to be used to encode tokens
@@ -76,7 +76,7 @@ Configuration Settings
      - The default length of time that a JWT may be used to access a protected
        endpoint. See `the PyJWT docs
        <https://pyjwt.readthedocs.io/en/latest/usage.html#expiration-time-claim-exp>`_
-       for more deails.
+       for more details.
      - ``{'minutes': 15}``
    * - ``JWT_REFRESH_LIFESPAN``
      - The default length of time that a JWT may be refreshed. JWT may also not

@@ -27,7 +27,7 @@ package can be used to:
 * Ensure that the users associated with tokens have necessary roles for access
 * Parse user information from request headers for use in client route handlers
 
-All of this is provided in a very simple to confiure and initialize flask
+All of this is provided in a very simple to configure and initialize flask
 extension. Though simple, the security provided by
 `flask-praetorian <https://github.com/dusktreader/flask-praetorian>`_ is strong
 due to the usage of the proven security technology of JWT

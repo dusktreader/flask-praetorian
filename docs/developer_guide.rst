@@ -103,13 +103,13 @@ during code reviews.
 Useful tools
 ------------
 
-sphnx-view
+sphinx-view
 ..........
 
 reStructuredText documents and sphinx documentation can be previewed as they
 are edited on your workstation using a tool called
 `sphinx-view <https://github.com/dusktreader/sphinx-view>`_. It is
-indispensible when updating this README.rst document or one of the templates
+indispensable when updating this README.rst document or one of the templates
 for the autognerated sphinx documentation.
 
 
