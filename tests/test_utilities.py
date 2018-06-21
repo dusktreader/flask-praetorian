@@ -1,7 +1,10 @@
+import flask
 import pytest
 
 from flask_praetorian.utilities import (
     add_jwt_data_to_app_context,
+    app_context_has_jwt_data,
+    remove_jwt_data_from_app_context,
     current_user,
     current_user_id,
     current_rolenames,
@@ -10,6 +13,30 @@ from flask_praetorian.exceptions import PraetorianError
 
 
 class TestPraetorianUtilities:
+
+    def test_app_context_has_jwt_data(self):
+        """
+        This test verifies that the app_context_has_jwt_data method can
+        determine if jwt_data has been added to the app context yet
+        """
+        assert not app_context_has_jwt_data()
+        add_jwt_data_to_app_context({'a': 1})
+        assert app_context_has_jwt_data()
+        remove_jwt_data_from_app_context()
+        assert not app_context_has_jwt_data()
+
+    def test_remove_jwt_data_from_app_context(self):
+        """
+        This test verifies that jwt data can be removed from an app context.
+        It also verifies that attempting to remove the data if it does not
+        exist there does not cause an exception
+        """
+        jwt_data = {'a': 1}
+        add_jwt_data_to_app_context(jwt_data)
+        assert flask._app_ctx_stack.top.jwt_data == jwt_data
+        remove_jwt_data_from_app_context()
+        assert not hasattr(flask._app_ctx_stack.top, 'jwt_data')
+        remove_jwt_data_from_app_context()
 
     def test_current_user_id(self, user_class, db, default_guard):
         """

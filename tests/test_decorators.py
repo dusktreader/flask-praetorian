@@ -110,8 +110,8 @@ class TestPraetorianDecorators:
         to ensure that any users attempting to access a given endpoint must
         have all of the roles listed. If the correct roles are not supplied,
         a 401 error occurs with an informative error message.  This
-        test also verifies that the @roles_required decorator has to be used
-        with the @auth_required decorator
+        test also verifies that the @roles_required can be used with or without
+        an explicit @auth_required decorator
         """
 
         # Lacks one of one required roles
@@ -155,21 +155,19 @@ class TestPraetorianDecorators:
             '/undecorated_admin_required',
             headers=default_guard.pack_header_for_user(self.maude),
         )
-        assert response.status_code == 401
-        assert (
-            "No jwt_data found in app context"
-            in response.json['message']
+        assert response.status_code == 200
+
+        response = client.get(
+            '/undecorated_admin_accepted',
+            headers=default_guard.pack_header_for_user(self.maude),
         )
+        assert response.status_code == 200
 
         response = client.get(
             '/reversed_decorators',
-            headers=default_guard.pack_header_for_user(self.walter),
+            headers=default_guard.pack_header_for_user(self.maude),
         )
-        assert response.status_code == 401
-        assert (
-            "No jwt_data found in app context"
-            in response.json['message']
-        )
+        assert response.status_code == 200
 
     def test_roles_accepted(self, client, default_guard):
         """

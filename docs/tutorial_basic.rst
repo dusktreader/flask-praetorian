@@ -112,12 +112,18 @@ Accessing an endpoint with required roles
 In addition to the ``@auth_required`` decorator, flask-praetorian also provides
 decorators that require users to have certain roles to access them.
 
+Each of the additional ``@roles_required`` and ``@roles_accepted`` decorators
+do not require the ``@auth_required`` decorator to be explicitly added. They
+will implicitly check ``@auth_required`` prior to checking the roles.
+However, explicitly adding an ``@auth_required`` decorator as well will not
+cause any issues (in fact, this was required in earlier versions).
+
 The ``@roles_required`` decorator keeps users that do not have all of the
 required roles from accessing the endpoint:
 
 .. literalinclude:: ../example/basic.py
    :language: python
-   :lines: 122-138
+   :lines: 122-137
    :caption: from `example/basic.py`_
 
 Let's try to access a protected endpoint with required roles.
@@ -156,7 +162,7 @@ of the listed roles:
 
 .. literalinclude:: ../example/basic.py
    :language: python
-   :lines: 141-158
+   :lines: 140-156
    :caption: from `example/basic.py`_
 
 The ``protected_operator_accepted`` endpoint accepts users that have either
