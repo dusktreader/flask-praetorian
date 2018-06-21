@@ -120,7 +120,6 @@ def protected():
 
 
 @app.route('/protected_admin_required')
-@flask_praetorian.auth_required
 @flask_praetorian.roles_required('admin')
 def protected_admin_required():
     """
@@ -139,7 +138,6 @@ def protected_admin_required():
 
 
 @app.route('/protected_operator_accepted')
-@flask_praetorian.auth_required
 @flask_praetorian.roles_accepted('operator', 'admin')
 def protected_operator_accepted():
     """
