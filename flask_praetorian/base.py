@@ -42,7 +42,8 @@ class Praetorian:
     for applications and designated endpoints
     """
 
-    def __init__(self, app=None, user_class=None, is_blacklisted=None, custom_payload_fn=None):
+    def __init__(self, app=None, user_class=None, is_blacklisted=None,
+                 custom_payload_fn=None):
         self.pwd_ctx = None
         self.hash_scheme = None
         self.salt = None
@@ -50,7 +51,8 @@ class Praetorian:
         if app is not None and user_class is not None:
             self.init_app(app, user_class, is_blacklisted, custom_payload_fn)
 
-    def init_app(self, app, user_class, is_blacklisted=None, custom_payload_fn=None):
+    def init_app(self, app, user_class, is_blacklisted=None,
+                 custom_payload_fn=None):
         """
         Initializes the Praetorian extension
 
@@ -250,7 +252,7 @@ class Praetorian:
         or the original payload if no function was specified or the
         function does not return a dictionary.
         """
-        if not self.custom_payload_fn is None:
+        if self.custom_payload_fn is not None:
             custom_payload = self.custom_payload_fn(user)
             if isinstance(custom_payload, dict):
                 parts.update(custom_payload)
