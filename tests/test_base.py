@@ -538,3 +538,22 @@ class TestPraetorian:
                 moment + override_refresh_lifespan
             ).int_timestamp
             assert token_data['id'] == the_dude.id
+
+    def test_add_custom_payload(self, app, user_class):
+        """
+        Tests if the custom payload is added to the token.
+        """
+        def payload_fn(user):
+            return dict(foo='bar')
+
+        guard = Praetorian(app, user_class, custom_payload_fn=payload_fn)
+        the_dude = user_class(
+            username='TheDude',
+            password=guard.encrypt_password('abides'),
+            roles='admin,operator',
+        )
+        token = guard.encode_jwt_token(the_dude)
+        token_data = jwt.decode(
+            token, guard.encode_key, algorithms=guard.allowed_algorithms,
+        )
+        assert token_data['foo'] == 'bar'

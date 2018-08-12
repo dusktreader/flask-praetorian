@@ -42,27 +42,30 @@ class Praetorian:
     for applications and designated endpoints
     """
 
-    def __init__(self, app=None, user_class=None, is_blacklisted=None):
+    def __init__(self, app=None, user_class=None, is_blacklisted=None, custom_payload_fn=None):
         self.pwd_ctx = None
         self.hash_scheme = None
         self.salt = None
 
         if app is not None and user_class is not None:
-            self.init_app(app, user_class, is_blacklisted)
+            self.init_app(app, user_class, is_blacklisted, custom_payload_fn)
 
-    def init_app(self, app, user_class, is_blacklisted=None):
+    def init_app(self, app, user_class, is_blacklisted=None, custom_payload_fn=None):
         """
         Initializes the Praetorian extension
 
-        :param: app:            The flask app to bind this extension to
-        :param: user_class:     The class used to interact with user data
-        :param: is_blacklisted: A method that may optionally be used to
-                                check the token against a blacklist when
-                                access or refresh is requested
-                                Should take the jti for the token to check
-                                as a single argument. Returns True if
-                                the jti is blacklisted, False otherwise.
-                                By default, always returns False.
+        :param: app:               The flask app to bind this extension to
+        :param: user_class:        The class used to interact with user data
+        :param: is_blacklisted:    A method that may optionally be used to
+                                   check the token against a blacklist when
+                                   access or refresh is requested
+                                   Should take the jti for the token to check
+                                   as a single argument. Returns True if
+                                   the jti is blacklisted, False otherwise.
+                                   By default, always returns False.
+        :param: custom_payload_fn: A function for custom fields in the token
+                                   payload.
+
         """
         PraetorianError.require_condition(
             app.config.get('SECRET_KEY') is not None,
@@ -91,6 +94,7 @@ class Praetorian:
 
         self.user_class = self._validate_user_class(user_class)
         self.is_blacklisted = is_blacklisted or (lambda t: False)
+        self.custom_payload_fn = custom_payload_fn
 
         self.encode_key = app.config['SECRET_KEY']
         self.allowed_algorithms = app.config.get(
@@ -239,6 +243,19 @@ class Praetorian:
             "The user is not valid or has had access revoked",
         )
 
+    def _add_custom_payload(self, user, parts):
+        """
+        Merges the dictionary from a user-provided custom payload function
+        with the given payload parts and returns the full new payload
+        or the original payload if no function was specified or the
+        function does not return a dictionary.
+        """
+        if not self.custom_payload_fn is None:
+            custom_payload = self.custom_payload_fn(user)
+            if isinstance(custom_payload, dict):
+                parts.update(custom_payload)
+        return parts
+
     def encode_jwt_token(
             self, user,
             override_access_lifespan=None, override_refresh_lifespan=None
@@ -284,6 +301,8 @@ class Praetorian:
             id=user.identity,
             rls=','.join(user.rolenames),
         )
+        payload_parts = self._add_custom_payload(user, payload_parts)
+
         return jwt.encode(
             payload_parts, self.encode_key, self.encode_algorithm,
         ).decode('utf-8')
@@ -353,6 +372,8 @@ class Praetorian:
             id=data['id'],
             rls=','.join(user.rolenames),
         )
+        payload_parts = self._add_custom_payload(user, payload_parts)
+
         return jwt.encode(
             payload_parts, self.encode_key, self.encode_algorithm,
         ).decode('utf-8')
