@@ -244,7 +244,7 @@ class Praetorian:
     def encode_jwt_token(
             self, user,
             override_access_lifespan=None, override_refresh_lifespan=None,
-            **custom_claims,
+            **custom_claims
     ):
         """
         Encodes user data into a jwt token that can be used for authorization
@@ -294,7 +294,7 @@ class Praetorian:
             jti=str(uuid.uuid4()),
             id=user.identity,
             rls=','.join(user.rolenames),
-            **custom_claims,
+            **custom_claims
         )
         return jwt.encode(
             payload_parts, self.encode_key, self.encode_algorithm,
@@ -314,7 +314,7 @@ class Praetorian:
             user,
             override_access_lifespan=VITAM_AETERNUM,
             override_refresh_lifespan=VITAM_AETERNUM,
-            **custom_claims,
+            **custom_claims
         )
 
     def refresh_jwt_token(self, token, override_access_lifespan=None):
@@ -368,7 +368,7 @@ class Praetorian:
             jti=data['jti'],
             id=data['id'],
             rls=','.join(user.rolenames),
-            **custom_claims,
+            **custom_claims
         )
         return jwt.encode(
             payload_parts, self.encode_key, self.encode_algorithm,
@@ -457,7 +457,7 @@ class Praetorian:
     def pack_header_for_user(
             self, user,
             override_access_lifespan=None, override_refresh_lifespan=None,
-            **custom_claims,
+            **custom_claims
     ):
         """
         Encodes a jwt token and packages it into a header dict for a given user
@@ -481,6 +481,6 @@ class Praetorian:
             user,
             override_access_lifespan=override_access_lifespan,
             override_refresh_lifespan=override_refresh_lifespan,
-            **custom_claims,
+            **custom_claims
         )
         return {self.header_name: self.header_type + ' ' + token}
