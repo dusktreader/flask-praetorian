@@ -76,9 +76,18 @@ class MissingUserError(PraetorianError):
     """
     The user could not be identified
     """
+    pass
 
 
 class AuthenticationError(PraetorianError):
     """
     The entered user's password did not match the stored password
     """
+    pass
+
+
+class ClaimCollisionError(PraetorianError):
+    """"
+    Custom claims to pack into the JWT payload collide with reserved claims
+    """
+    pass

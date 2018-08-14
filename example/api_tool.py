@@ -41,6 +41,17 @@ def blacklist():
     )
 
 
+@app.route('/custom')
+def custom():
+    return flask.render_template(
+        'custom.html',
+        scripts=os.listdir(app.static_folder),
+        api_port=5000,
+        access_lifespan=24*60*60,
+        refresh_lifespan=30*24*60*60,
+    )
+
+
 # Run the example
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5050)

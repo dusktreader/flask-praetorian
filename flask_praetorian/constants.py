@@ -10,6 +10,8 @@ DEFAULT_JWT_ALGORITHM = 'HS256'
 DEFAULT_JWT_ALLOWED_ALGORITHMS = ['HS256']
 DEFAULT_USER_CLASS_VALIDATION_METHOD = 'is_valid'
 
+RESERVED_CLAIMS = {'iat', 'exp', 'rf_exp', 'jti', 'id', 'rls'}
+
 # 1M days seems reasonable. If this code is being used in 3000 years...welp
 VITAM_AETERNUM = pendulum.Duration(days=1000000)
 

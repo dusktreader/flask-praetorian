@@ -1,5 +1,6 @@
 import flask
 
+from flask_praetorian.constants import RESERVED_CLAIMS
 from flask_praetorian.exceptions import PraetorianError
 
 
@@ -96,3 +97,11 @@ def current_rolenames():
         return set(['non-empty-but-definitely-not-matching-subset'])
     else:
         return set(r.strip() for r in jwt_data['rls'].split(','))
+
+
+def current_custom_claims():
+    """
+    This method returns any custom claims in the current jwt
+    """
+    jwt_data = get_jwt_data_from_app_context()
+    return {k: v for (k, v) in jwt_data.items() if k not in RESERVED_CLAIMS}

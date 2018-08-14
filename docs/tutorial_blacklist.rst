@@ -97,4 +97,5 @@ In Conclusion
 .. _example/basic.py: https://github.com/dusktreader/flask-praetorian/blob/master/example/basic.py
 .. _example/refresh.py: https://github.com/dusktreader/flask-praetorian/blob/master/example/refresh.py
 .. _example/blacklist.py: https://github.com/dusktreader/flask-praetorian/blob/master/example/blacklist.py
+.. _example/custom_claims.py: https://github.com/dusktreader/flask-praetorian/blob/master/example/custom_claims.py
 .. _example/api_tool.py: https://github.com/dusktreader/flask-praetorian/blob/master/example/api_tool.py
