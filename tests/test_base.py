@@ -7,6 +7,7 @@ from flask_praetorian import Praetorian
 from flask_praetorian.exceptions import (
     AuthenticationError,
     BlacklistedError,
+    ClaimCollisionError,
     EarlyRefreshError,
     ExpiredAccessError,
     ExpiredRefreshError,
@@ -200,13 +201,19 @@ class TestPraetorian:
 
     def test_encode_jwt_token(self, app, user_class, validating_user_class):
         """
-        This test verifies that the encode_jwt_token correctly encodes jwt
-        data based on a user instance. Also verifies that if a user specifies
-        an override for the access lifespan it is used in lieu of the
-        instance's access_lifespan. Also verifies taht the access_lifespan
-        cannot exceed the refresh lifespan.  Also ensures that if the
-        user_class has the instance method validate(), it is called an any
-        exceptions it raises are wrapped in an InvalidUserError
+        This test::
+            * verifies that the encode_jwt_token correctly encodes jwt
+              data based on a user instance.
+            * verifies that if a user specifies an override for the access
+              lifespan it is used in lieu of the instance's access_lifespan.
+            * verifies that the access_lifespan cannot exceed the refresh
+              lifespan.
+            * ensures that if the user_class has the instance method
+              validate(), it is called an any exceptions it raises are wrapped
+              in an InvalidUserError
+            * verifies that custom claims may be encoded in the token and
+              validates that the custom claims do not collide with reserved
+              claims
         """
         guard = Praetorian(app, user_class)
         the_dude = user_class(
@@ -285,6 +292,33 @@ class TestPraetorian:
         expected_message = 'The user is not valid or has had access revoked'
         assert expected_message in str(err_info.value)
 
+        moment = pendulum.parse('2018-08-18 08:55:12')
+        with freezegun.freeze_time(moment):
+            token = guard.encode_jwt_token(
+                the_dude,
+                duder='brief',
+                el_duderino='not brief',
+            )
+            token_data = jwt.decode(
+                token, guard.encode_key, algorithms=guard.allowed_algorithms,
+            )
+            assert token_data['iat'] == moment.int_timestamp
+            assert token_data['exp'] == (
+                moment + pendulum.Duration(**DEFAULT_JWT_ACCESS_LIFESPAN)
+            ).int_timestamp
+            assert token_data['rf_exp'] == (
+                moment + pendulum.Duration(**DEFAULT_JWT_REFRESH_LIFESPAN)
+            ).int_timestamp
+            assert token_data['id'] == the_dude.id
+            assert token_data['rls'] == 'admin,operator'
+            assert token_data['duder'] == 'brief'
+            assert token_data['el_duderino'] == 'not brief'
+
+        with pytest.raises(ClaimCollisionError) as err_info:
+            guard.encode_jwt_token(the_dude, exp='nice marmot')
+        expected_message = 'custom claims collide'
+        assert expected_message in str(err_info.value)
+
     def test_encode_eternal_jwt_token(self, app, user_class):
         """
         This test verifies that the encode_eternal_jwt_token correctly encodes
@@ -317,18 +351,24 @@ class TestPraetorian:
             user_class, validating_user_class,
     ):
         """
-        This test  verifies that the refresh_jwt_token properly generates
-        a refreshed jwt token. It ensures that a token who's access permission
-        has not expired may not be refreshed. It also ensures that a token
-        who's access permission has expired must not have an expired refresh
-        permission for a new token to be issued. Also ensures that if an
-        override_access_lifespan argument is supplied that it is used instead
-        of the instance's access_lifespan. Also ensures that the
-        access_lifespan may not exceed the refresh lifespan. Also ensures that
-        if the user_class has the instance method validate(), it is called an
-        any exceptions it raises are wrapped in an InvalidUserError. Also
-        verifies that if a user is no longer identifiable that a
-        MissingUserError is raised
+        This test::
+            * verifies that the refresh_jwt_token properly generates
+              a refreshed jwt token.
+            * ensures that a token who's access permission has not expired may
+              not be refreshed.
+            * ensures that a token who's access permission has expired must not
+              have an expired refresh permission for a new token to be issued.
+            * ensures that if an override_access_lifespan argument is supplied
+              that it is used instead of the instance's access_lifespan.
+            * ensures that the access_lifespan may not exceed the refresh
+              lifespan.
+            * ensures that if the user_class has the instance method
+              validate(), it is called an any exceptions it raises are wrapped
+              in an InvalidUserError.
+            * verifies that if a user is no longer identifiable that a
+              MissingUserError is raised
+            * verifies that any custom claims in the original token's
+              payload are also packaged in the new token's payload
         """
         guard = Praetorian(app, user_class)
         the_dude = user_class(
@@ -454,6 +494,36 @@ class TestPraetorian:
         expected_message = 'Could not find the requested user'
         assert expected_message in str(err_info.value)
 
+        moment = pendulum.parse('2018-08-14 09:05:24')
+        with freezegun.freeze_time(moment):
+            token = guard.encode_jwt_token(
+                the_dude,
+                duder='brief',
+                el_duderino='not brief',
+            )
+        new_moment = (
+            pendulum.parse('2018-08-14 09:05:24') +
+            pendulum.Duration(**DEFAULT_JWT_ACCESS_LIFESPAN) +
+            pendulum.Duration(minutes=1)
+        )
+        with freezegun.freeze_time(new_moment):
+            new_token = guard.refresh_jwt_token(token)
+            new_token_data = jwt.decode(
+                new_token, guard.encode_key,
+                algorithms=guard.allowed_algorithms,
+            )
+            assert new_token_data['iat'] == new_moment.int_timestamp
+            assert new_token_data['exp'] == (
+                new_moment + pendulum.Duration(**DEFAULT_JWT_ACCESS_LIFESPAN)
+            ).int_timestamp
+            assert new_token_data['rf_exp'] == (
+                moment + pendulum.Duration(**DEFAULT_JWT_REFRESH_LIFESPAN)
+            ).int_timestamp
+            assert new_token_data['id'] == the_dude.id
+            assert new_token_data['rls'] == 'admin,operator'
+            assert new_token_data['duder'] == 'brief'
+            assert new_token_data['el_duderino'] == 'not brief'
+
     def test_read_token_from_header(self, app, db, user_class, client):
         """
         This test verifies that a token may be properly read from a flask
@@ -485,8 +555,10 @@ class TestPraetorian:
 
     def test_pack_header_for_user(self, app, user_class):
         """
-        This test verifies that the pack_header_for_user method can be used to
-        package a token into a header dict for a specified user
+        This test::
+          * verifies that the pack_header_for_user method can be used to
+            package a token into a header dict for a specified user
+          * verifies that custom claims may be packaged as well
         """
         guard = Praetorian(app, user_class)
         the_dude = user_class(
@@ -538,3 +610,29 @@ class TestPraetorian:
                 moment + override_refresh_lifespan
             ).int_timestamp
             assert token_data['id'] == the_dude.id
+
+        moment = pendulum.parse('2018-08-14 09:08:39')
+        with freezegun.freeze_time(moment):
+            header_dict = guard.pack_header_for_user(
+                the_dude,
+                duder='brief',
+                el_duderino='not brief',
+            )
+            token_header = header_dict.get(DEFAULT_JWT_HEADER_NAME)
+            assert token_header is not None
+            token = token_header.replace(DEFAULT_JWT_HEADER_TYPE, '')
+            token = token.strip()
+            token_data = jwt.decode(
+                token, guard.encode_key, algorithms=guard.allowed_algorithms,
+            )
+            assert token_data['iat'] == moment.int_timestamp
+            assert token_data['exp'] == (
+                moment + pendulum.Duration(**DEFAULT_JWT_ACCESS_LIFESPAN)
+            ).int_timestamp
+            assert token_data['rf_exp'] == (
+                moment + pendulum.Duration(**DEFAULT_JWT_REFRESH_LIFESPAN)
+            ).int_timestamp
+            assert token_data['id'] == the_dude.id
+            assert token_data['rls'] == 'admin,operator'
+            assert token_data['duder'] == 'brief'
+            assert token_data['el_duderino'] == 'not brief'

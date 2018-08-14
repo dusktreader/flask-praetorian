@@ -11,6 +11,7 @@ from passlib.context import CryptContext
 from flask_praetorian.exceptions import (
     AuthenticationError,
     BlacklistedError,
+    ClaimCollisionError,
     EarlyRefreshError,
     ExpiredAccessError,
     ExpiredRefreshError,
@@ -30,6 +31,7 @@ from flask_praetorian.constants import (
     DEFAULT_JWT_HEADER_TYPE,
     DEFAULT_JWT_REFRESH_LIFESPAN,
     DEFAULT_USER_CLASS_VALIDATION_METHOD,
+    RESERVED_CLAIMS,
     VITAM_AETERNUM,
     AccessType,
 )
@@ -241,7 +243,8 @@ class Praetorian:
 
     def encode_jwt_token(
             self, user,
-            override_access_lifespan=None, override_refresh_lifespan=None
+            override_access_lifespan=None, override_refresh_lifespan=None,
+            **custom_claims,
     ):
         """
         Encodes user data into a jwt token that can be used for authorization
@@ -256,7 +259,15 @@ class Praetorian:
                                            lifespan to set a custom duration
                                            after which the new token's
                                            refreshability will expire.
+        :param: custom_claims:             Additional claims that should
+                                           be packed in the payload. Note that
+                                           any claims supplied here must be
+                                           JSON compatible types
         """
+        ClaimCollisionError.require_condition(
+            set(custom_claims.keys()).isdisjoint(RESERVED_CLAIMS),
+            "The custom claims collide with required claims",
+        )
         self._check_user(user)
 
         moment = pendulum.now('UTC')
@@ -283,12 +294,13 @@ class Praetorian:
             jti=str(uuid.uuid4()),
             id=user.identity,
             rls=','.join(user.rolenames),
+            **custom_claims,
         )
         return jwt.encode(
             payload_parts, self.encode_key, self.encode_algorithm,
         ).decode('utf-8')
 
-    def encode_eternal_jwt_token(self, user):
+    def encode_eternal_jwt_token(self, user, **custom_claims):
         """
         This utility function encodes a jwt token that never expires
 
@@ -302,6 +314,7 @@ class Praetorian:
             user,
             override_access_lifespan=VITAM_AETERNUM,
             override_refresh_lifespan=VITAM_AETERNUM,
+            **custom_claims,
         )
 
     def refresh_jwt_token(self, token, override_access_lifespan=None):
@@ -345,6 +358,9 @@ class Praetorian:
             refresh_expiration,
         )
 
+        custom_claims = {
+            k: v for (k, v) in data.items() if k not in RESERVED_CLAIMS
+        }
         payload_parts = dict(
             iat=moment.int_timestamp,
             exp=access_expiration,
@@ -352,6 +368,7 @@ class Praetorian:
             jti=data['jti'],
             id=data['id'],
             rls=','.join(user.rolenames),
+            **custom_claims,
         )
         return jwt.encode(
             payload_parts, self.encode_key, self.encode_algorithm,
@@ -439,7 +456,8 @@ class Praetorian:
 
     def pack_header_for_user(
             self, user,
-            override_access_lifespan=None, override_refresh_lifespan=None
+            override_access_lifespan=None, override_refresh_lifespan=None,
+            **custom_claims,
     ):
         """
         Encodes a jwt token and packages it into a header dict for a given user
@@ -454,10 +472,15 @@ class Praetorian:
                                            lifespan to set a custom duration
                                            after which the new token's
                                            refreshability will expire.
+        :param: custom_claims:             Additional claims that should
+                                           be packed in the payload. Note that
+                                           any claims supplied here must be
+                                           JSON compatible types
         """
         token = self.encode_jwt_token(
             user,
             override_access_lifespan=override_access_lifespan,
             override_refresh_lifespan=override_refresh_lifespan,
+            **custom_claims,
         )
         return {self.header_name: self.header_type + ' ' + token}

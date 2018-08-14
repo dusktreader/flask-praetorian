@@ -8,6 +8,7 @@ from flask_praetorian.utilities import (
     current_user,
     current_user_id,
     current_rolenames,
+    current_custom_claims,
 )
 from flask_praetorian.exceptions import PraetorianError
 
@@ -86,7 +87,7 @@ class TestPraetorianUtilities:
         """
         This test verifies that the rolenames attached to the current user
         can be extracted from the jwt token data that has been added to the
-        current flaks app's context
+        current flask app's context
         """
         jwt_data = {}
         add_jwt_data_to_app_context(jwt_data)
@@ -97,3 +98,21 @@ class TestPraetorianUtilities:
         jwt_data = {'rls': 'admin,operator'}
         add_jwt_data_to_app_context(jwt_data)
         assert current_rolenames() == set(['admin', 'operator'])
+
+    def test_current_custom_claims(self, user_class, db, default_guard):
+        """
+        This test verifies that any custom claims attached to the current jwt
+        can be extracted from the jwt token data that has been added to the
+        current flask app's context
+        """
+        jwt_data = dict(
+            id=13,
+            jti='whatever',
+            duder='brief',
+            el_duderino='not brief',
+        )
+        add_jwt_data_to_app_context(jwt_data)
+        assert current_custom_claims() == dict(
+            duder='brief',
+            el_duderino='not brief',
+        )

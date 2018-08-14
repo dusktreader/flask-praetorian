@@ -35,14 +35,15 @@ api-tool can be used with the tool of your choice.
 Starting up the servers
 -----------------------
 
-We will need to start up 4 different python/flask applications:
+We will need to start up 5 different python/flask applications:
 
 * `example/basic.py`_ is an api that shows basic jwt security concepts
 * `example/refresh.py`_ is an api that shows jwt refreshing concepts
 * `example/blacklist.py`_ is an api that shows jwt blacklisting concepts
+* `example/custom_claims.py`_ is an api that shows custom claim concepts
 * `example/api_tool.py`_ is the demonstration flask-app that accesses the apis
 
-All four of these should be started. You may kick them off in separate
+All five of these should be started. You may kick them off in separate
 terminals, or as daemons. It's nice to watch the output from the apps in
 terminals, but the api_tool should display all of the request/response info that
 you need for this tutorial
@@ -70,9 +71,11 @@ Tutorial Sections
    Basic Tutorial <tutorial_basic>
    Refresh Tutorial <tutorial_refresh>
    Blacklist Tutorial <tutorial_blacklist>
+   Custom Claims Tutorial <tutorial_custom>
 
 .. _example/: https://github.com/dusktreader/flask-praetorian/tree/master/example
 .. _example/basic.py: https://github.com/dusktreader/flask-praetorian/blob/master/example/basic.py
 .. _example/refresh.py: https://github.com/dusktreader/flask-praetorian/blob/master/example/refresh.py
 .. _example/blacklist.py: https://github.com/dusktreader/flask-praetorian/blob/master/example/blacklist.py
+.. _example/custom_claims.py: https://github.com/dusktreader/flask-praetorian/blob/master/example/custom_claims.py
 .. _example/api_tool.py: https://github.com/dusktreader/flask-praetorian/blob/master/example/api_tool.py
