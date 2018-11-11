@@ -5,6 +5,10 @@ import re
 import textwrap
 import uuid
 import warnings
+import os
+
+from jinja2 import Environment, loaders
+from flask_mail import Message
 
 from passlib.context import CryptContext
 
@@ -31,6 +35,7 @@ from flask_praetorian.constants import (
     DEFAULT_JWT_HEADER_TYPE,
     DEFAULT_JWT_REFRESH_LIFESPAN,
     DEFAULT_USER_CLASS_VALIDATION_METHOD,
+    DEFAULT_EMAIL_TEMPLATE,
     RESERVED_CLAIMS,
     VITAM_AETERNUM,
     AccessType,
@@ -122,6 +127,10 @@ class Praetorian:
         self.user_class_validation_method = app.config.get(
             'USER_CLASS_VALIDATION_METHOD',
             DEFAULT_USER_CLASS_VALIDATION_METHOD,
+        )
+        self.email_template = app.config.get(
+            'PRAETORIAN_EMAIL_TEMPLATE',
+            DEFAULT_EMAIL_TEMPLATE,
         )
 
         if not app.config.get('DISABLE_PRAETORIAN_ERROR_HANDLER'):
@@ -484,3 +493,52 @@ class Praetorian:
             **custom_claims
         )
         return {self.header_name: self.header_type + ' ' + token}
+
+    def send_registration_email(self, user=None, template=None,
+                                subject='Your Registration Confirmation',
+                                override_access_lifespan=None):
+        """
+        Sends a registration email to a new user, containing a time expiring
+            token usable for validation.
+        :param: user:                     The user object to tie claim to
+                                          (username, id, email, etc)
+        :param: subject:                  The registration email subject override.
+        :param: override_access_lifepsan: Overrides the instance's defined lifespan,
+                                          which is used as the default.  The token
+                                          will no longer be valid after this time and
+                                          be rejected.
+        :param: template:                 Template file location for email.  If not
+                                          provided, a stock entry is used.
+        """
+        here = os.path.dirname(os.path.abspath(__file__))
+        env = Environment(loader=loaders.FileSystemLoader(here + '/templates'))
+
+        class Notification:
+            def __init__(self):
+                self.errors = None
+                self.message = None
+                self.recipient = user.email
+                self.token = None
+
+        notification = Notification()
+
+        with PraetorianError.handle_errors('failed to send notification email'):
+            tmpl = env.get_template('registration_email.html')
+
+            notification.token = self.encode_jwt_token(user, 
+                                                       override_access_lifespan=override_access_lifespan)
+
+
+            notification.message = tmpl.render(token=notification.token,
+                                               email=notification.recipient,
+                                              ).strip()
+
+            msg = Message(body=notification.message,
+                          sender="noreply@repgen.co",
+                          subject=subject,
+                          recipients=[notification.recipient])
+
+            from flask import current_app as app
+            notification.errors = app.mail.send(msg)
+
+        return notification
