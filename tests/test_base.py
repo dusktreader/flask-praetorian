@@ -650,8 +650,8 @@ class TestPraetorian:
         default_guard = Praetorian(app, user_class)
 
         here = os.path.dirname(os.path.abspath(__file__))
-        print("Here: {}".format(here))
-        env = Environment(loader=loaders.FileSystemLoader(here + '/../flask_praetorian/templates'))
+        templates = '/../flask_praetorian/templates'
+        env = Environment(loader=loaders.FileSystemLoader(here + templates))
         tmpl = env.get_template('registration_email.html')
 
         # create our default test user
@@ -663,23 +663,18 @@ class TestPraetorian:
         db.session.add(the_dude)
         db.session.commit()
 
-        # generate a notification email (don't actually send) and match it to our own
+        # generate (w/o sending) a notification email and match it to our own
         orig_testing = app.config.get('TESTING', False)
         app.config['TESTING'] = True
 
         with app.mail.record_messages() as outbox:
-            notification = default_guard.send_registration_email(user=the_dude, template=None)
-            the_dude.token = notification.token
-            print("Notification Email To: {}".format(notification.recipient))
-            print("Notification Token: {}".format(notification.token))
-            print("the_dude Token: {}".format(the_dude.token))
-            print("Notification Message: {}".format(notification.message))
-            print("Notification Errors: {}".format(notification.errors))
+            notify = default_guard.send_registration_email(user=the_dude)
+            the_dude.token = notify.token
 
             # test our own interpretation and what we got back from flask_mail
-            assert tmpl.render(token=notification.token).strip() == notification.message == outbox[0].body
+            assert tmpl.render(token=notify.token).strip() == notify.message == outbox[0].body
 
-            assert not notification.errors
+            assert not notify.errors
 
         # put away your toys
         app.config['TESTING'] = orig_testing
