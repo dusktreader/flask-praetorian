@@ -203,7 +203,7 @@ class Praetorian:
             self.pwd_ctx is not None,
             "Praetorian must be initialized before this method is available",
         )
-        return self.pwd_ctx.encrypt(raw_password, scheme=self.hash_scheme)
+        return self.pwd_ctx.hash(raw_password, scheme=self.hash_scheme)
 
     def error_handler(self, error):
         """
