@@ -35,6 +35,7 @@ from flask_praetorian.constants import (
     DEFAULT_JWT_REFRESH_LIFESPAN,
     DEFAULT_USER_CLASS_VALIDATION_METHOD,
     DEFAULT_EMAIL_TEMPLATE,
+    DEFAULT_CONFIRMATION_URI,
     RESERVED_CLAIMS,
     VITAM_AETERNUM,
     AccessType,
@@ -136,6 +137,10 @@ class Praetorian:
         self.email_template = app.config.get(
             'PRAETORIAN_EMAIL_TEMPLATE',
             DEFAULT_EMAIL_TEMPLATE,
+        )
+        self.confirmation_uri = app.config.get(
+            'PRAETORIAN_CONFIRMATION_URI',
+            DEFAULT_CONFIRMATION_URI,
         )
 
         if not app.config.get('DISABLE_PRAETORIAN_ERROR_HANDLER'):
@@ -525,25 +530,25 @@ class Praetorian:
             def __init__(self):
                 self.errors = None
                 self.message = None
-                self.recipient = user.email
+                self.email = user.email
                 self.token = None
+                self.confirmation_uri = None
 
         notification = Notification()
 
         with PraetorianError.handle_errors('failed to send notification email'):
             notification.token = self.encode_jwt_token(user,
                                                        override_access_lifespan=override_access_lifespan)
+            notification.confirmation_uri = '/'.join([self.confirmation_uri, notification.token])
 
             with open(self.email_template) as _template:
                 tmpl = Template(_template.read())
-            notification.message = tmpl.render(token=notification.token,
-                                               email=notification.recipient,
-                                               ).strip()
+            notification.message = tmpl.render(notification.__dict__).strip()
 
             msg = Message(body=notification.message,
                           sender="noreply@repgen.co",
                           subject=subject,
-                          recipients=[notification.recipient])
+                          recipients=[notification.email])
 
             from flask import current_app as app
             notification.errors = app.mail.send(msg)
