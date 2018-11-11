@@ -556,7 +556,7 @@ class Praetorian:
 
         notification = Notification()
 
-        with PraetorianError.handle_errors('failed to send notification email'):
+        with PraetorianError.handle_errors('fail sending confirmation email'):
             notification.token = self.encode_jwt_token(user, **kwargs)
             _confirmation_uri = url_for(self.confirmation_endpoint,
                                         _external=True)
