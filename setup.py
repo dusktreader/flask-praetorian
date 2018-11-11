@@ -39,6 +39,7 @@ setup(
             'flake8',
             'flask-cors',
             'flask-sqlalchemy',
+            'flask-mail',
             'freezegun',
             'pytest',
             'pytest-flask',
