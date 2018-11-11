@@ -673,7 +673,7 @@ class TestPraetorian:
             the_dude.token = notify.token
 
             # test our own interpretation and what we got back from flask_mail
-            assert tmpl.render(token=notify.token).strip() == notify.message == outbox[0].body
+            assert tmpl.render(the_dude.__dict__).strip() == notify.message == outbox[0].body
 
             assert not notify.errors
 
