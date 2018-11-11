@@ -7,6 +7,7 @@ import uuid
 import warnings
 
 from jinja2 import Template
+from flask import url_for
 from flask_mail import Message
 
 from passlib.context import CryptContext
@@ -35,7 +36,9 @@ from flask_praetorian.constants import (
     DEFAULT_JWT_REFRESH_LIFESPAN,
     DEFAULT_USER_CLASS_VALIDATION_METHOD,
     DEFAULT_EMAIL_TEMPLATE,
-    DEFAULT_CONFIRMATION_URI,
+    DEFAULT_CONFIRMATION_ENDPOINT,
+    DEFAULT_CONFIRMATION_SENDER,
+    DEFAULT_CONFIRMATION_SUBJECT,
     RESERVED_CLAIMS,
     VITAM_AETERNUM,
     AccessType,
@@ -53,9 +56,10 @@ class Praetorian:
         self.pwd_ctx = None
         self.hash_scheme = None
         self.salt = None
+        self.app = app
 
         if app is not None and user_class is not None:
-            self.init_app(app, user_class, is_blacklisted)
+            self.app = self.init_app(app, user_class, is_blacklisted)
 
     def init_app(self, app, user_class, is_blacklisted=None):
         """
@@ -138,9 +142,17 @@ class Praetorian:
             'PRAETORIAN_EMAIL_TEMPLATE',
             DEFAULT_EMAIL_TEMPLATE,
         )
-        self.confirmation_uri = app.config.get(
-            'PRAETORIAN_CONFIRMATION_URI',
-            DEFAULT_CONFIRMATION_URI,
+        self.confirmation_endpoint = app.config.get(
+            'PRAETORIAN_CONFIRMATION_ENDPOINT',
+            DEFAULT_CONFIRMATION_ENDPOINT,
+        )
+        self.confirmation_sender = app.config.get(
+            'PRAETORIAN_CONFIRMATION_SENDER',
+            DEFAULT_CONFIRMATION_SENDER,
+        )
+        self.confirmation_subject = app.config.get(
+            'PRAETORIAN_CONFIRMATION_SUBJECT',
+            DEFAULT_CONFIRMATION_SUBJECT,
         )
 
         if not app.config.get('DISABLE_PRAETORIAN_ERROR_HANDLER'):
@@ -154,6 +166,8 @@ class Praetorian:
         if not hasattr(app, 'extensions'):
             app.extensions = {}
         app.extensions['praetorian'] = self
+
+        return app
 
     @classmethod
     def _validate_user_class(cls, user_class):
@@ -510,7 +524,7 @@ class Praetorian:
         return {self.header_name: self.header_type + ' ' + token}
 
     def send_registration_email(self, user=None, template=None,
-                                subject='Your Registration Confirmation',
+                                subject=None,
                                 override_access_lifespan=None):
         """
         Sends a registration email to a new user, containing a time expiring
@@ -539,18 +553,22 @@ class Praetorian:
         with PraetorianError.handle_errors('failed to send notification email'):
             notification.token = self.encode_jwt_token(user,
                                                        override_access_lifespan=override_access_lifespan)
-            notification.confirmation_uri = '/'.join([self.confirmation_uri, notification.token])
+            _confirmation_uri = url_for(self.confirmation_endpoint, _external=True)
+            notification.confirmation_uri = '/'.join([_confirmation_uri, notification.token])
 
             with open(self.email_template) as _template:
                 tmpl = Template(_template.read())
             notification.message = tmpl.render(notification.__dict__).strip()
 
             msg = Message(body=notification.message,
-                          sender="noreply@repgen.co",
-                          subject=subject,
+                          sender=self.confirmation_sender,
+                          subject=subject if subject else self.confirmation_subject,
                           recipients=[notification.email])
 
             from flask import current_app as app
             notification.errors = app.mail.send(msg)
 
         return notification
+
+    def validate_confirmation(self, token=None):
+        return self.extract_jwt_token(token)
