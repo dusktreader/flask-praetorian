@@ -677,9 +677,18 @@ class TestPraetorian:
             assert tmpl.render(the_dude.__dict__).strip() in notify.message
             assert notify.message == outbox[0].body
 
+            # test we got an expected confirmation URI
             assert notify.confirmation_uri.endswith('unprotected/' + notify.token)
 
+            # test for no errors
             assert not notify.errors
+
+        # test our token is good
+        assert default_guard.validate_confirmation(notify.token)
+
+        # test a bad token is treated as bad
+        with pytest.raises(Exception) as e_info:
+            default_guard.validate_confirmation('not a token')
 
         # put away your toys
         app.config['TESTING'] = orig_testing
