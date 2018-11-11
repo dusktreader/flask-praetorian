@@ -2,6 +2,9 @@ import freezegun
 import jwt
 import pendulum
 import pytest
+import os
+
+from jinja2 import Environment, loaders
 
 from flask_praetorian import Praetorian
 from flask_praetorian.exceptions import (
@@ -636,3 +639,49 @@ class TestPraetorian:
             assert token_data['rls'] == 'admin,operator'
             assert token_data['duder'] == 'brief'
             assert token_data['el_duderino'] == 'not brief'
+
+    def test_registration_email(self, app, user_class, db):
+        """
+        This test verifies that Praetorian encrypts passwords using the scheme
+        specified by the HASH_SCHEME setting. If no scheme is supplied, the
+        test verifies that the default scheme is used. Otherwise, the test
+        verifies that the encrypted password matches the supplied scheme.
+        """
+        default_guard = Praetorian(app, user_class)
+
+        here = os.path.dirname(os.path.abspath(__file__))
+        print("Here: {}".format(here))
+        env = Environment(loader=loaders.FileSystemLoader(here + '/../flask_praetorian/templates'))
+        tmpl = env.get_template('registration_email.html')
+
+        # create our default test user
+        the_dude = user_class(
+            username='TheDude',
+            email='the@dude.com',
+            password=default_guard.encrypt_password('abides'),
+        )
+        db.session.add(the_dude)
+        db.session.commit()
+
+        # generate a notification email (don't actually send) and match it to our own
+        orig_testing = app.config.get('TESTING', False)
+        app.config['TESTING'] = True
+
+        with app.mail.record_messages() as outbox:
+            notification = default_guard.send_registration_email(user=the_dude, template=None)
+            the_dude.token = notification.token
+            print("Notification Email To: {}".format(notification.recipient))
+            print("Notification Token: {}".format(notification.token))
+            print("the_dude Token: {}".format(the_dude.token))
+            print("Notification Message: {}".format(notification.message))
+            print("Notification Errors: {}".format(notification.errors))
+
+            # test our own interpretation and what we got back from flask_mail
+            assert tmpl.render(token=notification.token).strip() == notification.message == outbox[0].body
+
+            assert not notification.errors
+
+        # put away your toys
+        app.config['TESTING'] = orig_testing
+        db.session.delete(the_dude)
+        db.session.commit()
