@@ -5,10 +5,12 @@ import flask_praetorian
 from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_praetorian import Praetorian
+from flask_mail import Mail
 
 
 _db = SQLAlchemy()
 _guard = Praetorian()
+_mail = Mail()
 
 
 class User(_db.Model):
@@ -18,6 +20,7 @@ class User(_db.Model):
     id = _db.Column(_db.Integer, primary_key=True)
     username = _db.Column(_db.Text, unique=True)
     password = _db.Column(_db.Text)
+    email = _db.Column(_db.Text)
     roles = _db.Column(_db.Text)
 
     @property
@@ -69,6 +72,9 @@ def app(tmpdir_factory):
     app.config['SECRET_KEY'] = 'top secret'
 
     _guard.init_app(app, User)
+
+    _mail.init_app(app)
+    app.mail = _mail
 
     db_path = tmpdir_factory.mktemp(
         'flask-praetorian-test',
@@ -169,3 +175,11 @@ def default_guard():
     This fixtures fetches the flask-praetorian instance to be used in testing
     """
     return _guard
+
+
+@pytest.fixture(scope='session')
+def mail():
+    """
+    This fixture simply fetches the db instance to be used in testing
+    """
+    return _mail
