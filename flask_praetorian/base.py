@@ -5,9 +5,7 @@ import re
 import textwrap
 import uuid
 import warnings
-import os
 
-#from jinja2 import Environment, loaders
 from jinja2 import Template
 from flask_mail import Message
 
