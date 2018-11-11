@@ -7,7 +7,8 @@ import uuid
 import warnings
 import os
 
-from jinja2 import Environment, loaders
+#from jinja2 import Environment, loaders
+from jinja2 import Template
 from flask_mail import Message
 
 from passlib.context import CryptContext
@@ -521,8 +522,6 @@ class Praetorian:
         :param: template:                 Template file location for email.  If not
                                           provided, a stock entry is used.
         """
-        here = os.path.dirname(os.path.abspath(__file__))
-        env = Environment(loader=loaders.FileSystemLoader(here + '/templates'))
 
         class Notification:
             def __init__(self):
@@ -534,11 +533,11 @@ class Praetorian:
         notification = Notification()
 
         with PraetorianError.handle_errors('failed to send notification email'):
-            tmpl = env.get_template('registration_email.html')
-
             notification.token = self.encode_jwt_token(user,
                                                        override_access_lifespan=override_access_lifespan)
 
+            with open(self.email_template) as _template:
+                tmpl = Template(_template.read())
             notification.message = tmpl.render(token=notification.token,
                                                email=notification.recipient,
                                                ).strip()
