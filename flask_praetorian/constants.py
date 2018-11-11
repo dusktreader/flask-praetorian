@@ -10,7 +10,9 @@ DEFAULT_JWT_ALGORITHM = 'HS256'
 DEFAULT_JWT_ALLOWED_ALGORITHMS = ['HS256']
 DEFAULT_USER_CLASS_VALIDATION_METHOD = 'is_valid'
 DEFAULT_EMAIL_TEMPLATE = 'templates/flask_praetorian/registration_email.html'
-DEFAULT_CONFIRMATION_URI = '/auth/confirmation'
+DEFAULT_CONFIRMATION_ENDPOINT = 'registration_confirmation'
+DEFAULT_CONFIRMATION_SENDER = 'you@whatever.com'
+DEFAULT_CONFIRMATION_SUBJECT = 'You still need to confirm your registration'
 
 RESERVED_CLAIMS = {'iat', 'exp', 'rf_exp', 'jti', 'id', 'rls'}
 
