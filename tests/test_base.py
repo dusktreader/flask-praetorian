@@ -647,7 +647,8 @@ class TestPraetorian:
         test verifies that the default scheme is used. Otherwise, the test
         verifies that the encrypted password matches the supplied scheme.
         """
-        here = dirname(dirname(abspath(__file__))) + '/flask_praetorian/templates'
+        _pwd = dirname(dirname(abspath(__file__)))
+        here = _pwd + '/flask_praetorian/templates'
         tmpl_file = here + '/registration_email.html'
         with open(tmpl_file) as _template:
             tmpl = Template(_template.read())
@@ -678,7 +679,8 @@ class TestPraetorian:
             assert notify.message == outbox[0].body
 
             # test we got an expected confirmation URI
-            assert notify.confirmation_uri.endswith('unprotected/' + notify.token)
+            assert notify.confirmation_uri.endswith('unprotected/{}'.
+                                                    format(notify.token))
 
             # test for no errors
             assert not notify.errors
