@@ -6,8 +6,13 @@ import textwrap
 import uuid
 import warnings
 
+from jinja2 import Template
+from flask import url_for
+from flask_mail import Message
+
 from passlib.context import CryptContext
 
+from flask_praetorian.utilities import deprecated
 from flask_praetorian.exceptions import (
     AuthenticationError,
     BlacklistedError,
@@ -21,6 +26,7 @@ from flask_praetorian.exceptions import (
     MissingTokenHeader,
     MissingUserError,
     PraetorianError,
+    LegacyScheme,
 )
 
 from flask_praetorian.constants import (
@@ -31,6 +37,15 @@ from flask_praetorian.constants import (
     DEFAULT_JWT_HEADER_TYPE,
     DEFAULT_JWT_REFRESH_LIFESPAN,
     DEFAULT_USER_CLASS_VALIDATION_METHOD,
+    DEFAULT_EMAIL_TEMPLATE,
+    DEFAULT_CONFIRMATION_ENDPOINT,
+    DEFAULT_CONFIRMATION_SENDER,
+    DEFAULT_CONFIRMATION_SUBJECT,
+    DEFAULT_HASH_SCHEME,
+    DEFAULT_HASH_ALLOWED_SCHEMES,
+    DEFAULT_HASH_AUTOUPDATE,
+    DEFAULT_HASH_AUTOTEST,
+    DEFAULT_HASH_DEPRECATED_SCHEMES,
     RESERVED_CLAIMS,
     VITAM_AETERNUM,
     AccessType,
@@ -50,7 +65,7 @@ class Praetorian:
         self.salt = None
 
         if app is not None and user_class is not None:
-            self.init_app(app, user_class, is_blacklisted)
+            self.app = self.init_app(app, user_class, is_blacklisted)
 
     def init_app(self, app, user_class, is_blacklisted=None):
         """
@@ -71,18 +86,25 @@ class Praetorian:
             "There must be a SECRET_KEY app config setting set",
         )
 
-        possible_schemes = [
-            'argon2',
-            'bcrypt',
-            'pbkdf2_sha512',
-        ]
-        self.pwd_ctx = CryptContext(
-            default='pbkdf2_sha512',
-            schemes=possible_schemes + ['plaintext'],
-            deprecated=[],
+        self.hash_autoupdate = app.config.get(
+            'PRAETORIAN_HASH_AUTOUPDATE',
+            DEFAULT_HASH_AUTOUPDATE,
         )
 
-        self.hash_scheme = app.config.get('PRAETORIAN_HASH_SCHEME')
+        self.hash_autotest = app.config.get(
+            'PRAETORIAN_HASH_AUTOTEST',
+            DEFAULT_HASH_AUTOTEST,
+        )
+
+        self.pwd_ctx = CryptContext(
+            schemes=app.config.get('PRAETORIAN_HASH_ALLOWED_SCHEMES',
+                                   DEFAULT_HASH_ALLOWED_SCHEMES),
+            default=app.config.get('PRAETORIAN_HASH_SCHEME',
+                                   DEFAULT_HASH_SCHEME),
+            deprecated=app.config.get('PRAETORIAN_HASH_DEPRECATED_SCHEMES',
+                                      DEFAULT_HASH_DEPRECATED_SCHEMES),
+        )
+
         valid_schemes = self.pwd_ctx.schemes()
         PraetorianError.require_condition(
             self.hash_scheme in valid_schemes or self.hash_scheme is None,
@@ -123,6 +145,22 @@ class Praetorian:
             'USER_CLASS_VALIDATION_METHOD',
             DEFAULT_USER_CLASS_VALIDATION_METHOD,
         )
+        self.email_template = app.config.get(
+            'PRAETORIAN_EMAIL_TEMPLATE',
+            DEFAULT_EMAIL_TEMPLATE,
+        )
+        self.confirmation_endpoint = app.config.get(
+            'PRAETORIAN_CONFIRMATION_ENDPOINT',
+            DEFAULT_CONFIRMATION_ENDPOINT,
+        )
+        self.confirmation_sender = app.config.get(
+            'PRAETORIAN_CONFIRMATION_SENDER',
+            DEFAULT_CONFIRMATION_SENDER,
+        )
+        self.confirmation_subject = app.config.get(
+            'PRAETORIAN_CONFIRMATION_SUBJECT',
+            DEFAULT_CONFIRMATION_SUBJECT,
+        )
 
         if not app.config.get('DISABLE_PRAETORIAN_ERROR_HANDLER'):
             app.register_error_handler(
@@ -135,6 +173,8 @@ class Praetorian:
         if not hasattr(app, 'extensions'):
             app.extensions = {}
         app.extensions['praetorian'] = self
+
+        return app
 
     @classmethod
     def _validate_user_class(cls, user_class):
@@ -182,6 +222,22 @@ class Praetorian:
             self._verify_password(password, user.password),
             'The password is incorrect',
         )
+
+        """
+        If we are set to PRAETORIAN_HASH_AUTOUPDATE then check our hash
+            and if needed, update the user.  The developer is responsible
+            for using the returned user object and updating the data
+            storage endpoint.
+
+        Else, if we are set to PRAETORIAN_HASH_AUTOTEST then check out hash
+            and return exception if our hash is using the wrong scheme,
+            but don't modify the user.
+        """
+        if self.hash_autoupdate:
+            self.verify_and_update(user=user, password=password)
+        elif self.hash_autotest:
+            self.verify_and_update(user=user)
+
         return user
 
     def _verify_password(self, raw_password, hashed_password):
@@ -195,15 +251,13 @@ class Praetorian:
         )
         return self.pwd_ctx.verify(raw_password, hashed_password)
 
+    @deprecated('Use `hash_password` instead.')
     def encrypt_password(self, raw_password):
         """
-        Encrypts a plaintext password using the stored passlib password context
+        *NOTE* This should be deprecated as its an incorrect definition for
+            what is actually being done -- we are hashing, not encrypting
         """
-        PraetorianError.require_condition(
-            self.pwd_ctx is not None,
-            "Praetorian must be initialized before this method is available",
-        )
-        return self.pwd_ctx.encrypt(raw_password, scheme=self.hash_scheme)
+        return self.hash_password(raw_password)
 
     def error_handler(self, error):
         """
@@ -244,6 +298,7 @@ class Praetorian:
     def encode_jwt_token(
             self, user,
             override_access_lifespan=None, override_refresh_lifespan=None,
+            bypass_user_check=False,
             **custom_claims
     ):
         """
@@ -259,6 +314,9 @@ class Praetorian:
                                            lifespan to set a custom duration
                                            after which the new token's
                                            refreshability will expire.
+        :param: bypass_user_check:         Override checking the user for
+                                           being real/active.  Used for
+                                           registration token generation.
         :param: custom_claims:             Additional claims that should
                                            be packed in the payload. Note that
                                            any claims supplied here must be
@@ -268,7 +326,8 @@ class Praetorian:
             set(custom_claims.keys()).isdisjoint(RESERVED_CLAIMS),
             "The custom claims collide with required claims",
         )
-        self._check_user(user)
+        if not bypass_user_check:
+            self._check_user(user)
 
         moment = pendulum.now('UTC')
 
@@ -484,3 +543,129 @@ class Praetorian:
             **custom_claims
         )
         return {self.header_name: self.header_type + ' ' + token}
+
+    def send_registration_email(
+        self, user=None, template=None,
+        subject=None, override_access_lifepsan=None
+    ):
+        """
+        Sends a registration email to a new user, containing a time expiring
+            token usable for validation.  This requires your application
+            is initiliazed with a `mail` extension, which supports
+            Flask-Mail's `Message()` object and a `send()` method.
+
+        Returns a dict containing the information sent, along with the
+            `result` from mail send.
+        :param: user:                     The user object to tie claim to
+                                          (username, id, email, etc)
+        :param: subject:                  The registration email subject
+                                          override.
+        :param: override_access_lifepsan: Anything used in `encode_jwt_token`,
+                                          but all we really care about is
+                                          `override_access_token`.  This
+                                          overrides the instance's defined
+                                          lifespan, which is used as the
+                                          default.  The token will no longer
+                                          be valid after this time and
+                                          be rejected.
+        :param: template:                 Template file location for email.
+                                          If not provided, a stock entry is
+                                          used.
+        """
+        notification = {
+                'result': None,
+                'message': None,
+                'email': user.email,
+                'token': None,
+                'confirmation_uri': None,
+                'subject': subject if subject else self.confirmation_subject,
+        }
+
+        with PraetorianError.handle_errors('fail sending confirmation email'):
+            notification['token'] = self.encode_jwt_token(
+                user,
+                override_access_lifepsan,
+                bypass_user_check=True
+            )
+            try:
+                """ attempt to find the URI for registration confirmation """
+                _confirmation_uri = url_for(self.confirmation_endpoint,
+                                            _external=True)
+                notification['confirmation_uri'] = '/'.join(
+                        [_confirmation_uri, notification['token']]
+                )
+            except Exception:
+                """ if fails, lets set None """
+                notification['confirmation_uri'] = None
+
+            with open(self.email_template) as _template:
+                tmpl = Template(_template.read())
+            notification['message'] = tmpl.render(notification).strip()
+
+            msg = Message(
+                    html=notification['message'],
+                    sender=self.confirmation_sender,
+                    subject=notification['subject'],
+                    recipients=[notification['email']]
+            )
+
+            notification['result'] = self.app.extensions['mail'].send(msg)
+
+        return notification
+
+    def validate_confirmation(self, token):
+        return self.extract_jwt_token(token)
+
+    def hash_password(self, raw_password):
+        """
+        Encrypts a plaintext password using the stored passlib password context
+        """
+        PraetorianError.require_condition(
+            self.pwd_ctx is not None,
+            "Praetorian must be initialized before this method is available",
+        )
+        """
+        `scheme` is now set with self.pwd_ctx.update(default=scheme) due
+            to the depreciation in upcoming passlib 2.0.
+         zillions of warnings suck.
+        """
+        return self.pwd_ctx.hash(raw_password)
+
+    def verify_and_update(self, user=None, password=None):
+        """
+        Validate a password hash contained in the user object is
+             hashed with the defined hash scheme (PRAETORIAN_HASH_SCHEME).
+        If not, raise an Exception of `LegacySchema`, unless the
+             `password` arguement is provided, in which case an attempt
+             to call `user.save()` will be made, updating the hashed
+             password to the currently desired hash scheme
+             (PRAETORIAN_HASH_SCHEME).
+
+        :param: user:     The user object to tie claim to
+                              (username, id, email, etc). *MUST*
+                              include the hashed password field,
+                              defined as `user.password`
+        :param: password: The user's provide password from login.
+                          If present, this is used to validate
+                              and then attempt to update with the
+                              new PRAETORIAN_HASH_SCHEME scheme.
+        """
+        if self.pwd_ctx.needs_update(user.password):
+            if password:
+                (rv, updated) = self.pwd_ctx.verify_and_update(
+                    password,
+                    user.password,
+                )
+                AuthenticationError.require_condition(
+                    rv,
+                    "Could not verify password",
+                )
+                user.password = updated
+            else:
+                used_hash = self.pwd_ctx.identify(user.password)
+                desired_hash = self.hash_scheme
+                raise LegacyScheme(
+                   "Hash using non-current scheme '{}'.  Use '{}' instead."
+                   .format(used_hash, desired_hash))
+
+        return user

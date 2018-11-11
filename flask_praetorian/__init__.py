@@ -1,3 +1,7 @@
+'''
+   flask_praetorian init
+'''
+
 from flask_praetorian.base import Praetorian  # noqa
 from flask_praetorian.exceptions import PraetorianError  # noqa
 from flask_praetorian.decorators import (  # noqa
