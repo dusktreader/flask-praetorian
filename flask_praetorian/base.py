@@ -536,13 +536,12 @@ class Praetorian:
         with PraetorianError.handle_errors('failed to send notification email'):
             tmpl = env.get_template('registration_email.html')
 
-            notification.token = self.encode_jwt_token(user, 
+            notification.token = self.encode_jwt_token(user,
                                                        override_access_lifespan=override_access_lifespan)
-
 
             notification.message = tmpl.render(token=notification.token,
                                                email=notification.recipient,
-                                              ).strip()
+                                               ).strip()
 
             msg = Message(body=notification.message,
                           sender="noreply@repgen.co",
