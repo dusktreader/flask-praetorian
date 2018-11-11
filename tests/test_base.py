@@ -687,7 +687,7 @@ class TestPraetorian:
         assert default_guard.validate_confirmation(notify.token)
 
         # test a bad token is treated as bad
-        with pytest.raises(Exception) as e_info:
+        with pytest.raises(Exception):
             default_guard.validate_confirmation('not a token')
 
         # put away your toys
