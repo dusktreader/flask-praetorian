@@ -2,9 +2,9 @@ import freezegun
 import jwt
 import pendulum
 import pytest
-import os
+from os.path import dirname, abspath
 
-from jinja2 import Environment, loaders
+from jinja2 import Template
 
 from flask_praetorian import Praetorian
 from flask_praetorian.exceptions import (
@@ -647,12 +647,17 @@ class TestPraetorian:
         test verifies that the default scheme is used. Otherwise, the test
         verifies that the encrypted password matches the supplied scheme.
         """
-        default_guard = Praetorian(app, user_class)
+        here = dirname(dirname(abspath(__file__))) + '/flask_praetorian/templates'
+        tmpl_file = here + '/registration_email.html'
+        with open(tmpl_file) as _template:
+            tmpl = Template(_template.read())
 
-        here = os.path.dirname(os.path.abspath(__file__))
-        templates = '/../flask_praetorian/templates'
-        env = Environment(loader=loaders.FileSystemLoader(here + templates))
-        tmpl = env.get_template('registration_email.html')
+        # generate (w/o sending) a notification email and match it to our own
+        orig_testing = app.config.get('TESTING', False)
+        app.config['TESTING'] = True
+        app.config['PRAETORIAN_EMAIL_TEMPLATE'] = tmpl_file
+
+        default_guard = Praetorian(app, user_class)
 
         # create our default test user
         the_dude = user_class(
@@ -662,10 +667,6 @@ class TestPraetorian:
         )
         db.session.add(the_dude)
         db.session.commit()
-
-        # generate (w/o sending) a notification email and match it to our own
-        orig_testing = app.config.get('TESTING', False)
-        app.config['TESTING'] = True
 
         with app.mail.record_messages() as outbox:
             notify = default_guard.send_registration_email(user=the_dude)
