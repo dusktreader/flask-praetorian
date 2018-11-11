@@ -87,7 +87,13 @@ class Praetorian:
             deprecated=[],
         )
 
-        self.hash_scheme = app.config.get('PRAETORIAN_HASH_SCHEME')
+        """
+        if the developer provided a default, lets use that insteqad
+        """
+        if app.config.get('PRAETORIAN_HASH_SCHEME'):
+            self.hash_scheme = app.config.get('PRAETORIAN_HASH_SCHEME')
+            self.pwd_ctx.update(default=self.hash_scheme)
+
         valid_schemes = self.pwd_ctx.schemes()
         PraetorianError.require_condition(
             self.hash_scheme in valid_schemes or self.hash_scheme is None,
@@ -212,7 +218,12 @@ class Praetorian:
             self.pwd_ctx is not None,
             "Praetorian must be initialized before this method is available",
         )
-        return self.pwd_ctx.hash(raw_password, scheme=self.hash_scheme)
+        """
+        `scheme` is now set with self.pwd_ctx.update(default=scheme) due
+            to the depreciation in upcoming passlib 2.0.
+         zillions of warnings suck.
+        """
+        return self.pwd_ctx.hash(raw_password)
 
     def error_handler(self, error):
         """
