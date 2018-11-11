@@ -525,19 +525,25 @@ class Praetorian:
 
     def send_registration_email(self, user=None, template=None,
                                 subject=None,
-                                override_access_lifespan=None):
+                                **kwargs):
         """
         Sends a registration email to a new user, containing a time expiring
             token usable for validation.
         :param: user:                     The user object to tie claim to
                                           (username, id, email, etc)
-        :param: subject:                  The registration email subject override.
-        :param: override_access_lifepsan: Overrides the instance's defined lifespan,
-                                          which is used as the default.  The token
-                                          will no longer be valid after this time and
+        :param: subject:                  The registration email subject
+                                          override.
+        :param: override_access_lifepsan: Anything used in `encode_jwt_token`,
+                                          but all we really care about is
+                                          `override_access_token`.  This
+                                          overrides the instance's defined
+                                          lifespan, which is used as the
+                                          default.  The token will no longer
+                                          be valid after this time and
                                           be rejected.
-        :param: template:                 Template file location for email.  If not
-                                          provided, a stock entry is used.
+        :param: template:                 Template file location for email.
+                                          If not provided, a stock entry is
+                                          used.
         """
 
         class Notification:
@@ -551,18 +557,20 @@ class Praetorian:
         notification = Notification()
 
         with PraetorianError.handle_errors('failed to send notification email'):
-            notification.token = self.encode_jwt_token(user,
-                                                       override_access_lifespan=override_access_lifespan)
-            _confirmation_uri = url_for(self.confirmation_endpoint, _external=True)
-            notification.confirmation_uri = '/'.join([_confirmation_uri, notification.token])
+            notification.token = self.encode_jwt_token(user, **kwargs)
+            _confirmation_uri = url_for(self.confirmation_endpoint,
+                                        _external=True)
+            notification.confirmation_uri = '/'.join([_confirmation_uri,
+                                                      notification.token])
 
             with open(self.email_template) as _template:
                 tmpl = Template(_template.read())
             notification.message = tmpl.render(notification.__dict__).strip()
+            subject = subject if subject else self.confirmation_subject
 
             msg = Message(body=notification.message,
                           sender=self.confirmation_sender,
-                          subject=subject if subject else self.confirmation_subject,
+                          subject=subject,
                           recipients=[notification.email])
 
             from flask import current_app as app
