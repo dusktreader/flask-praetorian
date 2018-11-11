@@ -656,6 +656,7 @@ class TestPraetorian:
         orig_testing = app.config.get('TESTING', False)
         app.config['TESTING'] = True
         app.config['PRAETORIAN_EMAIL_TEMPLATE'] = tmpl_file
+        app.config['PRAETORIAN_CONFIRMATION_ENDPOINT'] = 'unprotected'
 
         default_guard = Praetorian(app, user_class)
 
@@ -673,7 +674,10 @@ class TestPraetorian:
             the_dude.token = notify.token
 
             # test our own interpretation and what we got back from flask_mail
-            assert tmpl.render(the_dude.__dict__).strip() == notify.message == outbox[0].body
+            assert tmpl.render(the_dude.__dict__).strip() in notify.message
+            assert notify.message == outbox[0].body
+
+            assert notify.confirmation_uri.endswith('unprotected/' + notify.token)
 
             assert not notify.errors
 
