@@ -25,7 +25,7 @@ setup(
         'pytest-runner',
     ],
     tests_require=[
-        'pytest',
+        'pytest>=3.10.0',
     ],
     install_requires=[
         'Flask>=1.0',
