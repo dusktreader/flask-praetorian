@@ -81,6 +81,11 @@ def app(tmpdir_factory):
         numbered=True
     ).join('sqlite.db')
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + str(db_path)
+    """
+    Set to False as we don't use it, and to suppress warnings,
+        as documented by SQLALCHEMY.
+    """
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     _db.init_app(app)
     with app.app_context():
         _db.create_all()
