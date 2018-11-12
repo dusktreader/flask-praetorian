@@ -43,35 +43,50 @@ class NoIdentifyUser:
 
 class TestPraetorian:
 
-    def test_encrypt_password(self, app, user_class):
+    def test_hash_password(self, app, user_class):
         """
         This test verifies that Praetorian encrypts passwords using the scheme
         specified by the HASH_SCHEME setting. If no scheme is supplied, the
         test verifies that the default scheme is used. Otherwise, the test
         verifies that the encrypted password matches the supplied scheme.
         """
+        stock_config = app.config.copy()
+
         default_guard = Praetorian(app, user_class)
-        secret = default_guard.encrypt_password('some password')
+        secret = default_guard.hash_password('some password')
         assert default_guard.pwd_ctx.identify(secret) == 'pbkdf2_sha512'
 
+        # modify to allow 'plaintext' which we'd never support for use
+        """
+        app.config['PRAETORIAN_HASH_DEPRECATED_SCHEMES'] = ['md5_crypt']
+        app.config['PRAETORIAN_HASH_ALLOWED_SCHEMES'] = ['plaintext']
         app.config['PRAETORIAN_HASH_SCHEME'] = 'plaintext'
         dumb_guard = Praetorian(app, user_class)
-        assert dumb_guard.encrypt_password('some password') == 'some password'
+        assert dumb_guard.hash_password('some password') == 'some password'
+        """
+
+        # reset to defaults
+        app.config = stock_config.copy()
 
     def test__verify_password(self, app, user_class, default_guard):
         """
         This test verifies that the _verify_password function can be used to
         successfully compare a raw password against its hashed version
         """
-        secret = default_guard.encrypt_password('some password')
+        stock_config = app.config.copy()
+
+        secret = default_guard.hash_password('some password')
         assert default_guard._verify_password('some password', secret)
         assert not default_guard._verify_password('not right', secret)
 
         app.config['PRAETORIAN_HASH_SCHEME'] = 'pbkdf2_sha512'
         specified_guard = Praetorian(app, user_class)
-        secret = specified_guard.encrypt_password('some password')
+        secret = specified_guard.hash_password('some password')
         assert specified_guard._verify_password('some password', secret)
         assert not specified_guard._verify_password('not right', secret)
+
+        # reset to defaults
+        app.config = stock_config.copy()
 
     def test_authenticate(self, app, user_class, db):
         """
@@ -83,7 +98,7 @@ class TestPraetorian:
         default_guard = Praetorian(app, user_class)
         the_dude = user_class(
             username='TheDude',
-            password=default_guard.encrypt_password('abides'),
+            password=default_guard.hash_password('abides'),
         )
         db.session.add(the_dude)
         db.session.commit()
@@ -221,7 +236,7 @@ class TestPraetorian:
         guard = Praetorian(app, user_class)
         the_dude = user_class(
             username='TheDude',
-            password=guard.encrypt_password('abides'),
+            password=guard.hash_password('abides'),
             roles='admin,operator',
         )
         moment = pendulum.parse('2017-05-21 18:39:55')
@@ -285,7 +300,7 @@ class TestPraetorian:
         validating_guard = Praetorian(app, validating_user_class)
         brandt = validating_user_class(
             username='brandt',
-            password=guard.encrypt_password("can't watch"),
+            password=guard.hash_password("can't watch"),
             is_active=True,
         )
         validating_guard.encode_jwt_token(brandt)
@@ -331,7 +346,7 @@ class TestPraetorian:
         guard = Praetorian(app, user_class)
         the_dude = user_class(
             username='TheDude',
-            password=guard.encrypt_password('abides'),
+            password=guard.hash_password('abides'),
             roles='admin,operator',
         )
         moment = pendulum.parse('2017-05-21 18:39:55')
@@ -376,7 +391,7 @@ class TestPraetorian:
         guard = Praetorian(app, user_class)
         the_dude = user_class(
             username='TheDude',
-            password=guard.encrypt_password('abides'),
+            password=guard.hash_password('abides'),
             roles='admin,operator',
         )
         db.session.add(the_dude)
@@ -453,7 +468,7 @@ class TestPraetorian:
         validating_guard = Praetorian(app, validating_user_class)
         brandt = validating_user_class(
             username='brandt',
-            password=guard.encrypt_password("can't watch"),
+            password=guard.hash_password("can't watch"),
             is_active=True,
         )
         db.session.add(brandt)
@@ -481,7 +496,7 @@ class TestPraetorian:
         guard = Praetorian(app, user_class)
         bunny = user_class(
             username='bunny',
-            password=guard.encrypt_password("can't blow that far"),
+            password=guard.hash_password("can't blow that far"),
         )
         db.session.add(bunny)
         db.session.commit()
@@ -536,7 +551,7 @@ class TestPraetorian:
         guard = Praetorian(app, user_class)
         the_dude = user_class(
             username='TheDude',
-            password=guard.encrypt_password('abides'),
+            password=guard.hash_password('abides'),
             roles='admin,operator',
         )
         db.session.add(the_dude)
@@ -566,7 +581,7 @@ class TestPraetorian:
         guard = Praetorian(app, user_class)
         the_dude = user_class(
             username='TheDude',
-            password=guard.encrypt_password('abides'),
+            password=guard.hash_password('abides'),
             roles='admin,operator',
         )
 
@@ -647,6 +662,8 @@ class TestPraetorian:
         test verifies that the default scheme is used. Otherwise, the test
         verifies that the encrypted password matches the supplied scheme.
         """
+        stock_config = app.config.copy()
+
         _pwd = dirname(dirname(abspath(__file__)))
         here = _pwd + '/flask_praetorian/templates'
         tmpl_file = here + '/registration_email.html'
@@ -665,7 +682,7 @@ class TestPraetorian:
         the_dude = user_class(
             username='TheDude',
             email='the@dude.com',
-            password=default_guard.encrypt_password('abides'),
+            password=default_guard.hash_password('abides'),
         )
         db.session.add(the_dude)
         db.session.commit()
@@ -689,10 +706,136 @@ class TestPraetorian:
         assert default_guard.validate_confirmation(notify.token)
 
         # test a bad token is treated as bad
-        with pytest.raises(Exception):
+        with pytest.raises(PraetorianError):
             default_guard.validate_confirmation('not a token')
 
         # put away your toys
-        app.config['TESTING'] = orig_testing
+        app.config = stock_config
+        db.session.delete(the_dude)
+        db.session.commit()
+        
+    def test_validate_and_update(self, app, user_class, db):
+        """
+        This test verifies that Praetorian encrypts passwords using the scheme
+        specified by the HASH_SCHEME setting. If no scheme is supplied, the
+        test verifies that the default scheme is used. Otherwise, the test
+        verifies that the encrypted password matches the supplied scheme.
+        """
+        stock_config = app.config.copy()
+
+        default_guard = Praetorian(app, user_class)
+        pbkdf2_sha512_password = default_guard.hash_password('start_pbkdf2_sha512')
+
+        # create our default test user
+        the_dude = user_class(
+            username='TheDude',
+            email='the@dude.com',
+            password=pbkdf2_sha512_password,
+        )
+        db.session.add(the_dude)
+        db.session.commit()
+
+        """
+        Test the current password is hashed with PRAETORIAN_HASH_SCHEME
+        """
+        assert default_guard.verify_and_update(user=the_dude)
+
+        """
+        Test a password hashed with something other than 
+            PRAETORIAN_HASH_ALLOWED_SCHEME triggers an Exception.
+        """
+        app.config['PRAETORIAN_HASH_SCHEME'] = 'bcrypt'
+        default_guard = Praetorian(app, user_class)
+        bcrypt_password = default_guard.hash_password('bcrypt_password')
+        the_dude.password = bcrypt_password
+
+        del app.config['PRAETORIAN_HASH_SCHEME']
+        app.config['PRAETORIAN_HASH_DEPRECATED_SCHEMES'] = ['bcrypt']
+        default_guard = Praetorian(app, user_class)
+        with pytest.raises(PraetorianError):
+            default_guard.verify_and_update(the_dude)
+
+        """
+        Test a password hashed with something other than 
+            PRAETORIAN_HASH_SCHEME, and supplied good password
+            gets the user entry's password updated and saved.
+        """
+        the_dude_old_password = the_dude.password
+        updated_dude = default_guard.verify_and_update(user=the_dude, password='bcrypt_password')
+        assert updated_dude.password != the_dude_old_password
+
+        """
+        Test a password hashed with something other than 
+            PRAETORIAN_HASH_SCHEME, and supplied bad password
+            gets an Exception raised.
+        """
+        the_dude.password = bcrypt_password
+        with pytest.raises(PraetorianError):
+            default_guard.verify_and_update(user=the_dude, password='failme')
+
+        # put away your toys
+        app.config = stock_config.copy()
+        db.session.delete(the_dude)
+        db.session.commit()
+
+    def test_authenticate_validate_and_update(self, app, user_class, db):
+        """
+        This test verifies the authenticate() function, when altered by
+        either 'PRAETORIAN_HASH_AUTOUPDATE' or 'PRAETORIAN_HASH_AUTOTEST'
+        performs the authentication and the required subaction.
+        """
+        stock_config = app.config.copy()
+
+        default_guard = Praetorian(app, user_class)
+        pbkdf2_sha512_password = default_guard.hash_password('start_password')
+
+        # create our default test user
+        the_dude = user_class(
+            username='TheDude',
+            email='the@dude.com',
+            password=pbkdf2_sha512_password,
+        )
+        db.session.add(the_dude)
+        db.session.commit()
+
+        """
+        Test the existing model as a baseline
+        """
+        assert default_guard.authenticate(the_dude.username, 'start_password')
+
+        """
+        Test the existing model with a bad password as a baseline
+        """
+        with pytest.raises(AuthenticationError):
+            default_guard.authenticate(the_dude.username, 'failme')
+
+        """
+        Test the updated model with a bad hash scheme and AUTOTEST enabled.
+        Should raise and exception
+        """
+        app.config['PRAETORIAN_HASH_SCHEME'] = 'bcrypt'
+        default_guard = Praetorian(app, user_class)
+        bcrypt_password = default_guard.hash_password('bcrypt_password')
+        the_dude.password = bcrypt_password
+
+        del app.config['PRAETORIAN_HASH_SCHEME']
+        app.config['PRAETORIAN_HASH_DEPRECATED_SCHEMES'] = ['bcrypt']
+        app.config['PRAETORIAN_HASH_AUTOTEST'] = True
+        default_guard = Praetorian(app, user_class)
+        with pytest.raises(PraetorianError):
+            default_guard.authenticate(the_dude.username, 'bcrypt_password')
+
+        """
+        Test the updated model with a bad hash scheme and AUTOUPDATE enabled.
+        Should return an updated user object we need to save ourselves.
+        """
+        the_dude_old_password = the_dude.password
+        app.config['PRAETORIAN_HASH_AUTOUPDATE'] = True
+        default_guard = Praetorian(app, user_class)
+        updated_dude = default_guard.authenticate(the_dude.username, password='bcrypt_password')
+        assert updated_dude.password != the_dude_old_password
+
+        # put away your toys
+        app.config = stock_config
         db.session.delete(the_dude)
         db.session.commit()
