@@ -44,6 +44,7 @@ setup(
             'pytest>=3.10.0',
             'pytest-flask>=0.14.0',
             'sphinx',
+            'bcrypt==3.1.4',
         ],
     },
     include_package_data=True,
