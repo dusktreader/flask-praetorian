@@ -91,3 +91,10 @@ class ClaimCollisionError(PraetorianError):
     Custom claims to pack into the JWT payload collide with reserved claims
     """
     pass
+
+
+class LegacyScheme(PraetorianError):
+    """
+    The processed hash is using an outdated scheme
+    """
+    pass
