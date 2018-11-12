@@ -18,6 +18,7 @@ from flask_praetorian.exceptions import (
     MissingClaimError,
     MissingUserError,
     PraetorianError,
+    LegacyScheme,
 )
 from flask_praetorian.constants import (
     AccessType,
@@ -671,7 +672,6 @@ class TestPraetorian:
             tmpl = Template(_template.read())
 
         # generate (w/o sending) a notification email and match it to our own
-        orig_testing = app.config.get('TESTING', False)
         app.config['TESTING'] = True
         app.config['PRAETORIAN_EMAIL_TEMPLATE'] = tmpl_file
         app.config['PRAETORIAN_CONFIRMATION_ENDPOINT'] = 'unprotected'
@@ -713,7 +713,7 @@ class TestPraetorian:
         app.config = stock_config
         db.session.delete(the_dude)
         db.session.commit()
-        
+
     def test_validate_and_update(self, app, user_class, db):
         """
         This test verifies that Praetorian encrypts passwords using the scheme
@@ -724,7 +724,7 @@ class TestPraetorian:
         stock_config = app.config.copy()
 
         default_guard = Praetorian(app, user_class)
-        pbkdf2_sha512_password = default_guard.hash_password('start_pbkdf2_sha512')
+        pbkdf2_sha512_password = default_guard.hash_password('pbkdf2_sha512')
 
         # create our default test user
         the_dude = user_class(
@@ -741,7 +741,7 @@ class TestPraetorian:
         assert default_guard.verify_and_update(user=the_dude)
 
         """
-        Test a password hashed with something other than 
+        Test a password hashed with something other than
             PRAETORIAN_HASH_ALLOWED_SCHEME triggers an Exception.
         """
         app.config['PRAETORIAN_HASH_SCHEME'] = 'bcrypt'
@@ -752,25 +752,26 @@ class TestPraetorian:
         del app.config['PRAETORIAN_HASH_SCHEME']
         app.config['PRAETORIAN_HASH_DEPRECATED_SCHEMES'] = ['bcrypt']
         default_guard = Praetorian(app, user_class)
-        with pytest.raises(PraetorianError):
+        with pytest.raises(LegacyScheme):
             default_guard.verify_and_update(the_dude)
 
         """
-        Test a password hashed with something other than 
+        Test a password hashed with something other than
             PRAETORIAN_HASH_SCHEME, and supplied good password
             gets the user entry's password updated and saved.
         """
         the_dude_old_password = the_dude.password
-        updated_dude = default_guard.verify_and_update(user=the_dude, password='bcrypt_password')
+        updated_dude = default_guard.verify_and_update(the_dude,
+                                                       'bcrypt_password')
         assert updated_dude.password != the_dude_old_password
 
         """
-        Test a password hashed with something other than 
+        Test a password hashed with something other than
             PRAETORIAN_HASH_SCHEME, and supplied bad password
             gets an Exception raised.
         """
         the_dude.password = bcrypt_password
-        with pytest.raises(PraetorianError):
+        with pytest.raises(AuthenticationError):
             default_guard.verify_and_update(user=the_dude, password='failme')
 
         # put away your toys
@@ -822,7 +823,7 @@ class TestPraetorian:
         app.config['PRAETORIAN_HASH_DEPRECATED_SCHEMES'] = ['bcrypt']
         app.config['PRAETORIAN_HASH_AUTOTEST'] = True
         default_guard = Praetorian(app, user_class)
-        with pytest.raises(PraetorianError):
+        with pytest.raises(LegacyScheme):
             default_guard.authenticate(the_dude.username, 'bcrypt_password')
 
         """
@@ -832,7 +833,8 @@ class TestPraetorian:
         the_dude_old_password = the_dude.password
         app.config['PRAETORIAN_HASH_AUTOUPDATE'] = True
         default_guard = Praetorian(app, user_class)
-        updated_dude = default_guard.authenticate(the_dude.username, password='bcrypt_password')
+        updated_dude = default_guard.authenticate(the_dude.username,
+                                                  'bcrypt_password')
         assert updated_dude.password != the_dude_old_password
 
         # put away your toys

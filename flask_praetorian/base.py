@@ -26,6 +26,7 @@ from flask_praetorian.exceptions import (
     MissingTokenHeader,
     MissingUserError,
     PraetorianError,
+    LegacyScheme,
 )
 
 from flask_praetorian.constants import (
@@ -86,12 +87,12 @@ class Praetorian:
             "There must be a SECRET_KEY app config setting set",
         )
 
-        self.hash_autoupdate=app.config.get(
+        self.hash_autoupdate = app.config.get(
             'PRAETORIAN_HASH_AUTOUPDATE',
             DEFAULT_HASH_AUTOUPDATE,
         )
 
-        self.hash_autotest=app.config.get(
+        self.hash_autotest = app.config.get(
             'PRAETORIAN_HASH_AUTOTEST',
             DEFAULT_HASH_AUTOTEST,
         )
@@ -256,8 +257,8 @@ class Praetorian:
         """
         Encrypts a plaintext password using the stored passlib password context
 
-        *NOTE* This should be deprecated as its an incorrect definition for what
-            is actually being done -- we are hashing, not encrypting
+        *NOTE* This should be deprecated as its an incorrect definition for
+            what is actually being done -- we are hashing, not encrypting
         """
         PraetorianError.require_condition(
             self.pwd_ctx is not None,
@@ -643,17 +644,17 @@ class Praetorian:
                               new PRAETORIAN_HASH_SCHEME scheme.
         """
         if self.pwd_ctx.needs_update(user.password):
-            with PraetorianError.handle_errors('failed password hash verify'):
-                if password:
-                    rv, updated_password = self.pwd_ctx.verify_and_update(password, user.password)
-                    if rv:
-                        user.password = updated_password
-                    else: 
-                        raise ValueError("Could not verify provided password")
+            if password:
+                rv, updated = self.pwd_ctx.verify_and_update(password,
+                                                             user.password)
+                if rv:
+                    user.password = updated
                 else:
-                    with PraetorianError.handle_errors('incorrect password hash scheme used'):
-                        used_hash = self.pwd_ctx.identify(user.password)
-                        desired_hash = self.hash_scheme
-                        raise ValueError("Password hashed with non-current hash ({}) defintion and must be updated ({}).".format(used_hash, desired_hash))
+                    raise AuthenticationError("Could not verify password")
+            else:
+                used_hash = self.pwd_ctx.identify(user.password)
+                desired_hash = self.hash_scheme
+                raise LegacyScheme("Hash using non-current scheme '{}'"
+                                   .format(used_hash, desired_hash))
 
         return user
