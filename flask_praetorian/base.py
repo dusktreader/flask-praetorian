@@ -551,9 +551,10 @@ class Praetorian:
         )
         return {self.header_name: self.header_type + ' ' + token}
 
-    def send_registration_email(self, user=None, template=None,
-                                subject=None,
-                                **kwargs):
+    def send_registration_email(
+        self, user=None, template=None,
+        subject=None, **kwargs,
+    ):
         """
         Sends a registration email to a new user, containing a time expiring
             token usable for validation.
