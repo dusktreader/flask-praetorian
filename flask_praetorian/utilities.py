@@ -120,7 +120,11 @@ def deprecated(reason):
     as deprecated. It will result in a warning being emitted
     when the function is used.
 
+    If no param is passed, a generic message is returned
+
     :param: reason: The reason for the raised Warning message
+
+    Copied from https://stackoverflow.com/questions/40301488
     """
 
     if isinstance(reason, str):
