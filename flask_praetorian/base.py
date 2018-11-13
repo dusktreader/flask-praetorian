@@ -630,7 +630,7 @@ class Praetorian:
         """
         Validate a password hash contained in the user object is
              hashed with the defined hash scheme (PRAETORIAN_HASH_SCHEME).
-        If not, raise an Exception of `InsecureHash`, unless the
+        If not, raise an Exception of `LegacySchema`, unless the
              `password` arguement is provided, in which case an attempt
              to call `user.save()` will be made, updating the hashed
              password to the currently desired hash scheme
