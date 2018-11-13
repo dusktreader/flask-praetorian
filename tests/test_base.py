@@ -689,21 +689,21 @@ class TestPraetorian:
 
         with app.mail.record_messages() as outbox:
             notify = default_guard.send_registration_email(user=the_dude)
-            the_dude.token = notify.token
+            the_dude.token = notify['token']
 
             # test our own interpretation and what we got back from flask_mail
-            assert tmpl.render(the_dude.__dict__).strip() in notify.message
-            assert notify.message == outbox[0].body
+            assert tmpl.render(the_dude.__dict__).strip() in notify['message']
+            assert notify['message'] == outbox[0].body
 
             # test we got an expected confirmation URI
-            assert notify.confirmation_uri.endswith('unprotected/{}'.
-                                                    format(notify.token))
+            assert notify['confirmation_uri'].endswith('unprotected/{}'.
+                                                       format(notify['token']))
 
             # test for no errors
-            assert not notify.errors
+            assert not notify['errors']
 
         # test our token is good
-        assert default_guard.validate_confirmation(notify.token)
+        assert default_guard.validate_confirmation(notify['token'])
 
         # test a bad token is treated as bad
         with pytest.raises(PraetorianError):
