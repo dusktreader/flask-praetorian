@@ -647,8 +647,10 @@ class Praetorian:
         """
         if self.pwd_ctx.needs_update(user.password):
             if password:
-                rv, updated = self.pwd_ctx.verify_and_update(password,
-                                                             user.password)
+                (rv, updated) = self.pwd_ctx.verify_and_update(
+                    password,
+                    user.password,
+                )
                 if rv:
                     user.password = updated
                 else:
