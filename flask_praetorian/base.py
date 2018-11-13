@@ -628,7 +628,7 @@ class Praetorian:
 
     def verify_and_update(self, user=None, password=None):
         """
-        Validate a password hash contained in the user object is in
+        Validate a password hash contained in the user object is
              hashed with the defined hash scheme (PRAETORIAN_HASH_SCHEME).
         If not, raise an Exception of `InsecureHash`, unless the
              `password` arguement is provided, in which case an attempt
