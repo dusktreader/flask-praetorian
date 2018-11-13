@@ -51,7 +51,6 @@ class TestPraetorian:
         test verifies that the default scheme is used. Otherwise, the test
         verifies that the encrypted password matches the supplied scheme.
         """
-        stock_config = app.config.copy()
 
         default_guard = Praetorian(app, user_class)
         secret = default_guard.hash_password('some password')
@@ -66,15 +65,11 @@ class TestPraetorian:
         assert dumb_guard.hash_password('some password') == 'some password'
         """
 
-        # reset to defaults
-        app.config = stock_config.copy()
-
     def test__verify_password(self, app, user_class, default_guard):
         """
         This test verifies that the _verify_password function can be used to
         successfully compare a raw password against its hashed version
         """
-        stock_config = app.config.copy()
 
         secret = default_guard.hash_password('some password')
         assert default_guard._verify_password('some password', secret)
@@ -85,9 +80,6 @@ class TestPraetorian:
         secret = specified_guard.hash_password('some password')
         assert specified_guard._verify_password('some password', secret)
         assert not specified_guard._verify_password('not right', secret)
-
-        # reset to defaults
-        app.config = stock_config.copy()
 
     def test_authenticate(self, app, user_class, db):
         """
@@ -663,7 +655,6 @@ class TestPraetorian:
         test verifies that the default scheme is used. Otherwise, the test
         verifies that the encrypted password matches the supplied scheme.
         """
-        stock_config = app.config.copy()
 
         _pwd = dirname(dirname(abspath(__file__)))
         here = _pwd + '/flask_praetorian/templates'
@@ -710,7 +701,6 @@ class TestPraetorian:
             default_guard.validate_confirmation('not a token')
 
         # put away your toys
-        app.config = stock_config
         db.session.delete(the_dude)
         db.session.commit()
 
@@ -721,7 +711,6 @@ class TestPraetorian:
         test verifies that the default scheme is used. Otherwise, the test
         verifies that the encrypted password matches the supplied scheme.
         """
-        stock_config = app.config.copy()
 
         default_guard = Praetorian(app, user_class)
         pbkdf2_sha512_password = default_guard.hash_password('pbkdf2_sha512')
@@ -775,7 +764,6 @@ class TestPraetorian:
             default_guard.verify_and_update(user=the_dude, password='failme')
 
         # put away your toys
-        app.config = stock_config.copy()
         db.session.delete(the_dude)
         db.session.commit()
 
@@ -785,7 +773,6 @@ class TestPraetorian:
         either 'PRAETORIAN_HASH_AUTOUPDATE' or 'PRAETORIAN_HASH_AUTOTEST'
         performs the authentication and the required subaction.
         """
-        stock_config = app.config.copy()
 
         default_guard = Praetorian(app, user_class)
         pbkdf2_sha512_password = default_guard.hash_password('start_password')
@@ -838,6 +825,5 @@ class TestPraetorian:
         assert updated_dude.password != the_dude_old_password
 
         # put away your toys
-        app.config = stock_config
         db.session.delete(the_dude)
         db.session.commit()
