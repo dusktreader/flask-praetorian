@@ -575,37 +575,25 @@ class Praetorian:
                                           used.
         """
 
-        notification = {'errors': None,
-                        'message': None,
-                        'email': user.email,
-                        'token': None,
-                        'confirmation_uri': None,
-                        'subject': subject if subject 
-                                           else self.confirmation_subject,
-                       }
-        """
-        class Notification:
-            def __init__(self):
-                self.errors = None
-                self.message = None
-                self.email = user.email
-                self.token = None
-                self.confirmation_uri = None
-
-        notification = Notification()
-        """
+        notification = {
+                'errors': None,
+                'message': None,
+                'email': user.email,
+                'token': None,
+                'confirmation_uri': None,
+                'subject': subject if subject else self.confirmation_subject,
+        }
 
         with PraetorianError.handle_errors('fail sending confirmation email'):
             notification['token'] = self.encode_jwt_token(user, **kwargs)
             _confirmation_uri = url_for(self.confirmation_endpoint,
                                         _external=True)
-            notification['confirmation_uri'] = '/'.join([_confirmation_uri,
-                                                         notification['token']
-                                                       ])
+            notification['confirmation_uri'] = '/'.join(
+                    [_confirmation_uri, notification['token']]
+            )
 
             with open(self.email_template) as _template:
                 tmpl = Template(_template.read())
-            #notification.message = tmpl.render(notification.__dict__).strip()
             notification['message'] = tmpl.render(notification).strip()
 
             msg = Message(
