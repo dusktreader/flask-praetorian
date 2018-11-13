@@ -160,7 +160,7 @@ def db():
     return _db
 
 
-@pytest.yield_fixture(autouse=True)
+@pytest.fixture(autouse=True)
 def db_setup(app, db):
     """
     Prepares the testing database to hold testing data by creating the schema
