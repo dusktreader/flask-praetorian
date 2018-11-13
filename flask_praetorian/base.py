@@ -608,7 +608,7 @@ class Praetorian:
 
         return notification
 
-    def validate_confirmation(self, token=None):
+    def validate_confirmation(self, token):
         return self.extract_jwt_token(token)
 
     def hash_password(self, raw_password):
