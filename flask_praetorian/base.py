@@ -608,10 +608,12 @@ class Praetorian:
             #notification.message = tmpl.render(notification.__dict__).strip()
             notification['message'] = tmpl.render(notification).strip()
 
-            msg = Message(body=notification['message'],
-                          sender=self.confirmation_sender,
-                          subject=notification['subject'],
-                          recipients=[notification['email']])
+            msg = Message(
+                    body=notification['message'],
+                    sender=self.confirmation_sender,
+                    subject=notification['subject'],
+                    recipients=[notification['email']]
+            )
 
             from flask import current_app as app
             notification['errors'] = app.mail.send(msg)
