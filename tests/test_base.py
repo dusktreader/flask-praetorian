@@ -650,10 +650,10 @@ class TestPraetorian:
 
     def test_registration_email(self, app, user_class, db):
         """
-        This test verifies that Praetorian encrypts passwords using the scheme
-        specified by the HASH_SCHEME setting. If no scheme is supplied, the
-        test verifies that the default scheme is used. Otherwise, the test
-        verifies that the encrypted password matches the supplied scheme.
+        This test verifies email based registration functions as expected.
+        This includes sending messages with valid time expiring JWT tokens
+           and ensuring the body matches the expected body, as well
+           as token validation.
         """
 
         _pwd = dirname(dirname(abspath(__file__)))
