@@ -121,7 +121,7 @@ def deprecated(reason):
     when the function is used.
     """
 
-    if isinstance(reason, string_types):
+    if isinstance(reason, str):
 
         # The @deprecated is used with a 'reason'.
         #
