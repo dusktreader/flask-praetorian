@@ -119,6 +119,8 @@ def deprecated(reason):
     This is a decorator which can be used to mark functions
     as deprecated. It will result in a warning being emitted
     when the function is used.
+
+    :param: reason: The reason for the raised Warning message
     """
 
     if isinstance(reason, str):
