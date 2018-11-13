@@ -659,7 +659,8 @@ class Praetorian:
             else:
                 used_hash = self.pwd_ctx.identify(user.password)
                 desired_hash = self.hash_scheme
-                raise LegacyScheme("Hash using non-current scheme '{}'"
-                                   .format(used_hash, desired_hash))
+                raise LegacyScheme(
+                   "Hash using non-current scheme '{}'.  Use '{}' instead."
+                   .format(used_hash, desired_hash))
 
         return user
