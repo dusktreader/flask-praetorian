@@ -651,10 +651,11 @@ class Praetorian:
                     password,
                     user.password,
                 )
-                if rv:
-                    user.password = updated
-                else:
-                    raise AuthenticationError("Could not verify password")
+                AuthenticationError.require_condition(
+                    rv,
+                    "Could not verify password",
+                )
+                user.password = updated
             else:
                 used_hash = self.pwd_ctx.identify(user.password)
                 desired_hash = self.hash_scheme
