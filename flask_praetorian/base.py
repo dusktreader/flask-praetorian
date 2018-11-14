@@ -553,7 +553,7 @@ class Praetorian:
 
     def send_registration_email(
         self, user=None, template=None,
-        subject=None, **kwargs,
+        subject=None, **kwargs
     ):
         """
         Sends a registration email to a new user, containing a time expiring
