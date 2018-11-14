@@ -553,7 +553,7 @@ class Praetorian:
 
     def send_registration_email(
         self, user=None, template=None,
-        subject=None, **kwargs
+        subject=None, override_access_lifepsan=None
     ):
         """
         Sends a registration email to a new user, containing a time expiring
@@ -585,7 +585,9 @@ class Praetorian:
         }
 
         with PraetorianError.handle_errors('fail sending confirmation email'):
-            notification['token'] = self.encode_jwt_token(user, **kwargs)
+            notification['token'] = self.encode_jwt_token(
+                user, override_access_lifepsan
+            )
             _confirmation_uri = url_for(self.confirmation_endpoint,
                                         _external=True)
             notification['confirmation_uri'] = '/'.join(
