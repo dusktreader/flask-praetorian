@@ -56,15 +56,6 @@ class TestPraetorian:
         secret = default_guard.hash_password('some password')
         assert default_guard.pwd_ctx.identify(secret) == 'pbkdf2_sha512'
 
-        # modify to allow 'plaintext' which we'd never support for use
-        """
-        app.config['PRAETORIAN_HASH_DEPRECATED_SCHEMES'] = ['md5_crypt']
-        app.config['PRAETORIAN_HASH_ALLOWED_SCHEMES'] = ['plaintext']
-        app.config['PRAETORIAN_HASH_SCHEME'] = 'plaintext'
-        dumb_guard = Praetorian(app, user_class)
-        assert dumb_guard.hash_password('some password') == 'some password'
-        """
-
     def test__verify_password(self, app, user_class, default_guard):
         """
         This test verifies that the _verify_password function can be used to
