@@ -574,7 +574,7 @@ class Praetorian:
                           recipients=[notification.email])
 
             from flask import current_app as app
-            notification.errors = app.mail.send(msg)
+            notification.errors = app.extensions['mail'].send(msg)
 
         return notification
 
