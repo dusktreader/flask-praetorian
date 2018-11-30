@@ -15,26 +15,26 @@ class TestPraetorianDecorators:
         """
         self.the_dude = user_class(
             username='TheDude',
-            password=default_guard.encrypt_password('abides'),
+            password=default_guard.hash_password('abides'),
         )
         self.walter = user_class(
             username='Walter',
-            password=default_guard.encrypt_password('calmerthanyouare'),
+            password=default_guard.hash_password('calmerthanyouare'),
             roles='admin'
         )
         self.donnie = user_class(
             username='Donnie',
-            password=default_guard.encrypt_password('iamthewalrus'),
+            password=default_guard.hash_password('iamthewalrus'),
             roles='operator'
         )
         self.maude = user_class(
             username='Maude',
-            password=default_guard.encrypt_password('andthorough'),
+            password=default_guard.hash_password('andthorough'),
             roles='operator,admin'
         )
         self.jesus = user_class(
             username='Jesus',
-            password=default_guard.encrypt_password('hecanroll'),
+            password=default_guard.hash_password('hecanroll'),
             roles='admin,god'
         )
 

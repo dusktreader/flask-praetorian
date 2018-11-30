@@ -160,7 +160,7 @@ def db():
     return _db
 
 
-@pytest.yield_fixture(autouse=True)
+@pytest.fixture(autouse=True)
 def db_setup(app, db):
     """
     Prepares the testing database to hold testing data by creating the schema
@@ -188,3 +188,15 @@ def mail():
     This fixture simply fetches the db instance to be used in testing
     """
     return _mail
+
+
+@pytest.fixture(autouse=True)
+def clean_flask_app_config(app):
+    """
+    This fixture ensures a clean `app.config` is available for each round
+        of testing.
+    """
+    with app.app_context():
+        stock_config = app.config.copy()
+        yield
+        app.config = stock_config.copy()
