@@ -682,7 +682,7 @@ class TestPraetorian:
                                                        format(notify['token']))
 
             # test for no errors
-            assert not notify['errors']
+            assert not notify['result']
 
         # test our token is good
         assert default_guard.validate_confirmation(notify['token'])

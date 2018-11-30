@@ -310,6 +310,7 @@ class Praetorian:
     def encode_jwt_token(
             self, user,
             override_access_lifespan=None, override_refresh_lifespan=None,
+            bypass_user_check=False,
             **custom_claims
     ):
         """
@@ -325,6 +326,9 @@ class Praetorian:
                                            lifespan to set a custom duration
                                            after which the new token's
                                            refreshability will expire.
+        :param: bypass_user_check:         Override checking the user for
+                                           being real/active.  Used for 
+                                           registration token generation.
         :param: custom_claims:             Additional claims that should
                                            be packed in the payload. Note that
                                            any claims supplied here must be
@@ -334,7 +338,8 @@ class Praetorian:
             set(custom_claims.keys()).isdisjoint(RESERVED_CLAIMS),
             "The custom claims collide with required claims",
         )
-        self._check_user(user)
+        if not bypass_user_check:
+            self._check_user(user)
 
         moment = pendulum.now('UTC')
 
@@ -557,7 +562,12 @@ class Praetorian:
     ):
         """
         Sends a registration email to a new user, containing a time expiring
-            token usable for validation.
+            token usable for validation.  This requires your application
+            is initiliazed with a `mail` extension, which supports
+            Flask-Mail's `Message()` object and a `send()` method.
+
+        Returns a dict containing the information sent, along with the 
+            `result` from mail send.
         :param: user:                     The user object to tie claim to
                                           (username, id, email, etc)
         :param: subject:                  The registration email subject
@@ -576,7 +586,7 @@ class Praetorian:
         """
 
         notification = {
-                'errors': None,
+                'result': None,
                 'message': None,
                 'email': user.email,
                 'token': None,
@@ -588,11 +598,16 @@ class Praetorian:
             notification['token'] = self.encode_jwt_token(
                 user, override_access_lifepsan
             )
-            _confirmation_uri = url_for(self.confirmation_endpoint,
-                                        _external=True)
-            notification['confirmation_uri'] = '/'.join(
-                    [_confirmation_uri, notification['token']]
-            )
+            try:
+                """ attempt to find the URI for registration confirmation """
+                _confirmation_uri = url_for(self.confirmation_endpoint,
+                                            _external=True)
+                notification['confirmation_uri'] = '/'.join(
+                        [_confirmation_uri, notification['token']]
+                )
+            except:
+                """ if fails, lets set None """
+                notification['confirmation_uri'] = None
 
             with open(self.email_template) as _template:
                 tmpl = Template(_template.read())
@@ -606,7 +621,7 @@ class Praetorian:
             )
 
             from flask import current_app as app
-            notification.errors = app.extensions['mail'].send(msg)
+            notification['result'] = app.extensions['mail'].send(msg)
 
         return notification
 
