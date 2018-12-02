@@ -616,7 +616,7 @@ class Praetorian:
             notification['message'] = tmpl.render(notification).strip()
 
             msg = Message(
-                    body=notification['message'],
+                    html=notification['message'],
                     sender=self.confirmation_sender,
                     subject=notification['subject'],
                     recipients=[notification['email']]
