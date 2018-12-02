@@ -639,7 +639,7 @@ class TestPraetorian:
             assert token_data['duder'] == 'brief'
             assert token_data['el_duderino'] == 'not brief'
 
-    def test_registration_email(self, app, user_class, db):
+    def test_registration_email(self, app, user_class, db, clean_flask_app_config):
         """
         This test verifies email based registration functions as expected.
         This includes sending messages with valid time expiring JWT tokens
@@ -678,8 +678,9 @@ class TestPraetorian:
             assert notify['message'] == outbox[0].body
 
             # test we got an expected confirmation URI
-            assert notify['confirmation_uri'].endswith('unprotected/{}'.
-                                                       format(notify['token']))
+            assert notify['confirmation_uri'].endswith(
+                'unprotected/{}'.format(notify['token'])
+            )
 
             # test for no errors
             assert not notify['result']
@@ -690,6 +691,72 @@ class TestPraetorian:
         # test a bad token is treated as bad
         with pytest.raises(PraetorianError):
             default_guard.validate_confirmation('not a token')
+
+        # put away your toys
+        db.session.delete(the_dude)
+        db.session.commit()
+
+    def test_registration_confirmation(
+        self,
+        app,
+        user_class,
+        db,
+        clean_flask_app_config
+    ):
+        """
+        This test verifies email based registration confirmations.
+        Tests against invalid tokens, expired tokens, and
+           valid tokens are tested.
+        """
+
+        app.config['TESTING'] = True
+        app.config['PRAETORIAN_CONFIRMATION_ENDPOINT'] = 'reg_confirm'
+
+        default_guard = Praetorian(app, user_class)
+
+        # create our default test user
+        the_dude = user_class(
+            username='TheDude',
+            email='the@dude.com',
+            password=default_guard.hash_password('abides'),
+        )
+        db.session.add(the_dude)
+        db.session.commit()
+
+        """
+           test to ensure a regular registration token is good
+        """
+        reg_token = default_guard.encode_jwt_token(
+            the_dude,
+            bypass_user_check=True
+        )
+
+        # ensure we got a token
+        assert reg_token
+        # ensure the user ID in the token is 1 (we only have one user)
+        assert default_guard.validate_confirmation(reg_token)['id'] == 1
+
+        """
+           test to ensure a bad (nonsense) token fails validation
+        """
+        with pytest.raises(PraetorianError):
+            default_guard.validate_confirmation('not a token')
+
+        """
+           test to ensure a registration token that is expired
+               sets off an 'ExpiredAccessError' exception
+        """
+        expired_reg_token = default_guard.encode_jwt_token(
+            the_dude,
+            bypass_user_check=True,
+            override_access_lifespan=pendulum.Duration(seconds=1),
+        )
+
+        assert expired_reg_token
+        import time
+        time.sleep(2)
+        with pytest.raises(ExpiredAccessError):
+            assert default_guard.validate_confirmation(expired_reg_token)
 
         # put away your toys
         db.session.delete(the_dude)
@@ -741,8 +808,10 @@ class TestPraetorian:
             gets the user entry's password updated and saved.
         """
         the_dude_old_password = the_dude.password
-        updated_dude = default_guard.verify_and_update(the_dude,
-                                                       'bcrypt_password')
+        updated_dude = default_guard.verify_and_update(
+            the_dude,
+            'bcrypt_password'
+        )
         assert updated_dude.password != the_dude_old_password
 
         """
@@ -811,8 +880,10 @@ class TestPraetorian:
         the_dude_old_password = the_dude.password
         app.config['PRAETORIAN_HASH_AUTOUPDATE'] = True
         default_guard = Praetorian(app, user_class)
-        updated_dude = default_guard.authenticate(the_dude.username,
-                                                  'bcrypt_password')
+        updated_dude = default_guard.authenticate(
+            the_dude.username,
+            'bcrypt_password'
+        )
         assert updated_dude.password != the_dude_old_password
 
         # put away your toys

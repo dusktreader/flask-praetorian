@@ -133,6 +133,10 @@ def app(tmpdir_factory):
     def reversed_decorators():
         return jsonify(message='success')
 
+    @app.route('/registration_confirmation')
+    def reg_confirm():
+        return jsonify(message='fuck')
+
     return app
 
 

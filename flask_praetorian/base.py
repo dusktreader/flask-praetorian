@@ -327,7 +327,7 @@ class Praetorian:
                                            after which the new token's
                                            refreshability will expire.
         :param: bypass_user_check:         Override checking the user for
-                                           being real/active.  Used for 
+                                           being real/active.  Used for
                                            registration token generation.
         :param: custom_claims:             Additional claims that should
                                            be packed in the payload. Note that
@@ -566,7 +566,7 @@ class Praetorian:
             is initiliazed with a `mail` extension, which supports
             Flask-Mail's `Message()` object and a `send()` method.
 
-        Returns a dict containing the information sent, along with the 
+        Returns a dict containing the information sent, along with the
             `result` from mail send.
         :param: user:                     The user object to tie claim to
                                           (username, id, email, etc)
@@ -596,7 +596,9 @@ class Praetorian:
 
         with PraetorianError.handle_errors('fail sending confirmation email'):
             notification['token'] = self.encode_jwt_token(
-                user, override_access_lifepsan
+                user,
+                override_access_lifepsan,
+                bypass_user_check=True
             )
             try:
                 """ attempt to find the URI for registration confirmation """
@@ -605,7 +607,7 @@ class Praetorian:
                 notification['confirmation_uri'] = '/'.join(
                         [_confirmation_uri, notification['token']]
                 )
-            except:
+            except Exception:
                 """ if fails, lets set None """
                 notification['confirmation_uri'] = None
 
