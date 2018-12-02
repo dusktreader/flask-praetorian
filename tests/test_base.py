@@ -639,7 +639,9 @@ class TestPraetorian:
             assert token_data['duder'] == 'brief'
             assert token_data['el_duderino'] == 'not brief'
 
-    def test_registration_email(self, app, user_class, db, clean_flask_app_config):
+    def test_registration_email(
+        self, app, user_class, db, clean_flask_app_config
+    ):
         """
         This test verifies email based registration functions as expected.
         This includes sending messages with valid time expiring JWT tokens
@@ -675,7 +677,7 @@ class TestPraetorian:
 
             # test our own interpretation and what we got back from flask_mail
             assert tmpl.render(the_dude.__dict__).strip() in notify['message']
-            assert notify['message'] == outbox[0].body
+            assert notify['message'] == outbox[0].html
 
             # test we got an expected confirmation URI
             assert notify['confirmation_uri'].endswith(
