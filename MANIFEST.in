@@ -1,1 +1,2 @@
 include .project_metadata.json
+graft flask_praetorian/templates
