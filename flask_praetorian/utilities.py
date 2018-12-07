@@ -8,9 +8,6 @@ from flask_praetorian.constants import RESERVED_CLAIMS
 from flask_praetorian.exceptions import PraetorianError
 
 
-string_types = (type(b''), type(u''))
-
-
 def current_guard():
     """
     Fetches the current instance of flask-praetorian that is attached to the
