@@ -63,7 +63,6 @@ class Praetorian:
         self.pwd_ctx = None
         self.hash_scheme = None
         self.salt = None
-        self.app = app
 
         if app is not None and user_class is not None:
             self.app = self.init_app(app, user_class, is_blacklisted)
@@ -255,21 +254,10 @@ class Praetorian:
     @deprecated('Use `hash_password` instead.')
     def encrypt_password(self, raw_password):
         """
-        Encrypts a plaintext password using the stored passlib password context
-
         *NOTE* This should be deprecated as its an incorrect definition for
             what is actually being done -- we are hashing, not encrypting
         """
-        PraetorianError.require_condition(
-            self.pwd_ctx is not None,
-            "Praetorian must be initialized before this method is available",
-        )
-        """
-        `scheme` is now set with self.pwd_ctx.update(default=scheme) due
-            to the depreciation in upcoming passlib 2.0.
-         zillions of warnings suck.
-        """
-        return self.pwd_ctx.hash(raw_password)
+        return self.hash_password(raw_password)
 
     def error_handler(self, error):
         """
@@ -622,8 +610,7 @@ class Praetorian:
                     recipients=[notification['email']]
             )
 
-            from flask import current_app as app
-            notification['result'] = app.extensions['mail'].send(msg)
+            notification['result'] = self.app.extensions['mail'].send(msg)
 
         return notification
 
