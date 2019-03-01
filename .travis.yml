@@ -9,9 +9,6 @@ before_install:
 - pip install poetry
 install:
 - poetry install
-before_script:
-- flake8 flask_praetorian
-- flake8 tests
 script:
 - poetry run pytest tests
 before_deploy:
