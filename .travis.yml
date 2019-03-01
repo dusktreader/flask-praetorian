@@ -11,7 +11,7 @@ matrix:
 before_install:
 - pip install poetry
 install:
-- poetry install --dev
+- poetry install
 before_script:
 - flake8 flask_praetorian
 - flake8 tests
