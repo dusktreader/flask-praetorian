@@ -3,21 +3,22 @@ python:
 - '3.4'
 - '3.5'
 - '3.6'
-- '3.7-dev'
+- '3.7'
+dist: xenial
+before_install:
+- pip install poetry
 install:
-- pip install --upgrade pip
-- pip install .[dev]
-before_script:
-- flake8 flask_praetorian
-- flake8 tests
-script: pytest tests
+- poetry install
+script:
+- poetry run pytest tests
+before_deploy:
+- poetry config http-basic.pypi dusktreader $PYPI_PASSWORD
+- poetry build
 deploy:
-  provider: pypi
-  user: dusktreader
-  password:
-    secure: i4SHf79znFQPxW/MIbIUCpug47LbnkvW3BFlHTZWIy9En6LNAwjmaoVWBzCOiEQctAc+LYcB8qpK5dx31WMPZhwDN7Q3R+L914you6O+sgmAKpZQI5+eG6g1dCt56u+RlYhatws0NJCWD4IUYBdwW4xESDI6YZ5sBlCyh2fwlPQuykib50VbbOtQwGdNEzlJVZ7WwcdZ+oQMsr8M7ex4zpaaStFE3UufOmtXzi7vZ3LQoGCg9iG1fElL7YZXZgq/jpo9ZN2Is9RL50H1Tc+U9Rv6jYCz/T09V+F7I3Kypbp+DQRwrJdY1dc+agzjfl+YP85D7cnPu142G8fuugNt4lOORGPwbDrETB9A24ER7haq+yJqu+PV937v3V9lWswmbyTaHufNhAAQC73Yu9xZLIoc4ctB00Vxicj+NBMYucXHEakq5vQ88a91KKYSOj4yiwQGY72cZk2xZ5+wuSGdSZ7kPOXwsDs/OJ1c5/o60MLgRLrH/2XjUVLUQrxdVuQJfmMhVjnVA4M2s83G7McAZZsyehVV1Se/YGDz/Xcff4XLHSYIt7QB6PaX6sGH/nPTeQzuXr0DQQnneiTXWhrhuMdSXoVLGN/GTY02lgr15sk+TKb4nFyYcnh09BPYPYqp78Ou6LBPd+HN75c0s4v8f5jQp2ELpKX+W6+nUl8gcp0=
+  provider: script
+  script: poetry publish
   on:
     tags: true
-    distributions: sdist bdist_wheel
-    repo: dusktreader/flask-praetorian
-    python: 3.6
+env:
+  global:
+    secure: bUjH7SW/nwwOY5H3JFiIlH0vXpcJ61L5PFOKw0j49UA0SSrCgei+PjcQSLwSW7jAkIHG0Di0sUqw4MMCPlENZz55G904qO/OR3p/k2csyqZoFvr+InGphxkJ+e+j7opRb31W/pn0BUJeveLjU6IBrm9PSxWUn0QohIbkipad9stdk9bjnihxiXLHWJhwtp47zu6quO8BSnO7LPRTA6QMvnms34NfJne0RhzdOSeEM4VTXx2A7NH1jCH2RdvBOfN35L43CLPh9UCAmIB+WGHHDsbZwRNVf2+kUatMVRENSxFr0petEaIfOfxYiQ4kH4g1Fi+IS+1RKECcnzm9ngMMk8IJLe1vUGbICdz3iQQ24knhW31rWm1PQipm18SwbGC5WrkHJNTgzDmn5kJTbxwQOVHJf7ZsnNyF9Wtevm18GFeCX/E1Qi0bVxnmBpSsjqrGaBLBSQ8Fxp9+fukJ0dZTMnndJf7qdcUs9kkVilgcbvM3B+UW00S4AMZMVHNNtqJGeOvo2DFA5f2aMGNvIxCmdLQ5pJts+8ZeBJVQEj9kCs2l0helUYrswVVcsd22u0fFVHNDDdwsQyB+ZyhemHzIxb5KybUNTfBfsS6RVw9UlztdX4QAuXH6n+mMemDQJBqpNcYPhTVbIB+o4XXU/5GPWQLcBvoQ0/T4vFIcnv87XY8=
