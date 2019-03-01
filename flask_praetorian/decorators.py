@@ -48,12 +48,13 @@ def roles_required(*required_rolenames):
     def decorator(method):
         @functools.wraps(method)
         def wrapper(*args, **kwargs):
+            role_set = set([str(n) for n in required_rolenames])
             _verify_and_add_jwt()
             try:
                 MissingRoleError.require_condition(
-                    current_rolenames().issuperset(set(required_rolenames)),
+                    current_rolenames().issuperset(role_set),
                     "This endpoint requires all the following roles: {}",
-                    [', '.join(required_rolenames)],
+                    [', '.join(role_set)],
                 )
                 return method(*args, **kwargs)
             finally:
@@ -71,14 +72,13 @@ def roles_accepted(*accepted_rolenames):
     def decorator(method):
         @functools.wraps(method)
         def wrapper(*args, **kwargs):
+            role_set = set([str(n) for n in accepted_rolenames])
             _verify_and_add_jwt()
             try:
                 MissingRoleError.require_condition(
-                    not current_rolenames().isdisjoint(
-                        set(accepted_rolenames)
-                    ),
+                    not current_rolenames().isdisjoint(role_set),
                     "This endpoint requires one of the following roles: {}",
-                    [', '.join(accepted_rolenames)],
+                    [', '.join(role_set)],
                 )
                 return method(*args, **kwargs)
             finally:
