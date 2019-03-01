@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flask-praetorian"
-version = "0.5.0"
+version = "0.5.2"
 description = "Strong, Simple, and Precise security for Flask APIs (using jwt)"
 authors = ["Tucker Beck <tucker.beck@gmail.com>"]
 license = "MIT"
