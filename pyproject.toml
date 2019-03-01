@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "flask-praetorian"
+version = "0.4.8"
+description = "Strong, Simple, and Precise security for Flask APIs (using jwt)"
+authors = ["Tucker Beck <tucker.beck@gmail.com>"]
+license = "MIT"
+readme = "README.rst"
+homepage = "https://flask-praetorian.readthedocs.io/en/latest/"
+documentation = "https://flask-praetorian.readthedocs.io/en/latest/"
+repository = "https://github.com/dusktreader/flask-praetorian"
+
+
+[tool.poetry.dependencies]
+python = "^3.4"
+flask = "^1.0"
+pyjwt = "^1.7"
+pendulum = "^2.0"
+passlib = "^1.7"
+flask-buzz = "^0.1.7"
+
+[tool.poetry.dev-dependencies]
+flask-cors = "^3.0"
+flask-sqlalchemy = "^2.3"
+freezegun = "^0.3.11"
+pytest = "^4.3"
+pytest-flask = "^0.14.0"
+sphinx = "^1.8"
+sphinx-view = "^0.2.0"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
