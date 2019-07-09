@@ -90,7 +90,6 @@ def login():
     """
     Logs a user in by parsing a POST request containing user credentials and
     issuing a JWT token.
-
     .. example::
        $ curl http://localhost:5000/login -X POST \
          -d '{"username":"Walter","password":"calmerthanyouare"}'
@@ -109,7 +108,6 @@ def protected():
     """
     A protected endpoint. The auth_required decorator will require a header
     containing a valid JWT
-
     .. example::
        $ curl http://localhost:5000/protected -X GET \
          -H "Authorization: Bearer <your_token>"
@@ -125,7 +123,6 @@ def protected_admin_required():
     """
     A protected endpoint that requires a role. The roles_required decorator
     will require that the supplied JWT includes the required roles
-
     .. example::
        $ curl http://localhost:5000/protected_admin_required -X GET \
           -H "Authorization: Bearer <your_token>"
@@ -144,7 +141,6 @@ def protected_operator_accepted():
     A protected endpoint that accepts any of the listed roles. The
     roles_accepted decorator will require that the supplied JWT includes at
     least one of th accepted roles
-
     .. example::
        $ curl http://localhost/protected_operator_accepted -X GET \
          -H "Authorization: Bearer <your_token>"

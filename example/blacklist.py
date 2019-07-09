@@ -120,7 +120,6 @@ def protected():
 def blacklist_token():
     """
     Blacklists an existing JWT by registering its jti claim in the blacklist.
-
     .. example::
        $ curl http://localhost:5000/blacklist_token -X POST \
          -d '{"token":"<your_token>"}'

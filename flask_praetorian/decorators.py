@@ -2,6 +2,7 @@ import functools
 
 from flask_praetorian.exceptions import MissingRoleError
 
+
 from flask_praetorian.utilities import (
     current_guard,
     add_jwt_data_to_app_context,

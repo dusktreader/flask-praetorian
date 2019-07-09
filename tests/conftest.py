@@ -5,10 +5,12 @@ import flask_praetorian
 from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_praetorian import Praetorian
+from flask_mail import Mail
 
 
 _db = SQLAlchemy()
 _guard = Praetorian()
+_mail = Mail()
 
 
 class User(_db.Model):
@@ -18,6 +20,7 @@ class User(_db.Model):
     id = _db.Column(_db.Integer, primary_key=True)
     username = _db.Column(_db.Text, unique=True)
     password = _db.Column(_db.Text)
+    email = _db.Column(_db.Text)
     roles = _db.Column(_db.Text)
 
     @property
@@ -70,11 +73,19 @@ def app(tmpdir_factory):
 
     _guard.init_app(app, User)
 
+    _mail.init_app(app)
+    app.mail = _mail
+
     db_path = tmpdir_factory.mktemp(
         'flask-praetorian-test',
         numbered=True
     ).join('sqlite.db')
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + str(db_path)
+    """
+    Set to False as we don't use it, and to suppress warnings,
+        as documented by SQLALCHEMY.
+    """
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     _db.init_app(app)
     with app.app_context():
         _db.create_all()
@@ -122,6 +133,10 @@ def app(tmpdir_factory):
     def reversed_decorators():
         return jsonify(message='success')
 
+    @app.route('/registration_confirmation')
+    def reg_confirm():
+        return jsonify(message='fuck')
+
     return app
 
 
@@ -149,7 +164,7 @@ def db():
     return _db
 
 
-@pytest.yield_fixture(autouse=True)
+@pytest.fixture(autouse=True)
 def db_setup(app, db):
     """
     Prepares the testing database to hold testing data by creating the schema
@@ -169,3 +184,23 @@ def default_guard():
     This fixtures fetches the flask-praetorian instance to be used in testing
     """
     return _guard
+
+
+@pytest.fixture(scope='session')
+def mail():
+    """
+    This fixture simply fetches the db instance to be used in testing
+    """
+    return _mail
+
+
+@pytest.fixture(autouse=True)
+def clean_flask_app_config(app):
+    """
+    This fixture ensures a clean `app.config` is available for each round
+        of testing.
+    """
+    with app.app_context():
+        stock_config = app.config.copy()
+        yield
+        app.config = stock_config.copy()
