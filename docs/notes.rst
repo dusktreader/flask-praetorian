@@ -61,7 +61,7 @@ Configuration Settings
        ABSOLUTELY MUST BE SET TO SOMETHING OTHER THAN DEFAULT IN PRODUCTION.
      - DO NOT USE THE DEFAULT IN PRODUCTION
    * - ``PRAETORIAN_HASH_SCHEME``
-     - The hash scheme used to encrypt passwords in the database. If unset,
+     - The hash scheme used to hash passwords in the database. If unset,
        passlib will use the default scheme which is ``pbkdf2_sha512``
      - ``'pbkdf2_sha512'``
    * - ``JWT_ALLOWED_ALGORITHMS``

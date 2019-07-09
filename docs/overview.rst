@@ -20,12 +20,13 @@ specifically.
 The `flask-praetorian <https://github.com/dusktreader/flask-praetorian>`_
 package can be used to:
 
-* Encrypt (hash) passwords for storing in your database
-* Verify plaintext passwords against the encrypted, stored versions
+* Hash passwords for storing in your database
+* Verify plaintext passwords against the hashed, stored versions
 * Generate authorization tokens upon verification of passwords
 * Check requests to secured endpoints for authorized tokens
 * Ensure that the users associated with tokens have necessary roles for access
 * Parse user information from request headers for use in client route handlers
+* Register new users using email verification
 
 All of this is provided in a very simple to configure and initialize flask
 extension. Though simple, the security provided by

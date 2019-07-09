@@ -695,7 +695,7 @@ class Praetorian:
 
     def hash_password(self, raw_password):
         """
-        Encrypts a plaintext password using the stored passlib password context
+        Hashes a plaintext password using the stored passlib password context
         """
         PraetorianError.require_condition(
             self.pwd_ctx is not None,
