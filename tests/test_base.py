@@ -46,10 +46,10 @@ class TestPraetorian:
 
     def test_hash_password(self, app, user_class):
         """
-        This test verifies that Praetorian encrypts passwords using the scheme
+        This test verifies that Praetorian hashes passwords using the scheme
         specified by the HASH_SCHEME setting. If no scheme is supplied, the
         test verifies that the default scheme is used. Otherwise, the test
-        verifies that the encrypted password matches the supplied scheme.
+        verifies that the hashed password matches the supplied scheme.
         """
 
         default_guard = Praetorian(app, user_class)
@@ -829,10 +829,10 @@ class TestPraetorian:
 
     def test_validate_and_update(self, app, user_class, db):
         """
-        This test verifies that Praetorian encrypts passwords using the scheme
+        This test verifies that Praetorian hashes passwords using the scheme
         specified by the HASH_SCHEME setting. If no scheme is supplied, the
         test verifies that the default scheme is used. Otherwise, the test
-        verifies that the encrypted password matches the supplied scheme.
+        verifies that the hashed password matches the supplied scheme.
         """
 
         default_guard = Praetorian(app, user_class)

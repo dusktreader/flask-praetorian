@@ -63,21 +63,21 @@ with app.app_context():
     db.create_all()
     db.session.add(User(
         username='TheDude',
-        password=guard.encrypt_password('abides'),
+        password=guard.hash_password('abides'),
     ))
     db.session.add(User(
         username='Walter',
-        password=guard.encrypt_password('calmerthanyouare'),
+        password=guard.hash_password('calmerthanyouare'),
         roles='admin'
     ))
     db.session.add(User(
         username='Donnie',
-        password=guard.encrypt_password('iamthewalrus'),
+        password=guard.hash_password('iamthewalrus'),
         roles='operator'
     ))
     db.session.add(User(
         username='Maude',
-        password=guard.encrypt_password('andthorough'),
+        password=guard.hash_password('andthorough'),
         roles='operator,admin'
     ))
     db.session.commit()
