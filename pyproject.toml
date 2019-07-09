@@ -12,11 +12,12 @@ repository = "https://github.com/dusktreader/flask-praetorian"
 
 [tool.poetry.dependencies]
 python = "^3.4"
-flask = "^0.12.2 || ^1.0"
 pyjwt = "^1.7"
 pendulum = "^2.0"
 passlib = "^1.7"
 flask-buzz = "^0.1.7"
+flask-mail = "^0.9.1"
+flask = "^1.0"
 
 [tool.poetry.dev-dependencies]
 flask-cors = "^3.0"
@@ -27,6 +28,8 @@ pytest-flask = "^0.14.0"
 sphinx = "^1.8"
 sphinx-view = "^0.2.0"
 flake8 = "^3.7"
+bcrypt = "^3.1"
+ipdb = "^0.12.0"
 
 [build-system]
 requires = ["poetry>=0.12"]

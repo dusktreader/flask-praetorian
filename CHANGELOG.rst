@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+Unreleased
+----------
+- Upgraded flask dependency to > 1.0
+- Moved tutorial to github.com/dusktreader/flask-praetorian-tutorial
+
 v0.5.3 - 2019-03-01
 -------------------
 - Added flake8 config back in

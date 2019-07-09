@@ -1,4 +1,5 @@
 import flask
+import pendulum
 import pytest
 
 from flask_praetorian.utilities import (
@@ -9,8 +10,12 @@ from flask_praetorian.utilities import (
     current_user_id,
     current_rolenames,
     current_custom_claims,
+    duration_from_string,
 )
-from flask_praetorian.exceptions import PraetorianError
+from flask_praetorian.exceptions import (
+    PraetorianError,
+    ConfigurationError,
+)
 
 
 class TestPraetorianUtilities:
@@ -116,3 +121,34 @@ class TestPraetorianUtilities:
             duder='brief',
             el_duderino='not brief',
         )
+
+    def test_duration_from_string_success(self):
+        """
+        This test verifies that the duration_from_string method can be used to
+        parse a duration from a string with expected formats
+        """
+        expected_duration = pendulum.duration(days=12, hours=1, seconds=1)
+        computed_duration = duration_from_string('12d1h1s')
+        assert computed_duration == expected_duration
+
+        expected_duration = pendulum.duration(months=1, hours=2, minutes=3)
+        computed_duration = duration_from_string('1 Month 2 Hours 3 minutes')
+        assert computed_duration == expected_duration
+
+        expected_duration = pendulum.duration(days=1, minutes=2, seconds=3)
+        computed_duration = duration_from_string('1day,2min,3sec')
+        assert computed_duration == expected_duration
+
+        expected_duration = pendulum.duration(months=1, minutes=2)
+        computed_duration = duration_from_string('1mo,2m')
+        assert computed_duration == expected_duration
+
+    def test_duration_from_string_fails(self):
+        """
+        This test verifies that the duration_from_string method raises a
+        ConfiguationError exception if there was a problem parsing the string
+        """
+        with pytest.raises(ConfigurationError):
+            duration_from_string('12x1y1z')
+        with pytest.raises(ConfigurationError):
+            duration_from_string('')

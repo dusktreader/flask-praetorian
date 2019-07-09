@@ -42,9 +42,9 @@ Next, checkout the branch or tag that you wish to use::
 $ cd flask-praetorian
 $ git checkout integration
 
-Finally, use pip to install from the local directory::
+Finally, use poetry to install from the local directory::
 
-$ pip install .
+$ poetry install
 
 Example
 -------

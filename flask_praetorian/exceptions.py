@@ -98,3 +98,24 @@ class LegacyScheme(PraetorianError):
     The processed hash is using an outdated scheme
     """
     pass
+
+
+class InvalidRegistrationToken(PraetorianError):
+    """
+    The supplied registration token is invalid
+    """
+    pass
+
+
+class MisusedRegistrationToken(PraetorianError):
+    """
+    Attempted to use a registration token for normal access
+    """
+    pass
+
+
+class ConfigurationError(PraetorianError):
+    """
+    There was a problem with the configuration
+    """
+    pass

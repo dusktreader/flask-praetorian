@@ -1,11 +1,45 @@
 import functools
 import inspect
+import re
 import warnings
 
 import flask
+import pendulum
 
 from flask_praetorian.constants import RESERVED_CLAIMS
-from flask_praetorian.exceptions import PraetorianError
+from flask_praetorian.exceptions import (PraetorianError, ConfigurationError)
+
+
+def duration_from_string(text):
+    """
+    Parses a duration from a string. String may look like these patterns:
+    * 1 Hour
+    * 7 days, 45 minutes
+    * 1y11d20m
+
+    An exception will be raised if the text cannot be parsed
+    """
+    text = text.replace(' ', '')
+    text = text.replace(',', '')
+    text = text.lower()
+    match = re.match(
+        r'''
+            ((?P<years>\d+)y[a-z]*)?
+            ((?P<months>\d+)mo[a-z]*)?
+            ((?P<days>\d+)d[a-z]*)?
+            ((?P<hours>\d+)h[a-z]*)?
+            ((?P<minutes>\d+)m[a-z]*)?
+            ((?P<seconds>\d+)s[a-z]*)?
+        ''',
+        text,
+        re.VERBOSE,
+    )
+    ConfigurationError.require_condition(match, "Couldn't parse {}", text)
+    parts = match.groupdict()
+    clean = {k: int(v) for (k, v) in parts.items() if v}
+    ConfigurationError.require_condition(clean, "Couldn't parse {}", text)
+    with ConfigurationError.handle_errors("Couldn't parse {}", text):
+        return pendulum.duration(**clean)
 
 
 def current_guard():
