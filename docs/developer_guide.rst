@@ -8,28 +8,23 @@ Dependencies
 ------------
 
 * python3
-* virtualenv
+* poetry
 
 Setup
 -----
 
-Create a virtualenv
-...................
-
-You should set up your virtualenv using python3::
-
-$ virtualenv --python=python3 env
-$ source env/bin/activate
+This package relies on `Poetry <https://poetry.eustace.io/>`_ for dependency
+management and packaging.
 
 Install the package for development
 ...................................
 
 In order to install the package for development and to include all its
-dependencies (via pip), execute this command::
+dependencies, navigate to the root project folder and execute this command::
 
-$ pip install -e .[dev]
+$ poetry install
 
-The full list of dependencies can be found in ``setup.py``
+The full list of dependencies can be found in ``pyproject.toml``
 
 Running tests
 -------------
@@ -37,9 +32,10 @@ Running tests
 This project uses `pytest <http://doc.pytest.org/en/latest/>`_ for its unit
 testing.
 
-Tests are executed by invoking pytest directly from the root of the project::
+Tests are executed by invoking pytest through poetry from the root of the
+project::
 
-$ py.test -ra tests
+$ poetry run pytest -ra tests
 
 The ``-ra`` option is recommended as it will report skipped tests
 
@@ -117,13 +113,12 @@ flake8
 ......
 
 The `flake8 tool <https://pypi.python.org/pypi/flake8>`_ is very useful for
-checking for compliant code style. It can be easily installed through pip::
-
-  $ pip install flake8
+checking for compliant code style. Flake8 is included when *flask-praetorian* is
+installed with poetry.
 
 The flake8 tool is invoked by targeting a specific source directory::
 
-  $ flake8 flask_praetorian
+  $ poetry run flake8 flask_praetorian
 
 Particular directories and source files may also be targeted directly
 
@@ -145,4 +140,5 @@ It is most useful to include that in your ``.vimrc`` file
 Other notes
 -----------
 
-* flask-praetorian uses the ``pendulum.utcnow()`` to timestamp its JWT tokens
+* flask-praetorian uses the ``pendulum`` to timestamp its JWT tokens with
+  UTC timestamps

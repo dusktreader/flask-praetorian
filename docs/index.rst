@@ -19,6 +19,7 @@ Table of Contents
 
    Quickstart <quickstart>
    Notes <notes>
+   Comparison to Other Flask JWT Libraries <comparison>
    Tutorial <tutorial>
    Developer Guide <developer_guide>
    API <flask_praetorian>
