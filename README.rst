@@ -31,14 +31,21 @@ to supply only essential functionality. Instead of trying to anticipate the
 needs of all users, *flask-praetorian* will provide a simple and secure mechanism
 to provide security for APIs specifically.
 
+This extesion offers a batteries-included approach to security for your API.
+For essential security concerns for Flask-based APIs,
+`flask-praetorian <https://github.com/dusktreader/flask-praetorian>`_ should
+supply everything you need.
+
 The *flask-praetorian* package can be used to:
 
 * Hash passwords for storing in your database
 * Verify plaintext passwords against the hashed, stored versions
 * Generate authorization tokens upon verification of passwords
 * Check requests to secured endpoints for authorized tokens
+* Supply expiration of tokens and mechanisms for refreshing them
 * Ensure that the users associated with tokens have necessary roles for access
 * Parse user information from request headers for use in client route handlers
+* Support inclusion of custom user claims in tokens
 * Register new users using email verification
 
 All of this is provided in a very simple to confiure and initialize flask
