@@ -22,4 +22,6 @@ Table of Contents
    Comparison to Other Flask JWT Libraries <comparison>
    Tutorial <tutorial>
    Developer Guide <developer_guide>
+   Contribution Guide <contributing>
+   Code of Conduct <conduct>
    API <flask_praetorian>
