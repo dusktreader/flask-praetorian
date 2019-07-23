@@ -7,10 +7,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-Unreleased
-----------
+v1.0.0 - 2019-07-23
+-------------------
 - Upgraded flask dependency to > 1.0
 - Moved tutorial to github.com/dusktreader/flask-praetorian-tutorial
+- Added email registration feature
+- Added code of conduct and contributing guide
+- Added support for verify_and_update
 
 v0.5.3 - 2019-03-01
 -------------------
