@@ -48,7 +48,7 @@ The *flask-praetorian* package can be used to:
 * Support inclusion of custom user claims in tokens
 * Register new users using email verification
 
-All of this is provided in a very simple to confiure and initialize flask
+All of this is provided in a very simple to configure and initialize flask
 extension. Though simple, the security provided by *flask-praetorian* is strong
 due to the usage of the proven security technology of JWT
 and python's `PassLib <http://pythonhosted.org/passlib/>`_ package.
