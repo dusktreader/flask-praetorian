@@ -100,6 +100,13 @@ class LegacyScheme(PraetorianError):
     pass
 
 
+class InvalidResetToken(PraetorianError):
+    """
+    The supplied registration token is invalid
+    """
+    pass
+
+
 class InvalidRegistrationToken(PraetorianError):
     """
     The supplied registration token is invalid
