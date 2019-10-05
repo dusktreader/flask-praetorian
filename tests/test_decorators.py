@@ -45,6 +45,39 @@ class TestPraetorianDecorators:
         db.session.add(self.jesus)
         db.session.commit()
 
+    def test_auth_accepted(self, client, default_guard):
+        """
+        This test verifies that the @auth_accepted decorator can be used
+        to optionally use a properly structured auth header including
+        a valid jwt token, setting the `current_user()`.
+        """
+
+        # Token is not in header
+        response = client.get(
+            '/kinda_protected',
+            headers={},
+        )
+        assert response.status_code == 200
+        assert (
+            "success"
+            in response.json['message']
+        )
+        assert response.json['user'] is None
+
+        # Token is present and valid
+        moment = pendulum.parse('2017-05-24 10:38:45')
+        with freezegun.freeze_time(moment):
+            response = client.get(
+                '/kinda_protected',
+                headers=default_guard.pack_header_for_user(self.the_dude),
+            )
+            assert response.status_code == 200
+            assert (
+                "success"
+                in response.json['message']
+            )
+            assert response.json['user'] == self.the_dude.username
+
     def test_auth_required(self, client, default_guard):
         """
         This test verifies that the @auth_required decorator can be used
