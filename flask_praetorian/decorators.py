@@ -12,16 +12,20 @@ from flask_praetorian.utilities import (
 )
 
 
-def _verify_and_add_jwt():
+def _verify_and_add_jwt(optional=False):
     """
     This helper method just checks and adds jwt data to the app context. Will
     not add jwt data if it is already present. Only use in this module
     """
     if not app_context_has_jwt_data():
         guard = current_guard()
-        token = guard.read_token()
-        jwt_data = guard.extract_jwt_token(token)
-        add_jwt_data_to_app_context(jwt_data)
+        try:
+            token = guard.read_token_from_header()
+            jwt_data = guard.extract_jwt_token(token)
+            add_jwt_data_to_app_context(jwt_data)
+        except Exception as e:
+            if not optional:
+                raise e
 
 
 def auth_required(method):
@@ -39,6 +43,26 @@ def auth_required(method):
         finally:
             remove_jwt_data_from_app_context()
 
+    return wrapper
+
+
+def auth_accepted(method):
+    """
+    This decorator is used to allow an authenticated user to be identified
+    while being able to access a flask route, and adds the current user to the
+    current flask context.
+    """
+    @functools.wraps(method)
+    def wrapper(*args, **kwargs):
+        print(".....1")
+        _verify_and_add_jwt(optional=True)
+        print(".....2")
+        try:
+            return method(*args, **kwargs)
+        finally:
+            print(".....3")
+            remove_jwt_data_from_app_context()
+            print(".....4")
     return wrapper
 
 
