@@ -671,6 +671,39 @@ class Praetorian:
         reset_sender=None, reset_uri=None,
         subject=None, override_access_lifespan=None
     ):
+        """
+        Sends a password reset email to a user, containing a time expiring
+            token usable for validation.  This requires your application
+            is initiliazed with a `mail` extension, which supports
+            Flask-Mail's `Message()` object and a `send()` method.
+
+        Returns a dict containing the information sent, along with the
+            `result` from mail send.
+        :param: email:                    The email address to attempt to
+                                          send to
+        :param: template:                 HTML Template for reset email.
+                                          If not provided, a stock entry is
+                                          used
+        :param: confirmation_sender:      The sender that shoudl be attached
+                                          to the reset email. Overrides
+                                          the PRAETORIAN_RESET_SENDER
+                                          config setting
+        :param: confirmation_uri:         The uri that should be visited to
+                                          complete password reset. Should
+                                          usually be a uri to a frontend or
+                                          external service that calls the
+                                          'validate_reset_token()' method in
+                                          the api to complete reset. Will
+                                          override the PRAETORIAN_RESET_URI
+                                          config setting
+        :param: subject:                  The reset email subject.
+                                          Will override the
+                                          PRAETORIAN_RESET_SUBJECT
+                                          config setting.
+        :param: override_access_lifespan: Overrides the JWT_ACCESS_LIFESPAN
+                                          to set an access lifespan for the
+                                          registration token.
+        """
         if subject is None:
             subject = self.reset_subject
 
@@ -704,39 +737,31 @@ class Praetorian:
 
     def send_token_email(
         self, email, user=None, template=None,
-        confirmation_sender=None, confirmation_uri=None,
+        action_sender=None, action_uri=None,
         subject=None, override_access_lifespan=None,
-        custom_token=None, sender='Flask-Praetorian Guard'
+        custom_token=None, sender='no-reply@praetorian'
     ):
         """
-        Sends a registration email to a new user, containing a time expiring
-            token usable for validation.  This requires your application
-            is initiliazed with a `mail` extension, which supports
-            Flask-Mail's `Message()` object and a `send()` method.
+        Sends an email to a user, containing a time expiring
+            token usable for several actions.  This requires
+            your application is initiliazed with a `mail` extension,
+            which supports Flask-Mail's `Message()` object and
+            a `send()` method.
 
         Returns a dict containing the information sent, along with the
             `result` from mail send.
+        :param: email:                    The email address to use
+                                          (username, id, email, etc)
         :param: user:                     The user object to tie claim to
                                           (username, id, email, etc)
         :param: template:                 HTML Template for confirmation email.
                                           If not provided, a stock entry is
                                           used
-        :param: confirmation_sender:      The sender that shoudl be attached
-                                          to the confirmation email. Overrides
-                                          the PRAETORIAN_CONFIRMRATION_SENDER
-                                          config setting
-        :param: confirmation_uri:         The uri that should be visited to
-                                          complete email registration. Should
-                                          usually be a uri to a frontend or
-                                          external service that calls a
-                                          'finalize' method in the api to
-                                          complete registration. Will override
-                                          the PRAETORIAN_CONFIRMATION_URI
-                                          config setting
-        :param: subject:                  The registration email subject.
-                                          Will override the
-                                          PRAETORIAN_CONFIRMATION_SUBJECT
-                                          config setting.
+        :param: action_sender:            The sender that should be attached
+                                          to the confirmation email.
+        :param: action_uri:               The uri that should be visited to
+                                          complete the token action.
+        :param: subject:                  The email subject.
         :param: override_access_lifespan: Overrides the JWT_ACCESS_LIFESPAN
                                           to set an access lifespan for the
                                           registration token.
@@ -748,12 +773,13 @@ class Praetorian:
                 'email': email,
                 'token': custom_token,
                 'subject': subject,
-                'confirmation_uri': confirmation_uri,
+                'confirmation_uri': action_uri,  # backwards compatibility
+                'action_uri': action_uri,
         }
 
         PraetorianError.require_condition(
-            sender,
-            "A confirmation sender is required to send confirmation email",
+            action_sender,
+            "A sender is required to send confirmation email",
         )
 
         PraetorianError.require_condition(
@@ -775,7 +801,7 @@ class Praetorian:
 
             msg = Message(
                     html=notification['message'],
-                    sender=sender,
+                    sender=action_sender,
                     subject=notification['subject'],
                     recipients=[notification['email']]
             )
@@ -809,22 +835,23 @@ class Praetorian:
 
     def validate_reset_token(self, token):
         """
-        Gets a user based on the registration token that is supplied. Verifies
-        that the token is a regisration token and that the user can be properly
-        retrieved
+        Validates a password reset request based on the reset token
+        that is supplied. Verifies that the token is a reset token
+        and that the user can be properly retrieved
         """
         data = self.extract_jwt_token(token, access_type=AccessType.reset)
         flask.current_app.logger.debug("DATA: {}".format(data))
         user_id = data.get('id')
         PraetorianError.require_condition(
             user_id is not None,
-            "Could not fetch an id from the registration token",
+            "Could not fetch an id from the reset token",
         )
         user = self.user_class.identify(user_id)
         PraetorianError.require_condition(
             user is not None,
             "Could not identify the user from the reset token",
         )
+        # TODO: this should probably just be mandatory to prevent replay
         if hasattr(user, 'active_reset') and user.active_reset:
             InvalidResetToken.require_condition(
                 user.active_reset == token,
