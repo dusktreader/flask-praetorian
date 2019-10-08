@@ -52,15 +52,11 @@ def auth_accepted(method):
     """
     @functools.wraps(method)
     def wrapper(*args, **kwargs):
-        print(".....1")
         _verify_and_add_jwt(optional=True)
-        print(".....2")
         try:
             return method(*args, **kwargs)
         finally:
-            print(".....3")
             remove_jwt_data_from_app_context()
-            print(".....4")
     return wrapper
 
 
