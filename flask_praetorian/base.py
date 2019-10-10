@@ -840,7 +840,6 @@ class Praetorian:
         and that the user can be properly retrieved
         """
         data = self.extract_jwt_token(token, access_type=AccessType.reset)
-        flask.current_app.logger.debug("DATA: {}".format(data))
         user_id = data.get('id')
         PraetorianError.require_condition(
             user_id is not None,
