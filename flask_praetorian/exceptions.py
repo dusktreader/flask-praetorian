@@ -121,6 +121,13 @@ class MisusedRegistrationToken(PraetorianError):
     pass
 
 
+class MisusedResetToken(PraetorianError):
+    """
+    Attempted to use a password reset token for normal access
+    """
+    pass
+
+
 class ConfigurationError(PraetorianError):
     """
     There was a problem with the configuration
