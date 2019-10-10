@@ -22,7 +22,6 @@ class User(_db.Model):
     password = _db.Column(_db.Text)
     email = _db.Column(_db.Text)
     roles = _db.Column(_db.Text)
-    active_reset = _db.Column(_db.Text)
 
     @property
     def rolenames(self):

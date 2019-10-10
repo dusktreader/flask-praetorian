@@ -737,7 +737,7 @@ class TestPraetorian:
 
     def test_reset_email(self, app, user_class, db, tmpdir):
         """
-        This test verifies email based registration functions as expected.
+        This test verifies email based password reset functions as expected.
         This includes sending messages with valid time expiring JWT tokens
            and ensuring the body matches the expected body, as well
            as token validation.
@@ -790,23 +790,6 @@ class TestPraetorian:
         )
         assert jwt_data[IS_RESET_TOKEN_CLAIM]
 
-        # validate usage w/o `active_reset` check
-        validated_user = default_guard.validate_reset_token(token)
-        assert not the_dude.active_reset
-        assert validated_user == the_dude
-
-        # validate usage w/ `active_reset` check
-        # first validate a mismatch fails
-        the_dude.active_reset = 'foo'
-        db.session.commit()
-        assert the_dude.active_reset
-        with pytest.raises(InvalidResetToken):
-            validated_user = default_guard.validate_reset_token(token)
-
-        # then validate a good passes
-        the_dude.active_reset = token
-        db.session.commit()
-        assert the_dude.active_reset
         validated_user = default_guard.validate_reset_token(token)
         assert validated_user == the_dude
 

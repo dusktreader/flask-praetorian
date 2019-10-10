@@ -850,12 +850,6 @@ class Praetorian:
             user is not None,
             "Could not identify the user from the reset token",
         )
-        # TODO: this should probably just be mandatory to prevent replay
-        if hasattr(user, 'active_reset') and user.active_reset:
-            InvalidResetToken.require_condition(
-                user.active_reset == token,
-                "Token provided is not currently active for this user!",
-            )
         return user
 
     def hash_password(self, raw_password):
