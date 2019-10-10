@@ -30,6 +30,7 @@ from flask_praetorian.exceptions import (
     MissingTokenHeader,
     MissingUserError,
     MisusedRegistrationToken,
+    MisusedResetToken,
     ConfigurationError,
     PraetorianError,
 )
@@ -41,6 +42,7 @@ from flask_praetorian.constants import (
     DEFAULT_JWT_HEADER_NAME,
     DEFAULT_JWT_HEADER_TYPE,
     DEFAULT_JWT_REFRESH_LIFESPAN,
+    DEFAULT_JWT_RESET_LIFESPAN,
     DEFAULT_USER_CLASS_VALIDATION_METHOD,
     DEFAULT_CONFIRMATION_TEMPLATE,
     DEFAULT_CONFIRMATION_SUBJECT,
@@ -140,6 +142,10 @@ class Praetorian:
         self.refresh_lifespan = app.config.get(
             'JWT_REFRESH_LIFESPAN',
             DEFAULT_JWT_REFRESH_LIFESPAN,
+        )
+        self.reset_lifespan = app.config.get(
+            'JWT_RESET_LIFESPAN',
+            DEFAULT_JWT_RESET_LIFESPAN,
         )
         self.header_name = app.config.get(
             'JWT_HEADER_NAME',
@@ -520,6 +526,10 @@ class Praetorian:
                 IS_REGISTRATION_TOKEN_CLAIM not in data,
                 "registration token used for access"
             )
+            MisusedResetToken.require_condition(
+                IS_RESET_TOKEN_CLAIM not in data,
+                "password reset token used for access"
+            )
             ExpiredAccessError.require_condition(
                 moment <= data['exp'],
                 'access permission has expired',
@@ -528,6 +538,10 @@ class Praetorian:
             MisusedRegistrationToken.require_condition(
                 IS_REGISTRATION_TOKEN_CLAIM not in data,
                 "registration token used for refresh"
+            )
+            MisusedResetToken.require_condition(
+                IS_RESET_TOKEN_CLAIM not in data,
+                "password reset token used for refresh"
             )
             EarlyRefreshError.require_condition(
                 moment > data['exp'],
@@ -545,6 +559,23 @@ class Praetorian:
             InvalidRegistrationToken.require_condition(
                 IS_REGISTRATION_TOKEN_CLAIM in data,
                 "invalid registration token used for verification"
+            )
+            MisusedResetToken.require_condition(
+                IS_RESET_TOKEN_CLAIM not in data,
+                "password reset token used for registration"
+            )
+        elif access_type == AccessType.reset:
+            MisusedRegistrationToken.require_condition(
+                IS_REGISTRATION_TOKEN_CLAIM not in data,
+                "registration token used for reset"
+            )
+            ExpiredAccessError.require_condition(
+                moment <= data['exp'],
+                'reset permission has expired',
+            )
+            InvalidResetToken.require_condition(
+                IS_RESET_TOKEN_CLAIM in data,
+                "invalid reset token used for verification"
             )
 
     def _unpack_header(self, headers):
