@@ -15,7 +15,7 @@ from flask_praetorian.exceptions import (
     MissingClaimError,
     MissingUserError,
     MisusedRegistrationToken,
-    InvalidResetToken,
+    MisusedResetToken,
     PraetorianError,
     LegacyScheme,
 )
@@ -247,6 +247,24 @@ class TestPraetorian:
         with freezegun.freeze_time(moment):
             with pytest.raises(MisusedRegistrationToken):
                 guard._validate_jwt_data(data, AccessType.refresh)
+
+    def test__validate_jwt_data__fails_on_access_with_reset_claim(
+            self, app, user_class,
+    ):
+        guard = Praetorian(app, user_class)
+        data = {
+            'jti': 'jti',
+            'id': 1,
+            'exp': pendulum.parse('2017-05-21 19:54:30').int_timestamp,
+            REFRESH_EXPIRATION_CLAIM: pendulum.parse(
+                '2017-05-21 20:54:30'
+            ).int_timestamp,
+            IS_RESET_TOKEN_CLAIM: True,
+        }
+        moment = pendulum.parse('2017-05-21 19:54:28')
+        with freezegun.freeze_time(moment):
+            with pytest.raises(MisusedResetToken):
+                guard._validate_jwt_data(data, AccessType.access)
 
     def test__validate_jwt_data__succeeds_with_valid_jwt(
             self, app, user_class,
