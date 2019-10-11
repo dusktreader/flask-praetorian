@@ -22,6 +22,7 @@ from flask_praetorian.exceptions import (
     ExpiredAccessError,
     ExpiredRefreshError,
     InvalidRegistrationToken,
+    InvalidResetToken,
     InvalidTokenHeader,
     InvalidUserError,
     LegacyScheme,
@@ -29,6 +30,7 @@ from flask_praetorian.exceptions import (
     MissingTokenHeader,
     MissingUserError,
     MisusedRegistrationToken,
+    MisusedResetToken,
     ConfigurationError,
     PraetorianError,
 )
@@ -40,15 +42,19 @@ from flask_praetorian.constants import (
     DEFAULT_JWT_HEADER_NAME,
     DEFAULT_JWT_HEADER_TYPE,
     DEFAULT_JWT_REFRESH_LIFESPAN,
+    DEFAULT_JWT_RESET_LIFESPAN,
     DEFAULT_USER_CLASS_VALIDATION_METHOD,
     DEFAULT_CONFIRMATION_TEMPLATE,
     DEFAULT_CONFIRMATION_SUBJECT,
+    DEFAULT_RESET_TEMPLATE,
+    DEFAULT_RESET_SUBJECT,
     DEFAULT_HASH_SCHEME,
     DEFAULT_HASH_ALLOWED_SCHEMES,
     DEFAULT_HASH_AUTOUPDATE,
     DEFAULT_HASH_AUTOTEST,
     DEFAULT_HASH_DEPRECATED_SCHEMES,
     IS_REGISTRATION_TOKEN_CLAIM,
+    IS_RESET_TOKEN_CLAIM,
     REFRESH_EXPIRATION_CLAIM,
     RESERVED_CLAIMS,
     VITAM_AETERNUM,
@@ -137,6 +143,10 @@ class Praetorian:
             'JWT_REFRESH_LIFESPAN',
             DEFAULT_JWT_REFRESH_LIFESPAN,
         )
+        self.reset_lifespan = app.config.get(
+            'JWT_RESET_LIFESPAN',
+            DEFAULT_JWT_RESET_LIFESPAN,
+        )
         self.header_name = app.config.get(
             'JWT_HEADER_NAME',
             DEFAULT_JWT_HEADER_NAME,
@@ -163,6 +173,21 @@ class Praetorian:
         self.confirmation_subject = app.config.get(
             'PRAETORIAN_CONFIRMATION_SUBJECT',
             DEFAULT_CONFIRMATION_SUBJECT,
+        )
+
+        self.reset_template = app.config.get(
+            'PRAETORIAN_RESET_TEMPLATE',
+            DEFAULT_RESET_TEMPLATE,
+        )
+        self.reset_uri = app.config.get(
+            'PRAETORIAN_RESET_URI',
+        )
+        self.reset_sender = app.config.get(
+            'PRAETORIAN_RESET_SENDER',
+        )
+        self.reset_subject = app.config.get(
+            'PRAETORIAN_RESET_SUBJECT',
+            DEFAULT_RESET_SUBJECT,
         )
 
         if isinstance(self.access_lifespan, dict):
@@ -320,6 +345,7 @@ class Praetorian:
             self, user,
             override_access_lifespan=None, override_refresh_lifespan=None,
             bypass_user_check=False, is_registration_token=False,
+            is_reset_token=False,
             **custom_claims
     ):
         """
@@ -380,6 +406,8 @@ class Praetorian:
         }
         if is_registration_token:
             payload_parts[IS_REGISTRATION_TOKEN_CLAIM] = True
+        if is_reset_token:
+            payload_parts[IS_RESET_TOKEN_CLAIM] = True
         flask.current_app.logger.debug(
             "Attaching custom claims: {}".format(custom_claims),
         )
@@ -498,6 +526,10 @@ class Praetorian:
                 IS_REGISTRATION_TOKEN_CLAIM not in data,
                 "registration token used for access"
             )
+            MisusedResetToken.require_condition(
+                IS_RESET_TOKEN_CLAIM not in data,
+                "password reset token used for access"
+            )
             ExpiredAccessError.require_condition(
                 moment <= data['exp'],
                 'access permission has expired',
@@ -506,6 +538,10 @@ class Praetorian:
             MisusedRegistrationToken.require_condition(
                 IS_REGISTRATION_TOKEN_CLAIM not in data,
                 "registration token used for refresh"
+            )
+            MisusedResetToken.require_condition(
+                IS_RESET_TOKEN_CLAIM not in data,
+                "password reset token used for refresh"
             )
             EarlyRefreshError.require_condition(
                 moment > data['exp'],
@@ -523,6 +559,23 @@ class Praetorian:
             InvalidRegistrationToken.require_condition(
                 IS_REGISTRATION_TOKEN_CLAIM in data,
                 "invalid registration token used for verification"
+            )
+            MisusedResetToken.require_condition(
+                IS_RESET_TOKEN_CLAIM not in data,
+                "password reset token used for registration"
+            )
+        elif access_type == AccessType.reset:
+            MisusedRegistrationToken.require_condition(
+                IS_REGISTRATION_TOKEN_CLAIM not in data,
+                "registration token used for reset"
+            )
+            ExpiredAccessError.require_condition(
+                moment <= data['exp'],
+                'reset permission has expired',
+            )
+            InvalidResetToken.require_condition(
+                IS_RESET_TOKEN_CLAIM in data,
+                "invalid reset token used for verification"
             )
 
     def _unpack_header(self, headers):
@@ -625,51 +678,169 @@ class Praetorian:
         if confirmation_uri is None:
             confirmation_uri = self.confirmation_uri
 
+        sender = confirmation_sender or self.confirmation_sender
+
+        flask.current_app.logger.debug(
+            "Generating token with lifespan: {}".format(
+                override_access_lifespan
+            )
+        )
+        custom_token = self.encode_jwt_token(
+            user,
+            override_access_lifespan=override_access_lifespan,
+            bypass_user_check=True, is_registration_token=True,
+        )
+
+        return self.send_token_email(
+            email, user, template, confirmation_sender,
+            confirmation_uri, subject, custom_token=custom_token,
+            sender=sender
+        )
+
+    def send_reset_email(
+        self, email, template=None,
+        reset_sender=None, reset_uri=None,
+        subject=None, override_access_lifespan=None
+    ):
+        """
+        Sends a password reset email to a user, containing a time expiring
+            token usable for validation.  This requires your application
+            is initiliazed with a `mail` extension, which supports
+            Flask-Mail's `Message()` object and a `send()` method.
+
+        Returns a dict containing the information sent, along with the
+            `result` from mail send.
+        :param: email:                    The email address to attempt to
+                                          send to
+        :param: template:                 HTML Template for reset email.
+                                          If not provided, a stock entry is
+                                          used
+        :param: confirmation_sender:      The sender that shoudl be attached
+                                          to the reset email. Overrides
+                                          the PRAETORIAN_RESET_SENDER
+                                          config setting
+        :param: confirmation_uri:         The uri that should be visited to
+                                          complete password reset. Should
+                                          usually be a uri to a frontend or
+                                          external service that calls the
+                                          'validate_reset_token()' method in
+                                          the api to complete reset. Will
+                                          override the PRAETORIAN_RESET_URI
+                                          config setting
+        :param: subject:                  The reset email subject.
+                                          Will override the
+                                          PRAETORIAN_RESET_SUBJECT
+                                          config setting.
+        :param: override_access_lifespan: Overrides the JWT_ACCESS_LIFESPAN
+                                          to set an access lifespan for the
+                                          registration token.
+        """
+        if subject is None:
+            subject = self.reset_subject
+
+        if reset_uri is None:
+            reset_uri = self.reset_uri
+
+        sender = reset_sender or self.reset_sender
+
+        user = self.user_class.lookup(email)
+        MissingUserError.require_condition(
+            user is not None,
+            'Could not find the requested user',
+        )
+
+        flask.current_app.logger.debug(
+            "Generating token with lifespan: {}".format(
+                override_access_lifespan
+            )
+        )
+        custom_token = self.encode_jwt_token(
+            user,
+            override_access_lifespan=override_access_lifespan,
+            bypass_user_check=False, is_reset_token=True,
+        )
+
+        return self.send_token_email(
+            user.email, user, template, reset_sender,
+            reset_uri, subject, custom_token=custom_token,
+            sender=sender
+        )
+
+    def send_token_email(
+        self, email, user=None, template=None,
+        action_sender=None, action_uri=None,
+        subject=None, override_access_lifespan=None,
+        custom_token=None, sender='no-reply@praetorian'
+    ):
+        """
+        Sends an email to a user, containing a time expiring
+            token usable for several actions.  This requires
+            your application is initiliazed with a `mail` extension,
+            which supports Flask-Mail's `Message()` object and
+            a `send()` method.
+
+        Returns a dict containing the information sent, along with the
+            `result` from mail send.
+        :param: email:                    The email address to use
+                                          (username, id, email, etc)
+        :param: user:                     The user object to tie claim to
+                                          (username, id, email, etc)
+        :param: template:                 HTML Template for confirmation email.
+                                          If not provided, a stock entry is
+                                          used
+        :param: action_sender:            The sender that should be attached
+                                          to the confirmation email.
+        :param: action_uri:               The uri that should be visited to
+                                          complete the token action.
+        :param: subject:                  The email subject.
+        :param: override_access_lifespan: Overrides the JWT_ACCESS_LIFESPAN
+                                          to set an access lifespan for the
+                                          registration token.
+        """
         notification = {
                 'result': None,
                 'message': None,
                 'user': str(user),
                 'email': email,
-                'token': None,
+                'token': custom_token,
                 'subject': subject,
-                'confirmation_uri': confirmation_uri,
+                'confirmation_uri': action_uri,  # backwards compatibility
+                'action_uri': action_uri,
         }
 
-        sender = confirmation_sender or self.confirmation_sender
         PraetorianError.require_condition(
-            sender,
-            "A confirmation sender is required to send confirmation email",
+            action_sender,
+            "A sender is required to send confirmation email",
+        )
+
+        PraetorianError.require_condition(
+            custom_token,
+            "A custom_token is required to send notification email",
         )
 
         if template is None:
             with open(self.confirmation_template) as fh:
                 template = fh.read()
 
-        with PraetorianError.handle_errors('fail sending confirmation email'):
-            app = flask.current_app
-            app.logger.debug("NOTIFICATION: {}".format(notification))
-            app.logger.debug(
-                "Generating registration token with lifespan: {}".format(
-                    override_access_lifespan
-                )
+        with PraetorianError.handle_errors('fail sending email'):
+            flask.current_app.logger.debug(
+                "NOTIFICATION: {}".format(notification)
             )
-            notification['token'] = self.encode_jwt_token(
-                user,
-                override_access_lifespan=override_access_lifespan,
-                bypass_user_check=True, is_registration_token=True,
-            )
+
             jinja_tmpl = jinja2.Template(template)
             notification['message'] = jinja_tmpl.render(notification).strip()
 
             msg = Message(
                     html=notification['message'],
-                    sender=sender,
+                    sender=action_sender,
                     subject=notification['subject'],
                     recipients=[notification['email']]
             )
 
-            app.logger.debug("Sending verification email to {}".format(email))
-            notification['result'] = app.extensions['mail'].send(msg)
+            flask.current_app.logger.debug("Sending email to {}".format(email))
+            notification['result'] = flask.current_app.extensions['mail'].send(
+                msg
+            )
 
         return notification
 
@@ -690,6 +861,25 @@ class Praetorian:
         PraetorianError.require_condition(
             user is not None,
             "Could not identify the user from the registration token",
+        )
+        return user
+
+    def validate_reset_token(self, token):
+        """
+        Validates a password reset request based on the reset token
+        that is supplied. Verifies that the token is a reset token
+        and that the user can be properly retrieved
+        """
+        data = self.extract_jwt_token(token, access_type=AccessType.reset)
+        user_id = data.get('id')
+        PraetorianError.require_condition(
+            user_id is not None,
+            "Could not fetch an id from the reset token",
+        )
+        user = self.user_class.identify(user_id)
+        PraetorianError.require_condition(
+            user is not None,
+            "Could not identify the user from the reset token",
         )
         return user
 
