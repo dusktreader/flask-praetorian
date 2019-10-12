@@ -15,6 +15,7 @@ from flask_praetorian.exceptions import (
     MissingClaimError,
     MissingUserError,
     MisusedRegistrationToken,
+    MisusedResetToken,
     PraetorianError,
     LegacyScheme,
 )
@@ -25,6 +26,7 @@ from flask_praetorian.constants import (
     DEFAULT_JWT_HEADER_NAME,
     DEFAULT_JWT_HEADER_TYPE,
     IS_REGISTRATION_TOKEN_CLAIM,
+    IS_RESET_TOKEN_CLAIM,
     REFRESH_EXPIRATION_CLAIM,
     VITAM_AETERNUM,
 )
@@ -245,6 +247,24 @@ class TestPraetorian:
         with freezegun.freeze_time(moment):
             with pytest.raises(MisusedRegistrationToken):
                 guard._validate_jwt_data(data, AccessType.refresh)
+
+    def test__validate_jwt_data__fails_on_access_with_reset_claim(
+            self, app, user_class,
+    ):
+        guard = Praetorian(app, user_class)
+        data = {
+            'jti': 'jti',
+            'id': 1,
+            'exp': pendulum.parse('2017-05-21 19:54:30').int_timestamp,
+            REFRESH_EXPIRATION_CLAIM: pendulum.parse(
+                '2017-05-21 20:54:30'
+            ).int_timestamp,
+            IS_RESET_TOKEN_CLAIM: True,
+        }
+        moment = pendulum.parse('2017-05-21 19:54:28')
+        with freezegun.freeze_time(moment):
+            with pytest.raises(MisusedResetToken):
+                guard._validate_jwt_data(data, AccessType.access)
 
     def test__validate_jwt_data__succeeds_with_valid_jwt(
             self, app, user_class,
@@ -732,6 +752,64 @@ class TestPraetorian:
             assert token_data['rls'] == 'admin,operator'
             assert token_data['duder'] == 'brief'
             assert token_data['el_duderino'] == 'not brief'
+
+    def test_reset_email(self, app, user_class, db, tmpdir):
+        """
+        This test verifies email based password reset functions as expected.
+        This includes sending messages with valid time expiring JWT tokens
+           and ensuring the body matches the expected body, as well
+           as token validation.
+        """
+        template = """
+            <!doctype html>
+            <html>
+              <head><title>Reset Password</title></head>
+              <body>{{ token }}</body>
+            </html>
+        """
+        template_file = tmpdir.join('test_template.html')
+        template_file.write(template)
+
+        app.config['TESTING'] = True
+        app.config['PRAETORIAN_EMAIL_TEMPLATE'] = str(template_file)
+        app.config['PRAETORIAN_RESET_ENDPOINT'] = 'unprotected'
+
+        default_guard = Praetorian(app, user_class)
+
+        # create our default test user
+        the_dude = user_class(username='TheDude')
+        db.session.add(the_dude)
+        db.session.commit()
+
+        with app.mail.record_messages() as outbox:
+            # test a bad username
+            with pytest.raises(MissingUserError):
+                notify = default_guard.send_reset_email(
+                    email='fail@whale.org',
+                    reset_sender='you@whatever.com',
+                )
+
+            # test a good username
+            notify = default_guard.send_reset_email(
+                email=the_dude.username,
+                reset_sender='you@whatever.com',
+            )
+            token = notify['token']
+
+            # test our own interpretation and what we got back from flask_mail
+            assert token in notify['message']
+            assert notify['message'] == outbox[0].html
+
+            assert not notify['result']
+
+        # test our token is good
+        jwt_data = default_guard.extract_jwt_token(
+            notify['token'], access_type=AccessType.reset,
+        )
+        assert jwt_data[IS_RESET_TOKEN_CLAIM]
+
+        validated_user = default_guard.validate_reset_token(token)
+        assert validated_user == the_dude
 
     def test_registration_email(self, app, user_class, db, tmpdir):
         """
