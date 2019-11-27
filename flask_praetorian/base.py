@@ -70,33 +70,60 @@ class Praetorian:
     for applications and designated endpoints
     """
 
-    def __init__(self, app=None, user_class=None, is_blacklisted=None, encode_jwt_token_hook=None, refresh_jwt_token_hook=None):
+    def __init__(
+                self,
+                app=None,
+                user_class=None,
+                is_blacklisted=None,
+                encode_jwt_token_hook=None,
+                refresh_jwt_token_hook=None
+    ):
         self.pwd_ctx = None
         self.hash_scheme = None
         self.salt = None
 
         if app is not None and user_class is not None:
-            self.init_app(app, user_class, is_blacklisted, encode_jwt_token_hook, refresh_jwt_token_hook)
+            self.init_app(
+                        app,
+                        user_class,
+                        is_blacklisted,
+                        encode_jwt_token_hook,
+                        refresh_jwt_token_hook
+            )
 
-    def init_app(self, app, user_class, is_blacklisted=None, encode_jwt_token_hook=None, refresh_jwt_token_hook=None):
+    def init_app(
+                self,
+                app=None,
+                user_class=None,
+                is_blacklisted=None,
+                encode_jwt_token_hook=None,
+                refresh_jwt_token_hook=None
+    ):
         """
         Initializes the Praetorian extension
 
-        :param: app:                    The flask app to bind this extension to
-        :param: user_class:             The class used to interact with user data
-        :param: is_blacklisted:         A method that may optionally be used to
-                                        check the token against a blacklist when
-                                        access or refresh is requested
-                                        Should take the jti for the token to check
-                                        as a single argument. Returns True if
-                                        the jti is blacklisted, False otherwise.
-                                        By default, always returns False.
-        :param encode_jwt_token_hook:   A method that may optionally be called before
-                                        an encoded jwt is generated. Should take payload_parts
-                                        which contains the ingredients for the jwt.
-        :param refresh_jwt_token_hook:  A method that may optionally be called before
-                                        an encoded jwt is refreshed. Should take payload_parts
-                                        which contains the ingredients for the jwt.
+        :param: app:                    The flask app to bind this
+                                        extension to
+        :param: user_class:             The class used to interact with
+                                        user data
+        :param: is_blacklisted:         A method that may optionally be
+                                        used to check the token against
+                                        a blacklist when access or refresh
+                                        is requested should take the jti
+                                        for the token to check as a single
+                                        argument. Returns True if the jti is
+                                        blacklisted, False otherwise. By
+                                        default, always returns False.
+        :param encode_jwt_token_hook:   A method that may optionally be
+                                        called right before an encoded jwt
+                                        is generated. Should take
+                                        payload_parts which contains the
+                                        ingredients for the jwt.
+        :param refresh_jwt_token_hook:  A method that may optionally be called
+                                        right before an encoded jwt is
+                                        refreshed. Should take payload_parts
+                                        which contains the ingredients for
+                                        the jwt.
         """
         PraetorianError.require_condition(
             app.config.get('SECRET_KEY') is not None,
