@@ -7,7 +7,6 @@ import re
 import textwrap
 import uuid
 import warnings
-import copy
 
 from flask_mail import Message
 
@@ -71,12 +70,12 @@ class Praetorian:
     """
 
     def __init__(
-                self,
-                app=None,
-                user_class=None,
-                is_blacklisted=None,
-                encode_jwt_token_hook=None,
-                refresh_jwt_token_hook=None
+            self,
+            app=None,
+            user_class=None,
+            is_blacklisted=None,
+            encode_jwt_token_hook=None,
+            refresh_jwt_token_hook=None,
     ):
         self.pwd_ctx = None
         self.hash_scheme = None
@@ -84,20 +83,20 @@ class Praetorian:
 
         if app is not None and user_class is not None:
             self.init_app(
-                        app,
-                        user_class,
-                        is_blacklisted,
-                        encode_jwt_token_hook,
-                        refresh_jwt_token_hook
+                app,
+                user_class,
+                is_blacklisted,
+                encode_jwt_token_hook,
+                refresh_jwt_token_hook,
             )
 
     def init_app(
-                self,
-                app=None,
-                user_class=None,
-                is_blacklisted=None,
-                encode_jwt_token_hook=None,
-                refresh_jwt_token_hook=None
+            self,
+            app=None,
+            user_class=None,
+            is_blacklisted=None,
+            encode_jwt_token_hook=None,
+            refresh_jwt_token_hook=None,
     ):
         """
         Initializes the Praetorian extension
@@ -450,7 +449,7 @@ class Praetorian:
         payload_parts.update(custom_claims)
 
         if self.encode_jwt_token_hook:
-            self.encode_jwt_token_hook(copy.deepcopy(payload_parts))
+            self.encode_jwt_token_hook(**payload_parts)
         return jwt.encode(
             payload_parts, self.encode_key, self.encode_algorithm,
         ).decode('utf-8')
@@ -518,7 +517,7 @@ class Praetorian:
         payload_parts.update(custom_claims)
 
         if self.refresh_jwt_token_hook:
-            self.refresh_jwt_token_hook(copy.deepcopy(payload_parts))
+            self.refresh_jwt_token_hook(**payload_parts)
         return jwt.encode(
             payload_parts, self.encode_key, self.encode_algorithm,
         ).decode('utf-8')
