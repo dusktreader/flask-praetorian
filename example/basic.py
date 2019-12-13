@@ -140,7 +140,7 @@ def protected_operator_accepted():
     """
     A protected endpoint that accepts any of the listed roles. The
     roles_accepted decorator will require that the supplied JWT includes at
-    least one of th accepted roles
+    least one of the accepted roles
     .. example::
        $ curl http://localhost/protected_operator_accepted -X GET \
          -H "Authorization: Bearer <your_token>"
