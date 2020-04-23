@@ -683,7 +683,7 @@ class Praetorian:
         """
         Sends a registration email to a new user, containing a time expiring
             token usable for validation.  This requires your application
-            is initiliazed with a `mail` extension, which supports
+            is initialized with a `mail` extension, which supports
             Flask-Mail's `Message()` object and a `send()` method.
 
         Returns a dict containing the information sent, along with the
@@ -746,7 +746,7 @@ class Praetorian:
         """
         Sends a password reset email to a user, containing a time expiring
             token usable for validation.  This requires your application
-            is initiliazed with a `mail` extension, which supports
+            is initialized with a `mail` extension, which supports
             Flask-Mail's `Message()` object and a `send()` method.
 
         Returns a dict containing the information sent, along with the
@@ -816,7 +816,7 @@ class Praetorian:
         """
         Sends an email to a user, containing a time expiring
             token usable for several actions.  This requires
-            your application is initiliazed with a `mail` extension,
+            your application is initialized with a `mail` extension,
             which supports Flask-Mail's `Message()` object and
             a `send()` method.
 
