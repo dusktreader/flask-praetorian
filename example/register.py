@@ -1,5 +1,5 @@
-import flask
 import tempfile
+import flask
 import flask_sqlalchemy
 import flask_praetorian
 import flask_cors
@@ -117,6 +117,7 @@ def protected():
     ))
 
 
+@app.route('/register', methods=['POST'])
 def register():
     """
     Registers a new user by parsing a POST request containing new user info and
@@ -148,6 +149,7 @@ def register():
     return flask.jsonify(ret)
 
 
+@app.route('/finalize')
 def finalize():
     """
     Finalizes a user registration with the token that they were issued in their
