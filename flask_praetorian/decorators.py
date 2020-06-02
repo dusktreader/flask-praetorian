@@ -19,7 +19,7 @@ def _verify_and_add_jwt():
     """
     if not app_context_has_jwt_data():
         guard = current_guard()
-        token = guard.read_token_from_header()
+        token = guard.read_token()
         jwt_data = guard.extract_jwt_token(token)
         add_jwt_data_to_app_context(jwt_data)
 
