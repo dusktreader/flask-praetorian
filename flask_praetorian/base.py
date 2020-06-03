@@ -184,7 +184,7 @@ class Praetorian:
             'JWT_RESET_LIFESPAN',
             DEFAULT_JWT_RESET_LIFESPAN,
         )
-        self.cookie_places = app.config.get(
+        self.jwt_places = app.config.get(
             'JWT_PLACES',
             DEFAULT_JWT_PLACES,
         )
@@ -673,14 +673,18 @@ class Praetorian:
 
     def read_token(self):
         exc = None
-        for method in self.cookie_places:
-            fn = getattr(self, 'read_token_from_%s' % method)
+        if 'header' in self.jwt_places:
             try:
-                return fn()
+                return self.read_token_from_header()
+            except MissingToken as e:
+                exc = e
+        if 'cookie' in self.jwt_places:
+            try:
+                return self.read_token_from_cookie()
             except MissingToken as e:
                 exc = e
         if exc:
-            raise MissingToken(f"JWT token not found in {self.cookie_places}")
+            raise MissingToken(f"JWT token not found in {self.jwt_places}")
 
     def pack_header_for_user(
             self, user,
