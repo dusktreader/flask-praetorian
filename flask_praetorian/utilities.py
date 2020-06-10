@@ -34,10 +34,16 @@ def duration_from_string(text):
         text,
         re.VERBOSE,
     )
-    ConfigurationError.require_condition(match, "Couldn't parse {}".format(text))
+    ConfigurationError.require_condition(
+        match,
+        "Couldn't parse {}".format(text),
+    )
     parts = match.groupdict()
     clean = {k: int(v) for (k, v) in parts.items() if v}
-    ConfigurationError.require_condition(clean, "Couldn't parse {}".format(text))
+    ConfigurationError.require_condition(
+        clean,
+        "Couldn't parse {}".format(text),
+    )
     with ConfigurationError.handle_errors("Couldn't parse {}".format(text)):
         return pendulum.duration(**clean)
 
