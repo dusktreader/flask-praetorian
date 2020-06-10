@@ -1,0 +1,32 @@
+name: dusky-python-cd
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: login
+      uses: abatilo/actions-poetry@v1.5.0
+      with:
+        python_version: 3.7.4
+        poetry_version: 1.0.9
+        args: config http-basic.pypi dusktreader ${{ secrets.PYPI_PASSWORD }}
+    - name: build
+      uses: abatilo/actions-poetry@v1.5.0
+      with:
+        python_version: 3.7.4
+        poetry_version: 1.0.9
+        args: build
+    - name: publish
+      uses: abatilo/actions-poetry@v1.5.0
+      with:
+        python_version: 3.7.4
+        poetry_version: 1.0.9
+        args: publish
