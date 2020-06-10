@@ -151,9 +151,10 @@ class Praetorian:
         valid_schemes = self.pwd_ctx.schemes()
         PraetorianError.require_condition(
             self.hash_scheme in valid_schemes or self.hash_scheme is None,
-            "If {} is set, it must be one of the following schemes: {}",
-            'PRAETORIAN_HASH_SCHEME',
-            valid_schemes,
+            "If {} is set, it must be one of the following schemes: {}".format(
+                'PRAETORIAN_HASH_SCHEME',
+                valid_schemes,
+            ),
         )
 
         self.user_class = self._validate_user_class(user_class)
@@ -626,8 +627,9 @@ class Praetorian:
         jwt_header = headers.get(self.header_name)
         MissingTokenHeader.require_condition(
             jwt_header is not None,
-            "JWT token not found in headers under '{}'",
-            self.header_name,
+            "JWT token not found in headers under '{}'".format(
+                self.header_name,
+            ),
         )
 
         match = re.match(self.header_type + r'\s*([\w\.-]+)', jwt_header)
@@ -973,7 +975,10 @@ class Praetorian:
                 used_hash = self.pwd_ctx.identify(user.password)
                 desired_hash = self.hash_scheme
                 raise LegacyScheme(
-                   "Hash using non-current scheme '{}'.  Use '{}' instead."
-                   .format(used_hash, desired_hash))
+                   "Hash using non-current scheme '{}'.  Use '{}' instead.".format(
+                       used_hash,
+                       desired_hash,
+                   )
+                )
 
         return user
