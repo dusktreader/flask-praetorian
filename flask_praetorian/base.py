@@ -661,7 +661,8 @@ class Praetorian:
         jwt_cookie = cookies.get(self.cookie_name)
         MissingToken.require_condition(
             jwt_cookie is not None,
-            "JWT token not found in cookie under '{}'".format(self.cookie_name),
+            "JWT token not found in cookie under '{}'".format(
+                self.cookie_name),
         )
         return jwt_cookie
 
@@ -684,7 +685,8 @@ class Praetorian:
             except MissingToken as e:
                 exc = e
         if exc:
-            raise MissingToken("JWT token not found in {}".format(self.jwt_places))
+            raise MissingToken("JWT token not found in {}".format(
+                self.jwt_places))
 
     def pack_header_for_user(
             self, user,
