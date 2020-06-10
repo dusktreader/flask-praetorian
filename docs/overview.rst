@@ -27,7 +27,7 @@ The *flask-praetorian* package can be used to:
 * Check requests to secured endpoints for authorized tokens
 * Supply expiration of tokens and mechanisms for refreshing them
 * Ensure that the users associated with tokens have necessary roles for access
-* Parse user information from request headers for use in client route handlers
+* Parse user information from request headers or cookies for use in client route handlers
 * Support inclusion of custom user claims in tokens
 * Register new users using email verification
 
