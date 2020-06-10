@@ -659,13 +659,13 @@ category = "dev"
 description = "A set of py.test fixtures to test Flask applications."
 name = "pytest-flask"
 optional = false
-python-versions = "*"
-version = "0.14.0"
+python-versions = ">=3.5"
+version = "1.0.0"
 
 [package.dependencies]
 Flask = "*"
 Werkzeug = ">=0.7"
-pytest = [">=3.6", "*"]
+pytest = ">=5.2"
 
 [package.extras]
 docs = ["sphinx", "sphinx-rtd-theme"]
@@ -906,7 +906,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["pathlib2", "unittest2", "jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "afc987eb948f2c14751cc067ba1ca873fadd58626e1df5ce357babd391890a66"
+content-hash = "c049ac02da3379e3689f87202413f2568347d0ad79c8e28acffa0651ca01f67c"
 python-versions = "^3.5"
 
 [metadata.files]
@@ -1221,8 +1221,8 @@ pytest = [
     {file = "pytest-5.4.3.tar.gz", hash = "sha256:7979331bfcba207414f5e1263b5a0f8f521d0f457318836a7355531ed1a4c7d8"},
 ]
 pytest-flask = [
-    {file = "pytest-flask-0.14.0.tar.gz", hash = "sha256:df69f2b552098227d7b7a8a48d6df2742a4d865d0807eac4916fb622c2d47e1a"},
-    {file = "pytest_flask-0.14.0-py2.py3-none-any.whl", hash = "sha256:e9b120d23f73e0495d8fa1bc3b580b18cc9f98b8d6808bc45fdbcbab7d718242"},
+    {file = "pytest-flask-1.0.0.tar.gz", hash = "sha256:4d5678a045c07317618d80223ea124e21e8acc89dae109542dd1fdf6783d96c2"},
+    {file = "pytest_flask-1.0.0-py3-none-any.whl", hash = "sha256:44948d3feab48c69e89b087129cc4db66bad9cb5aa472c08dfc798c69f4eac67"},
 ]
 python-dateutil = [
     {file = "python-dateutil-2.8.1.tar.gz", hash = "sha256:73ebfe9dbf22e832286dafa60473e4cd239f8592f699aa5adaf10050e6e1823c"},
