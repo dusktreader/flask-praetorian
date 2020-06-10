@@ -19,7 +19,7 @@ jobs:
       uses: abatilo/actions-poetry@v1.5.0
       with:
         python_version: ${{ matrix.python-version }}
-        poetry_version: 1.0.9 
+        poetry_version: 1.0.9
         args: install
     - name: test
       uses: abatilo/actions-poetry@v1.5.0
@@ -27,3 +27,21 @@ jobs:
         python_version: ${{ matrix.python-version }}
         poetry_version: 1.0.9
         args: run poetry run pytest tests
+    - name: lint-src
+      uses: abatilo/actions-poetry@v1.5.0
+      with:
+        python_version: ${{ matrix.python-version }}
+        poetry_version: 1.0.9
+        args: run poetry run flake8 tests
+    - name: lint-src
+      uses: abatilo/actions-poetry@v1.5.0
+      with:
+        python_version: ${{ matrix.python-version }}
+        poetry_version: 1.0.9
+        args: run poetry run flake8 flask_praetorian
+    - name: lint-tests
+      uses: abatilo/actions-poetry@v1.5.0
+      with:
+        python_version: ${{ matrix.python-version }}
+        poetry_version: 1.0.9
+        args: run poetry run flake8 tests
