@@ -1,0 +1,41 @@
+name: dusky-python-ci
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.5, 3.6, 3.7, 3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: install
+      uses: abatilo/actions-poetry@v1.5.0
+      with:
+        python_version: ${{ matrix.python-version }}
+        poetry_version: 1.0.9
+        args: install
+    - name: test
+      uses: abatilo/actions-poetry@v1.5.0
+      with:
+        python_version: ${{ matrix.python-version }}
+        poetry_version: 1.0.9
+        args: run pytest tests
+    - name: lint-src
+      uses: abatilo/actions-poetry@v1.5.0
+      with:
+        python_version: ${{ matrix.python-version }}
+        poetry_version: 1.0.9
+        args: run flake8 flask_praetorian
+    - name: lint-tests
+      uses: abatilo/actions-poetry@v1.5.0
+      with:
+        python_version: ${{ matrix.python-version }}
+        poetry_version: 1.0.9
+        args: run flake8 tests
