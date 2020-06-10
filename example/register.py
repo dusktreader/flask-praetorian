@@ -1,5 +1,5 @@
-import flask
 import tempfile
+import flask
 import flask_sqlalchemy
 import flask_praetorian
 import flask_cors
@@ -112,11 +112,15 @@ def protected():
        $ curl http://localhost:5000/protected -X GET \
          -H "Authorization: Bearer <your_token>"
     """
-    return flask.jsonify(message='protected endpoint (allowed user {})'.format(
-        flask_praetorian.current_user().username,
-    ))
+    ret = {
+        'message': 'protected endpoint (allowed user {})'.format(
+            flask_praetorian.current_user().username
+        )
+    }
+    return (flask.jsonify(ret), 200)
 
 
+@app.route('/register', methods=['POST'])
 def register():
     """
     Registers a new user by parsing a POST request containing new user info and
@@ -145,9 +149,10 @@ def register():
     ret = {'message': 'successfully sent registration email to user {}'.format(
         new_user.username
     )}
-    return flask.jsonify(ret)
+    return (flask.jsonify(ret), 201)
 
 
+@app.route('/finalize')
 def finalize():
     """
     Finalizes a user registration with the token that they were issued in their
@@ -161,7 +166,7 @@ def finalize():
     user = guard.get_user_from_registration_token(registration_token)
     # perform 'activation' of user here...like setting 'active' or something
     ret = {'access_token': guard.encode_jwt_token(user)}
-    return flask.jsonify(ret), 200
+    return (flask.jsonify(ret), 200)
 
 
 # Run the example

@@ -34,7 +34,7 @@ class EarlyRefreshError(PraetorianError):
     """
     The jwt token has not yet expired for access and may not be refreshed
     """
-    pass
+    status_code = 425  # HTTP Status Code : 425 Too Early
 
 
 class ExpiredRefreshError(PraetorianError):
