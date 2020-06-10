@@ -17,6 +17,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
+import datetime
 import toml
 import os
 
@@ -53,7 +54,7 @@ master_doc = 'index'
 # General information about the project.
 author = project_metadata['authors']
 project = project_metadata['name']
-copyright = project_metadata['copyright']
+copyright = project_metadata.get('copyright', datetime.datetime.now().year)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
