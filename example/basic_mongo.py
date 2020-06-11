@@ -22,14 +22,14 @@ class User(Document):
     def lookup(cls, username):
         try:
             return User.objects(username=username).get()
-        except DoesNotExist:            
+        except DoesNotExist:
             return None
 
     @classmethod
     def identify(cls, id):
         try:
             return User.objects(id=loads(id)).get()
-        except DoesNotExist:            
+        except DoesNotExist:
             return None
 
     @property
@@ -84,9 +84,6 @@ def login():
        $ curl http://localhost:5000/login -X POST \
          -d '{"username":"Walter","password":"calmerthanyouare"}'
     """
-
-    # curl http://localhost:5000/login -X POST -d '{"username":"Walter","password":"calmerthanyouare"}
-
     req = flask.request.get_json(force=True)
     username = req.get('username', None)
     password = req.get('password', None)
