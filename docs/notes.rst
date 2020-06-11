@@ -82,6 +82,12 @@ Configuration Settings
      - The default length of time that a JWT may be refreshed. JWT may also not
        be refreshed if its access lifespan is not expired.
      - ``{'days': 30}``
+   * - ``JWT_PLACES``
+     - A list of places where JWT will be checked
+     - ``['header', 'cookie']``
+   * - ``JWT_COOKIE_NAME``
+     - The name of the cookie in HTTP requests where the JWT will be found
+     - ``'access_token'``
    * - ``JWT_HEADER_NAME``
      - The name of the header in HTTP requests where the JWT will be found
      - ``'Authorization'``

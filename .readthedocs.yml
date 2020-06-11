@@ -1,7 +1,3 @@
 python:
   version: 3.7
-  install:
-    - method: pip
-      path: .
-    - method: pip
-      requirements: docs/requirements.txt
+  pip_install: true

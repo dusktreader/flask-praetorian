@@ -3,6 +3,8 @@ import enum
 from os.path import dirname, abspath
 
 
+DEFAULT_JWT_PLACES = ['header', 'cookie']
+DEFAULT_JWT_COOKIE_NAME = 'access_token'
 DEFAULT_JWT_HEADER_NAME = 'Authorization'
 DEFAULT_JWT_HEADER_TYPE = 'Bearer'
 DEFAULT_JWT_ACCESS_LIFESPAN = pendulum.duration(minutes=15)

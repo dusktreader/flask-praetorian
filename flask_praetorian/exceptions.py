@@ -44,7 +44,7 @@ class ExpiredRefreshError(PraetorianError):
     pass
 
 
-class MissingTokenHeader(PraetorianError):
+class MissingToken(PraetorianError):
     """
     The header is missing the required jwt token
     """

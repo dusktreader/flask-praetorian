@@ -23,6 +23,7 @@ from flask_praetorian.constants import (
     AccessType,
     DEFAULT_JWT_ACCESS_LIFESPAN,
     DEFAULT_JWT_REFRESH_LIFESPAN,
+    DEFAULT_JWT_COOKIE_NAME,
     DEFAULT_JWT_HEADER_NAME,
     DEFAULT_JWT_HEADER_TYPE,
     IS_REGISTRATION_TOKEN_CLAIM,
@@ -668,6 +669,31 @@ class TestPraetorian:
         )
 
         assert guard.read_token_from_header() == token
+
+    def test_read_token_from_cookie(self, app, db, user_class, client):
+        """
+        This test verifies that a token may be properly read from a flask
+        request's cookies using the configuration settings for cookie
+        """
+        guard = Praetorian(app, user_class)
+        the_dude = user_class(
+            username='TheDude',
+            password=guard.hash_password('abides'),
+            roles='admin,operator',
+        )
+        db.session.add(the_dude)
+        db.session.commit()
+
+        moment = pendulum.parse('2017-05-21 18:39:55')
+        with freezegun.freeze_time(moment):
+            token = guard.encode_jwt_token(the_dude)
+
+        client.set_cookie('localhost', DEFAULT_JWT_COOKIE_NAME, token)
+        client.get(
+            '/unprotected',
+        )
+
+        assert guard.read_token_from_cookie() == token
 
     def test_pack_header_for_user(self, app, user_class):
         """

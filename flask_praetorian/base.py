@@ -27,7 +27,7 @@ from flask_praetorian.exceptions import (
     InvalidUserError,
     LegacyScheme,
     MissingClaimError,
-    MissingTokenHeader,
+    MissingToken,
     MissingUserError,
     MisusedRegistrationToken,
     MisusedResetToken,
@@ -39,6 +39,8 @@ from flask_praetorian.constants import (
     DEFAULT_JWT_ACCESS_LIFESPAN,
     DEFAULT_JWT_ALGORITHM,
     DEFAULT_JWT_ALLOWED_ALGORITHMS,
+    DEFAULT_JWT_PLACES,
+    DEFAULT_JWT_COOKIE_NAME,
     DEFAULT_JWT_HEADER_NAME,
     DEFAULT_JWT_HEADER_TYPE,
     DEFAULT_JWT_REFRESH_LIFESPAN,
@@ -151,9 +153,10 @@ class Praetorian:
         valid_schemes = self.pwd_ctx.schemes()
         PraetorianError.require_condition(
             self.hash_scheme in valid_schemes or self.hash_scheme is None,
-            "If {} is set, it must be one of the following schemes: {}",
-            'PRAETORIAN_HASH_SCHEME',
-            valid_schemes,
+            "If {} is set, it must be one of the following schemes: {}".format(
+                'PRAETORIAN_HASH_SCHEME',
+                valid_schemes,
+            ),
         )
 
         self.user_class = self._validate_user_class(user_class)
@@ -181,6 +184,14 @@ class Praetorian:
         self.reset_lifespan = app.config.get(
             'JWT_RESET_LIFESPAN',
             DEFAULT_JWT_RESET_LIFESPAN,
+        )
+        self.jwt_places = app.config.get(
+            'JWT_PLACES',
+            DEFAULT_JWT_PLACES,
+        )
+        self.cookie_name = app.config.get(
+            'JWT_COOKIE_NAME',
+            DEFAULT_JWT_COOKIE_NAME,
         )
         self.header_name = app.config.get(
             'JWT_HEADER_NAME',
@@ -624,10 +635,11 @@ class Praetorian:
         Unpacks a jwt token from a request header
         """
         jwt_header = headers.get(self.header_name)
-        MissingTokenHeader.require_condition(
+        MissingToken.require_condition(
             jwt_header is not None,
-            "JWT token not found in headers under '{}'",
-            self.header_name,
+            "JWT token not found in headers under '{}'".format(
+                self.header_name,
+            ),
         )
 
         match = re.match(self.header_type + r'\s*([\w\.-]+)', jwt_header)
@@ -643,6 +655,40 @@ class Praetorian:
         Unpacks a jwt token from the current flask request
         """
         return self._unpack_header(flask.request.headers)
+
+    def _unpack_cookie(self, cookies):
+        """
+        Unpacks a jwt token from a request cookies
+        """
+        jwt_cookie = cookies.get(self.cookie_name)
+        MissingToken.require_condition(
+            jwt_cookie is not None,
+            "JWT token not found in cookie under '{}'".format(
+                self.cookie_name),
+        )
+        return jwt_cookie
+
+    def read_token_from_cookie(self):
+        """
+        Unpacks a jwt token from the current flask request
+        """
+        return self._unpack_cookie(flask.request.cookies)
+
+    def read_token(self):
+        exc = None
+        if 'header' in self.jwt_places:
+            try:
+                return self.read_token_from_header()
+            except MissingToken as e:
+                exc = e
+        if 'cookie' in self.jwt_places:
+            try:
+                return self.read_token_from_cookie()
+            except MissingToken as e:
+                exc = e
+        if exc:
+            raise MissingToken("JWT token not found in {}".format(
+                self.jwt_places))
 
     def pack_header_for_user(
             self, user,
@@ -973,7 +1019,8 @@ class Praetorian:
                 used_hash = self.pwd_ctx.identify(user.password)
                 desired_hash = self.hash_scheme
                 raise LegacyScheme(
-                   "Hash using non-current scheme '{}'.  Use '{}' instead."
-                   .format(used_hash, desired_hash))
+                    "Hash using non-current scheme '{}'."
+                    "Use '{}' instead.".format(used_hash, desired_hash)
+                )
 
         return user
