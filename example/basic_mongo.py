@@ -12,7 +12,29 @@ db.connect("praetorian", host="localhost", port=27017)
 guard = flask_praetorian.Praetorian()
 cors = flask_cors.CORS()
 
+class RoleException(Exception):
+    pass
+
+allowed_roles = ['admin', 'operator']
+
 class User(Document):
+    '''
+    This is a small sample of a User class that persists to MongoDB.
+
+    The following docker-compose.yml snippet can be used for testing. 
+    Please do not use in production.
+
+    version: "3.2"
+    services:
+    mongo:
+        image: mongo:latest
+        container_name: "mongo"
+        restart: always
+        ports:
+        - 27017:27017
+
+    '''
+
     username = fields.StringField(required=True, unique=True)
     password = fields.StringField(required=True)
     roles = fields.StringField()
@@ -35,8 +57,12 @@ class User(Document):
     @property
     def rolenames(self):
         try:
-            return self.roles.split(',')
-        except Exception:
+            roles = self.roles.split(',') 
+            if set(roles).issubset(set(allowed_roles)):
+                return roles
+            else:
+                raise RoleException
+        except RoleException:            
             return []
 
     @property
@@ -46,7 +72,6 @@ class User(Document):
     def is_valid(self):
         return self.is_active
 
-
 def update_modified(sender, document):
     try:
         print(document.save())
@@ -54,7 +79,6 @@ def update_modified(sender, document):
         pass
 
 signals.post_init.connect(update_modified)
-
 
 # Initialize flask app for the example
 app = flask.Flask(__name__)
@@ -140,7 +164,6 @@ def protected_operator_accepted():
             flask_praetorian.current_user().username,
         )
     )
-
 
 # Run the example
 if __name__ == '__main__':
