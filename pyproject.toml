@@ -1,7 +1,6 @@
 [tool.poetry]
 name = "flask-praetorian"
 version = "1.0.0"
-copyright = 2017
 description = "Strong, Simple, and Precise security for Flask APIs (using jwt)"
 authors = ["Tucker Beck <tucker.beck@gmail.com>"]
 license = "MIT"
@@ -18,13 +17,13 @@ pendulum = "^2.0"
 passlib = "^1.7"
 flask-buzz = "^0.1.7"
 flask-mail = "^0.9.1"
-flask = "^1.0"
+flask = "^1.1"
 
 [tool.poetry.dev-dependencies]
 flask-cors = "^3.0"
 flask-sqlalchemy = "^2.3"
 freezegun = "^0.3.11"
-pytest = "^4.3"
+pytest = "^6.1"
 pytest-flask = "^0.14.0"
 sphinx = "^1.8"
 sphinx-view = "^0.2.0"

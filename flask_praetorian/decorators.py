@@ -1,6 +1,6 @@
 import functools
 
-from flask_praetorian.exceptions import MissingRoleError
+from flask_praetorian.exceptions import MissingTokenHeader, MissingRoleError
 
 
 from flask_praetorian.utilities import (
@@ -15,17 +15,19 @@ from flask_praetorian.utilities import (
 def _verify_and_add_jwt(optional=False):
     """
     This helper method just checks and adds jwt data to the app context. Will
-    not add jwt data if it is already present. Only use in this module
+    not add jwt data if it is already present. Only use in this module. If
+    optional is False and the header is missing the token, just return
     """
     if not app_context_has_jwt_data():
         guard = current_guard()
         try:
             token = guard.read_token_from_header()
-            jwt_data = guard.extract_jwt_token(token)
-            add_jwt_data_to_app_context(jwt_data)
-        except Exception as e:
-            if not optional:
-                raise e
+        except MissingTokenHeader as err:
+            if optional:
+                return
+            raise err
+        jwt_data = guard.extract_jwt_token(token)
+        add_jwt_data_to_app_context(jwt_data)
 
 
 def auth_required(method):
@@ -34,6 +36,7 @@ def auth_required(method):
     being able to access a flask route. It also adds the current user to the
     current flask context.
     """
+
     @functools.wraps(method)
     def wrapper(*args, **kwargs):
         _verify_and_add_jwt()
@@ -41,6 +44,7 @@ def auth_required(method):
             return method(*args, **kwargs)
         finally:
             remove_jwt_data_from_app_context()
+
     return wrapper
 
 
@@ -50,6 +54,7 @@ def auth_accepted(method):
     while being able to access a flask route, and adds the current user to the
     current flask context.
     """
+
     @functools.wraps(method)
     def wrapper(*args, **kwargs):
         _verify_and_add_jwt(optional=True)
@@ -57,6 +62,7 @@ def auth_accepted(method):
             return method(*args, **kwargs)
         finally:
             remove_jwt_data_from_app_context()
+
     return wrapper
 
 
@@ -66,6 +72,7 @@ def roles_required(*required_rolenames):
     the needed roles to access it. If an @auth_required decorator is not
     supplied already, this decorator will implicitly check @auth_required first
     """
+
     def decorator(method):
         @functools.wraps(method)
         def wrapper(*args, **kwargs):
@@ -75,12 +82,14 @@ def roles_required(*required_rolenames):
                 MissingRoleError.require_condition(
                     current_rolenames().issuperset(role_set),
                     "This endpoint requires all the following roles: {}",
-                    [', '.join(role_set)],
+                    [", ".join(role_set)],
                 )
                 return method(*args, **kwargs)
             finally:
                 remove_jwt_data_from_app_context()
+
         return wrapper
+
     return decorator
 
 
@@ -90,6 +99,7 @@ def roles_accepted(*accepted_rolenames):
     of the needed roles to access it. If an @auth_required decorator is not
     supplied already, this decorator will implicitly check @auth_required first
     """
+
     def decorator(method):
         @functools.wraps(method)
         def wrapper(*args, **kwargs):
@@ -99,10 +109,12 @@ def roles_accepted(*accepted_rolenames):
                 MissingRoleError.require_condition(
                     not current_rolenames().isdisjoint(role_set),
                     "This endpoint requires one of the following roles: {}",
-                    [', '.join(role_set)],
+                    [", ".join(role_set)],
                 )
                 return method(*args, **kwargs)
             finally:
                 remove_jwt_data_from_app_context()
+
         return wrapper
+
     return decorator
