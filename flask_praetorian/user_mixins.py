@@ -1,14 +1,17 @@
 class SQLAlchemyUserMixin:
     """
-    A short-cut providing required methods and attributes for a user class implemented
-    with sqlalchemy. Makes many assumptions about how the class is defined.
+    A short-cut providing required methods and attributes for a user class
+    implemented with sqlalchemy. Makes many assumptions about how the class
+    is defined.
 
     ASSUMPTIONS:
     * The model has an ``id`` column that uniquely identifies each instance
-    * The model has a ``rolenames`` column that contains the roles for the user instance
-      as a comma separated list of roles
-    * The model has a ``username`` column that is a unique string for each instance
-    * The model has a ``hashed_password`` column that contains its hashed password
+    * The model has a ``rolenames`` column that contains the roles for the
+      user instance as a comma separated list of roles
+    * The model has a ``username`` column that is a unique string for each
+      instance
+    * The model has a ``hashed_password`` column that contains its hashed
+      password
     """
 
     @property

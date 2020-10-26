@@ -81,10 +81,14 @@ class TestPraetorian:
         db.session.delete(the_dude)
         db.session.commit()
 
-    def test__validate_user_class__success_with_valid_user_class(self, app, user_class, default_guard):
+    def test__validate_user_class__success_with_valid_user_class(
+            self, app, user_class, default_guard,
+    ):
         assert default_guard._validate_user_class(user_class)
 
-    def test__validate_user_class__fails_if_class_has_no_lookup_classmethod(self, app, default_guard):
+    def test__validate_user_class__fails_if_class_has_no_lookup_classmethod(
+            self, app, default_guard,
+    ):
         class NoLookupUser:
             @classmethod
             def identify(cls, id):
@@ -93,7 +97,9 @@ class TestPraetorian:
             default_guard._validate_user_class(NoLookupUser)
         assert "must have a lookup class method" in err_info.value.message
 
-    def test__validate_user_class__fails_if_class_has_no_identify_classmethod(self, app, default_guard):
+    def test__validate_user_class__fails_if_class_has_no_identify_classmethod(
+            self, app, default_guard,
+    ):
         class NoIdentifyUser:
             @classmethod
             def lookup(cls, username):
@@ -102,7 +108,9 @@ class TestPraetorian:
             default_guard._validate_user_class(NoIdentifyUser)
         assert "must have an identify class method" in err_info.value.message
 
-    def test__validate_user_class__fails_if_class_has_no_identity_attribute(self, app, default_guard):
+    def test__validate_user_class__fails_if_class_has_no_identity_attribute(
+            self, app, default_guard,
+    ):
         class NoIdentityUser:
             rolenames = []
             password = ''
@@ -118,7 +126,9 @@ class TestPraetorian:
             default_guard._validate_user_class(NoIdentityUser)
         assert "must have an identity attribute" in err_info.value.message
 
-    def test__validate_user_class__fails_if_class_has_no_rolenames_attribute(self, app, default_guard):
+    def test__validate_user_class__fails_if_class_has_no_rolenames_attribute(
+            self, app, default_guard,
+    ):
         class NoRolenamesUser:
             identity = 0
             password = ''
@@ -134,7 +144,9 @@ class TestPraetorian:
             default_guard._validate_user_class(NoRolenamesUser)
         assert "must have a rolenames attribute" in err_info.value.message
 
-    def test__validate_user_class__skips_rolenames_check_if_roles_are_disabled(self, app, user_class):
+    def test__validate_user_class__skips_rolenames_check_if_roles_are_disabled(
+            self, app, user_class,
+    ):
         class NoRolenamesUser:
             identity = 0
             password = ''
@@ -151,7 +163,9 @@ class TestPraetorian:
         guard = Praetorian(app, user_class)
         assert guard._validate_user_class(NoRolenamesUser)
 
-    def test__validate_user_class__fails_if_class_has_no_password_attribute(self, app, default_guard):
+    def test__validate_user_class__fails_if_class_has_no_password_attribute(
+            self, app, default_guard,
+    ):
         class NoPasswordUser:
             identity = 0
             rolenames = []
@@ -167,7 +181,9 @@ class TestPraetorian:
             default_guard._validate_user_class(NoPasswordUser)
         assert "must have a password attribute" in err_info.value.message
 
-    def test__validate_user_class__skips_instance_validation_if_constructor_requires_arguments(self, app, default_guard):
+    def test__validate_user_class__skips_inst_check_if_constructor_req_params(
+            self, app, default_guard,
+    ):
         class EmptyInitBlowsUpUser:
             def __init__(self, *args):
                 PraetorianError.require_condition(len(args) > 0, "BOOM")
@@ -904,7 +920,9 @@ class TestPraetorian:
         validated_user = default_guard.validate_reset_token(token)
         assert validated_user == the_dude
 
-    def test_registration_email(self, app, user_class, db, tmpdir, default_guard):
+    def test_registration_email(
+            self, app, user_class, db, tmpdir, default_guard,
+    ):
         """
         This test verifies email based registration functions as expected.
         This includes sending messages with valid time expiring JWT tokens
@@ -949,7 +967,9 @@ class TestPraetorian:
         )
         assert jwt_data[IS_REGISTRATION_TOKEN_CLAIM]
 
-    def test_get_user_from_registration_token(self, app, user_class, db, default_guard):
+    def test_get_user_from_registration_token(
+            self, app, user_class, db, default_guard,
+    ):
         """
         This test verifies that a user can be extracted from an email based
         registration token. Also verifies that a token that has expired

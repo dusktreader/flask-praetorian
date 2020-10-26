@@ -26,8 +26,9 @@ DEFAULT_CONFIRMATION_TEMPLATE = (
 DEFAULT_CONFIRMATION_SENDER = "you@whatever.com"
 DEFAULT_CONFIRMATION_SUBJECT = "Please confirm your registration"
 
-DEFAULT_RESET_TEMPLATE = "{}/flask_praetorian/templates/reset_email.html".format(
+DEFAULT_RESET_TEMPLATE = "{}/flask_praetorian/templates/{}".format(
     dirname(dirname(abspath(__file__))),
+    "reset_email.html",
 )
 
 DEFAULT_RESET_SENDER = "you@whatever.com"

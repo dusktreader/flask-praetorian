@@ -85,9 +85,10 @@ def app(tmpdir_factory):
     _mail.init_app(app)
     app.mail = _mail
 
-    db_path = tmpdir_factory.mktemp("flask-praetorian-test", numbered=True).join(
-        "sqlite.db"
-    )
+    db_path = tmpdir_factory.mktemp(
+        "flask-praetorian-test",
+        numbered=True,
+    ).join("sqlite.db")
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + str(db_path)
     """
     Set to False as we don't use it, and to suppress warnings,

@@ -284,8 +284,8 @@ class Praetorian:
         """
         Validates the supplied user_class to make sure that it has the
         class methods and attributes necessary to function correctly.
-        After validating class methods, will attempt to instantiate a dummy instance of
-        the user class to test for the requisite attributes
+        After validating class methods, will attempt to instantiate a dummy
+        instance of the user class to test for the requisite attributes
 
         Requirements:
 
@@ -330,7 +330,7 @@ class Praetorian:
                 self.roles_disabled or hasattr(dummy_user, "rolenames"),
                 textwrap.dedent("""
                     Instances of user_class must have a rolenames attribute:
-                    user_instance.rolenames -> [<first role>, <second role>, ...]
+                    user_instance.rolenames -> [<role1>, <role2>, ...]
                 """),
             )
             PraetorianError.require_condition(
