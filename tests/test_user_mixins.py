@@ -4,7 +4,7 @@ import pytest
 
 
 class TestSQLAlchemyUserMixin:
-    def test_basic(self, app, db, mixin_user_class):
+    def test_basic(self, app, db, mixin_user_class, user_class, default_guard):
         mixin_guard = flask_praetorian.Praetorian(app, mixin_user_class)
         the_dude = mixin_user_class(
             username="TheDude",
@@ -19,4 +19,4 @@ class TestSQLAlchemyUserMixin:
             mixin_guard.authenticate("TheDude", "is_undudelike")
         db.session.delete(the_dude)
         db.session.commit()
-        mixin_guard
+        default_guard.init_app(app, user_class)
