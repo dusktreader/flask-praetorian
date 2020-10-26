@@ -55,6 +55,7 @@ from flask_praetorian.constants import (
     DEFAULT_HASH_AUTOUPDATE,
     DEFAULT_HASH_AUTOTEST,
     DEFAULT_HASH_DEPRECATED_SCHEMES,
+    DEFAULT_ROLES_DISABLED,
     IS_REGISTRATION_TOKEN_CLAIM,
     IS_RESET_TOKEN_CLAIM,
     REFRESH_EXPIRATION_CLAIM,
@@ -131,6 +132,11 @@ class Praetorian:
             "There must be a SECRET_KEY app config setting set",
         )
 
+        self.roles_disabled = app.config.get(
+            'PRAETORIAN_ROLES_DISABLED',
+            DEFAULT_ROLES_DISABLED,
+        )
+
         self.hash_autoupdate = app.config.get(
             'PRAETORIAN_HASH_AUTOUPDATE',
             DEFAULT_HASH_AUTOUPDATE,
@@ -142,12 +148,18 @@ class Praetorian:
         )
 
         self.pwd_ctx = CryptContext(
-            schemes=app.config.get('PRAETORIAN_HASH_ALLOWED_SCHEMES',
-                                   DEFAULT_HASH_ALLOWED_SCHEMES),
-            default=app.config.get('PRAETORIAN_HASH_SCHEME',
-                                   DEFAULT_HASH_SCHEME),
-            deprecated=app.config.get('PRAETORIAN_HASH_DEPRECATED_SCHEMES',
-                                      DEFAULT_HASH_DEPRECATED_SCHEMES),
+            schemes=app.config.get(
+                'PRAETORIAN_HASH_ALLOWED_SCHEMES',
+                DEFAULT_HASH_ALLOWED_SCHEMES,
+            ),
+            default=app.config.get(
+                'PRAETORIAN_HASH_SCHEME',
+                DEFAULT_HASH_SCHEME,
+            ),
+            deprecated=app.config.get(
+                'PRAETORIAN_HASH_DEPRECATED_SCHEMES',
+                DEFAULT_HASH_DEPRECATED_SCHEMES,
+            ),
         )
 
         valid_schemes = self.pwd_ctx.schemes()
@@ -268,16 +280,20 @@ class Praetorian:
 
         return app
 
-    @classmethod
-    def _validate_user_class(cls, user_class):
+    def _validate_user_class(self, user_class):
         """
         Validates the supplied user_class to make sure that it has the
-        class methods necessary to function correctly.
+        class methods and attributes necessary to function correctly.
+        After validating class methods, will attempt to instantiate a dummy instance of
+        the user class to test for the requisite attributes
 
         Requirements:
 
         - ``lookup`` method. Accepts a string parameter, returns instance
         - ``identify`` method. Accepts an identity parameter, returns instance
+        - ``identity`` attribute. Provides unique id for the instance
+        - ``rolenames`` attribute. Provides list of roles attached to instance
+        - ``password`` attribute. Provides hashed password for instance
         """
         PraetorianError.require_condition(
             getattr(user_class, 'lookup', None) is not None,
@@ -293,7 +309,38 @@ class Praetorian:
                 user_class.identify(<identity>) -> <user instance>
             """),
         )
-        # TODO: Figure out how to check for an identity property
+
+        dummy_user = None
+        try:
+            dummy_user = user_class()
+        except Exception:
+            flask.current_app.logger.debug(
+                "Skipping instance validation because "
+                "user cannot be instantiated without arguments"
+            )
+        if dummy_user:
+            PraetorianError.require_condition(
+                hasattr(dummy_user, "identity"),
+                textwrap.dedent("""
+                    Instances of user_class must have an identity attribute:
+                    user_instance.identity -> <unique id for instance>
+                """),
+            )
+            PraetorianError.require_condition(
+                self.roles_disabled or hasattr(dummy_user, "rolenames"),
+                textwrap.dedent("""
+                    Instances of user_class must have a rolenames attribute:
+                    user_instance.rolenames -> [<first role>, <second role>, ...]
+                """),
+            )
+            PraetorianError.require_condition(
+                hasattr(dummy_user, "password"),
+                textwrap.dedent("""
+                    Instances of user_class must have a password attribute:
+                    user_instance.rolenames -> <hashed password>
+                """),
+            )
+
         return user_class
 
     def authenticate(self, username, password):
