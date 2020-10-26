@@ -1,6 +1,6 @@
 import functools
 
-from flask_praetorian.exceptions import MissingRoleError
+from flask_praetorian.exceptions import PraetorianError, MissingRoleError
 
 
 from flask_praetorian.utilities import (
@@ -30,6 +30,7 @@ def auth_required(method):
     being able to access a flask route. It also adds the current user to the
     current flask context.
     """
+
     @functools.wraps(method)
     def wrapper(*args, **kwargs):
         _verify_and_add_jwt()
@@ -37,6 +38,7 @@ def auth_required(method):
             return method(*args, **kwargs)
         finally:
             remove_jwt_data_from_app_context()
+
     return wrapper
 
 
@@ -46,21 +48,28 @@ def roles_required(*required_rolenames):
     the needed roles to access it. If an @auth_required decorator is not
     supplied already, this decorator will implicitly check @auth_required first
     """
+
     def decorator(method):
         @functools.wraps(method)
         def wrapper(*args, **kwargs):
+            PraetorianError.require_condition(
+                not current_guard().roles_disabled,
+                "This feature is not available because roles are disabled",
+            )
             role_set = set([str(n) for n in required_rolenames])
             _verify_and_add_jwt()
             try:
                 MissingRoleError.require_condition(
                     current_rolenames().issuperset(role_set),
                     "This endpoint requires all the following roles: "
-                    "{}".format([', '.join(role_set)]),
+                    "{}".format([", ".join(role_set)]),
                 )
                 return method(*args, **kwargs)
             finally:
                 remove_jwt_data_from_app_context()
+
         return wrapper
+
     return decorator
 
 
@@ -70,19 +79,26 @@ def roles_accepted(*accepted_rolenames):
     of the needed roles to access it. If an @auth_required decorator is not
     supplied already, this decorator will implicitly check @auth_required first
     """
+
     def decorator(method):
         @functools.wraps(method)
         def wrapper(*args, **kwargs):
+            PraetorianError.require_condition(
+                not current_guard().roles_disabled,
+                "This feature is not available because roles are disabled",
+            )
             role_set = set([str(n) for n in accepted_rolenames])
             _verify_and_add_jwt()
             try:
                 MissingRoleError.require_condition(
                     not current_rolenames().isdisjoint(role_set),
                     "This endpoint requires one of the following roles: "
-                    "{}".format([', '.join(role_set)]),
+                    "{}".format([", ".join(role_set)]),
                 )
                 return method(*args, **kwargs)
             finally:
                 remove_jwt_data_from_app_context()
+
         return wrapper
+
     return decorator

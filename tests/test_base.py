@@ -33,29 +33,15 @@ from flask_praetorian.constants import (
 )
 
 
-class NoLookupUser:
-    @classmethod
-    def identify(cls, id):
-        pass
-
-
-class NoIdentifyUser:
-    @classmethod
-    def lookup(cls, username):
-        pass
-
-
 class TestPraetorian:
 
-    def test_hash_password(self, app, user_class):
+    def test_hash_password(self, app, user_class, default_guard):
         """
         This test verifies that Praetorian hashes passwords using the scheme
         specified by the HASH_SCHEME setting. If no scheme is supplied, the
         test verifies that the default scheme is used. Otherwise, the test
         verifies that the hashed password matches the supplied scheme.
         """
-
-        default_guard = Praetorian(app, user_class)
         secret = default_guard.hash_password('some password')
         assert default_guard.pwd_ctx.identify(secret) == 'pbkdf2_sha512'
 
@@ -64,7 +50,6 @@ class TestPraetorian:
         This test verifies that the _verify_password function can be used to
         successfully compare a raw password against its hashed version
         """
-
         secret = default_guard.hash_password('some password')
         assert default_guard._verify_password('some password', secret)
         assert not default_guard._verify_password('not right', secret)
@@ -75,14 +60,13 @@ class TestPraetorian:
         assert specified_guard._verify_password('some password', secret)
         assert not specified_guard._verify_password('not right', secret)
 
-    def test_authenticate(self, app, user_class, db):
+    def test_authenticate(self, app, user_class, db, default_guard):
         """
         This test verifies that the authenticate function can be used to
         retrieve a User instance when the correct username and password are
         supplied. It also verifies that exceptions are raised when a user
         cannot be found or the passwords do not match
         """
-        default_guard = Praetorian(app, user_class)
         the_dude = user_class(
             username='TheDude',
             password=default_guard.hash_password('abides'),
@@ -97,20 +81,121 @@ class TestPraetorian:
         db.session.delete(the_dude)
         db.session.commit()
 
-    def test__validate_user_class(self, app, user_class):
-        """
-        This test verifies that the _validate_user_class method properly
-        checks the user_class that Praetorian will use for required attributes
-        """
+    def test__validate_user_class__success_with_valid_user_class(
+            self, app, user_class, default_guard,
+    ):
+        assert default_guard._validate_user_class(user_class)
+
+    def test__validate_user_class__fails_if_class_has_no_lookup_classmethod(
+            self, app, default_guard,
+    ):
+        class NoLookupUser:
+            @classmethod
+            def identify(cls, id):
+                pass
         with pytest.raises(PraetorianError) as err_info:
-            Praetorian._validate_user_class(NoLookupUser)
+            default_guard._validate_user_class(NoLookupUser)
         assert "must have a lookup class method" in err_info.value.message
 
+    def test__validate_user_class__fails_if_class_has_no_identify_classmethod(
+            self, app, default_guard,
+    ):
+        class NoIdentifyUser:
+            @classmethod
+            def lookup(cls, username):
+                pass
         with pytest.raises(PraetorianError) as err_info:
-            Praetorian._validate_user_class(NoIdentifyUser)
+            default_guard._validate_user_class(NoIdentifyUser)
         assert "must have an identify class method" in err_info.value.message
 
-        assert Praetorian._validate_user_class(user_class)
+    def test__validate_user_class__fails_if_class_has_no_identity_attribute(
+            self, app, default_guard,
+    ):
+        class NoIdentityUser:
+            rolenames = []
+            password = ''
+
+            @classmethod
+            def identify(cls, id):
+                pass
+
+            @classmethod
+            def lookup(cls, username):
+                pass
+        with pytest.raises(PraetorianError) as err_info:
+            default_guard._validate_user_class(NoIdentityUser)
+        assert "must have an identity attribute" in err_info.value.message
+
+    def test__validate_user_class__fails_if_class_has_no_rolenames_attribute(
+            self, app, default_guard,
+    ):
+        class NoRolenamesUser:
+            identity = 0
+            password = ''
+
+            @classmethod
+            def identify(cls, id):
+                pass
+
+            @classmethod
+            def lookup(cls, username):
+                pass
+        with pytest.raises(PraetorianError) as err_info:
+            default_guard._validate_user_class(NoRolenamesUser)
+        assert "must have a rolenames attribute" in err_info.value.message
+
+    def test__validate_user_class__skips_rolenames_check_if_roles_are_disabled(
+            self, app, user_class,
+    ):
+        class NoRolenamesUser:
+            identity = 0
+            password = ''
+
+            @classmethod
+            def identify(cls, id):
+                pass
+
+            @classmethod
+            def lookup(cls, username):
+                pass
+
+        app.config['PRAETORIAN_ROLES_DISABLED'] = True
+        guard = Praetorian(app, user_class)
+        assert guard._validate_user_class(NoRolenamesUser)
+
+    def test__validate_user_class__fails_if_class_has_no_password_attribute(
+            self, app, default_guard,
+    ):
+        class NoPasswordUser:
+            identity = 0
+            rolenames = []
+
+            @classmethod
+            def identify(cls, id):
+                pass
+
+            @classmethod
+            def lookup(cls, username):
+                pass
+        with pytest.raises(PraetorianError) as err_info:
+            default_guard._validate_user_class(NoPasswordUser)
+        assert "must have a password attribute" in err_info.value.message
+
+    def test__validate_user_class__skips_inst_check_if_constructor_req_params(
+            self, app, default_guard,
+    ):
+        class EmptyInitBlowsUpUser:
+            def __init__(self, *args):
+                PraetorianError.require_condition(len(args) > 0, "BOOM")
+
+            @classmethod
+            def identify(cls, id):
+                pass
+
+            @classmethod
+            def lookup(cls, username):
+                pass
+        assert default_guard._validate_user_class(EmptyInitBlowsUpUser)
 
     def test__validate_jwt_data__fails_when_missing_jti(
             self, app, user_class,
@@ -779,7 +864,7 @@ class TestPraetorian:
             assert token_data['duder'] == 'brief'
             assert token_data['el_duderino'] == 'not brief'
 
-    def test_reset_email(self, app, user_class, db, tmpdir):
+    def test_reset_email(self, app, user_class, db, tmpdir, default_guard):
         """
         This test verifies email based password reset functions as expected.
         This includes sending messages with valid time expiring JWT tokens
@@ -799,8 +884,6 @@ class TestPraetorian:
         app.config['TESTING'] = True
         app.config['PRAETORIAN_EMAIL_TEMPLATE'] = str(template_file)
         app.config['PRAETORIAN_RESET_ENDPOINT'] = 'unprotected'
-
-        default_guard = Praetorian(app, user_class)
 
         # create our default test user
         the_dude = user_class(username='TheDude')
@@ -837,7 +920,9 @@ class TestPraetorian:
         validated_user = default_guard.validate_reset_token(token)
         assert validated_user == the_dude
 
-    def test_registration_email(self, app, user_class, db, tmpdir):
+    def test_registration_email(
+            self, app, user_class, db, tmpdir, default_guard,
+    ):
         """
         This test verifies email based registration functions as expected.
         This includes sending messages with valid time expiring JWT tokens
@@ -857,8 +942,6 @@ class TestPraetorian:
         app.config['TESTING'] = True
         app.config['PRAETORIAN_EMAIL_TEMPLATE'] = str(template_file)
         app.config['PRAETORIAN_CONFIRMATION_ENDPOINT'] = 'unprotected'
-
-        default_guard = Praetorian(app, user_class)
 
         # create our default test user
         the_dude = user_class(username='TheDude')
@@ -884,16 +967,15 @@ class TestPraetorian:
         )
         assert jwt_data[IS_REGISTRATION_TOKEN_CLAIM]
 
-    def test_get_user_from_registration_token(self, app, user_class, db):
+    def test_get_user_from_registration_token(
+            self, app, user_class, db, default_guard,
+    ):
         """
         This test verifies that a user can be extracted from an email based
         registration token. Also verifies that a token that has expired
         cannot be used to fetch a user. Also verifies that a registration
         token may not be refreshed
         """
-        app.config['TESTING'] = True
-        default_guard = Praetorian(app, user_class)
-
         # create our default test user
         the_dude = user_class(
             username='TheDude',
@@ -931,15 +1013,13 @@ class TestPraetorian:
                     expired_reg_token
                 )
 
-    def test_validate_and_update(self, app, user_class, db):
+    def test_validate_and_update(self, app, user_class, db, default_guard):
         """
         This test verifies that Praetorian hashes passwords using the scheme
         specified by the HASH_SCHEME setting. If no scheme is supplied, the
         test verifies that the default scheme is used. Otherwise, the test
         verifies that the hashed password matches the supplied scheme.
         """
-
-        default_guard = Praetorian(app, user_class)
         pbkdf2_sha512_password = default_guard.hash_password('pbkdf2_sha512')
 
         # create our default test user

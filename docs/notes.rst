@@ -1,6 +1,26 @@
 Notes
 =====
 
+Refreshing Tokens
+-----------------
+
+One of the keys to proper security with auth tokens is to make sure that they only last
+a finite amont of time. This makes sure that if the token is stolen, it cannot be used
+in perpetuity to gain complete access to the user. However, calls to the database to
+validate a user on every http request would dramatically slow down an application.
+
+To mitigate both situations, the concept of token refreshing has been introduced. The
+idea is that the user is re-checked periodically, but not on every request. After some
+fixed amount of time, the database is re-checked to make sure that a user is still
+allowed access.
+
+At that point in time, a new token is issued with the same claims as the first except
+its refresh lifespan is not extened. This is so that a token cannot be refreshed in
+perpetuity.
+
+Once a token's access lifespan and refresh lifespan are both expired, the user must
+log in again.
+
 Error Handling
 --------------
 
@@ -103,6 +123,8 @@ Configuration Settings
      - Do not register the flask error handler automatically. The user may wish
        to configure the error handler themselves
      - ``None``
+   * - ``PRAETORIAN_ROLES_DISABLED``
+     - If set, role decorators will not work but rolenames will not be a required field
 
 
 .. _user-class-requirements:
@@ -128,6 +150,8 @@ satisfy the following requirements:
   * should return an instance of the ``user_class`` or ``None``
 
 * Provide a ``rolenames`` instance attribute
+
+  * only applies if roles are not disabled. See ``PRAETORIAN_ROLES_DISABLED`` setting
 
   * should return a list of string roles assigned to the user
 

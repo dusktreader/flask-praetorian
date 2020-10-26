@@ -17,6 +17,7 @@ class User(_db.Model):
     """
     Provides a basic user model for use in the tests
     """
+
     id = _db.Column(_db.Integer, primary_key=True)
     username = _db.Column(_db.Text, unique=True)
     password = _db.Column(_db.Text)
@@ -26,7 +27,7 @@ class User(_db.Model):
     @property
     def rolenames(self):
         try:
-            return self.roles.split(',')
+            return self.roles.split(",")
         except Exception:
             return []
 
@@ -43,21 +44,29 @@ class User(_db.Model):
         return self.id
 
 
+class MixinUser(_db.Model, flask_praetorian.SQLAlchemyUserMixin):
+    id = _db.Column(_db.Integer, primary_key=True)
+    username = _db.Column(_db.Text, unique=True)
+    password = _db.Column(_db.Text)
+    email = _db.Column(_db.Text)
+    roles = _db.Column(_db.Text)
+
+
 class ValidatingUser(User):
-    __tablename__ = 'validating_users'
+    __tablename__ = "validating_users"
     id = _db.Column(_db.Integer, primary_key=True)
     username = _db.Column(_db.Text, unique=True)
     password = _db.Column(_db.Text)
     roles = _db.Column(_db.Text)
-    is_active = _db.Column(_db.Boolean, default=True, server_default='true')
+    is_active = _db.Column(_db.Boolean, default=True, server_default="true")
 
     def is_valid(self):
         return self.is_active
 
-    __mapper_args__ = {'concrete': True}
+    __mapper_args__ = {"concrete": True}
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def app(tmpdir_factory):
     """
     Initializes the flask app for the test suite. Also prepares a set of routes
@@ -68,8 +77,8 @@ def app(tmpdir_factory):
     # we have to set degug to false so that it will not check to see if there
     # has already been a request before a setup function
     app.debug = False
-    app.config['TESTING'] = True
-    app.config['SECRET_KEY'] = 'top secret'
+    app.config["TESTING"] = True
+    app.config["SECRET_KEY"] = "top secret"
 
     _guard.init_app(app, User)
 
@@ -77,70 +86,70 @@ def app(tmpdir_factory):
     app.mail = _mail
 
     db_path = tmpdir_factory.mktemp(
-        'flask-praetorian-test',
-        numbered=True
-    ).join('sqlite.db')
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + str(db_path)
+        "flask-praetorian-test",
+        numbered=True,
+    ).join("sqlite.db")
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + str(db_path)
     """
     Set to False as we don't use it, and to suppress warnings,
         as documented by SQLALCHEMY.
     """
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     _db.init_app(app)
     with app.app_context():
         _db.create_all()
 
-    @app.route('/unprotected')
+    @app.route("/unprotected")
     def unprotected():
-        return jsonify(message='success')
+        return jsonify(message="success")
 
-    @app.route('/protected')
+    @app.route("/protected")
     @flask_praetorian.auth_required
     def protected():
-        return jsonify(message='success')
+        return jsonify(message="success")
 
-    @app.route('/protected_admin_required')
+    @app.route("/protected_admin_required")
     @flask_praetorian.auth_required
-    @flask_praetorian.roles_required('admin')
+    @flask_praetorian.roles_required("admin")
     def protected_admin_required():
-        return jsonify(message='success')
+        return jsonify(message="success")
 
-    @app.route('/protected_admin_and_operator_required')
+    @app.route("/protected_admin_and_operator_required")
     @flask_praetorian.auth_required
-    @flask_praetorian.roles_required('admin', 'operator')
+    @flask_praetorian.roles_required("admin", "operator")
     def protected_admin_and_operator_required():
-        return jsonify(message='success')
+        return jsonify(message="success")
 
-    @app.route('/protected_admin_and_operator_accepted')
+    @app.route("/protected_admin_and_operator_accepted")
     @flask_praetorian.auth_required
-    @flask_praetorian.roles_accepted('admin', 'operator')
+    @flask_praetorian.roles_accepted("admin", "operator")
     def protected_admin_and_operator_accepted():
-        return jsonify(message='success')
+        return jsonify(message="success")
 
-    @app.route('/undecorated_admin_required')
-    @flask_praetorian.roles_required('admin')
+    @app.route("/undecorated_admin_required")
+    @flask_praetorian.roles_required("admin")
     def undecorated_admin_required():
-        return jsonify(message='success')
+        return jsonify(message="success")
 
-    @app.route('/undecorated_admin_accepted')
-    @flask_praetorian.roles_accepted('admin')
+    @app.route("/undecorated_admin_accepted")
+    @flask_praetorian.roles_accepted("admin")
     def undecorated_admin_accepted():
-        return jsonify(message='success')
+        return jsonify(message="success")
 
-    @app.route('/reversed_decorators')
-    @flask_praetorian.roles_required('admin', 'operator')
+    @app.route("/reversed_decorators")
+    @flask_praetorian.roles_required("admin", "operator")
     @flask_praetorian.auth_required
     def reversed_decorators():
-        return jsonify(message='success')
+        return jsonify(message="success")
 
-    @app.route('/registration_confirmation')
+    @app.route("/registration_confirmation")
     def reg_confirm():
-        return jsonify(message='fuck')
+        return jsonify(message="fuck")
 
     return app
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def user_class():
     """
     This fixture simply fetches the user_class to be used in testing
@@ -148,7 +157,15 @@ def user_class():
     return User
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
+def mixin_user_class():
+    """
+    This fixture simply fetches the mixin user_class to be used in testing
+    """
+    return MixinUser
+
+
+@pytest.fixture(scope="session")
 def validating_user_class():
     """
     This fixture simply fetches the validating user_class to be used in testing
@@ -156,7 +173,7 @@ def validating_user_class():
     return ValidatingUser
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def db():
     """
     This fixture simply fetches the db instance to be used in testing
@@ -178,7 +195,7 @@ def db_setup(app, db):
         db.session.commit()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def default_guard():
     """
     This fixtures fetches the flask-praetorian instance to be used in testing
@@ -186,7 +203,7 @@ def default_guard():
     return _guard
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def mail():
     """
     This fixture simply fetches the db instance to be used in testing
