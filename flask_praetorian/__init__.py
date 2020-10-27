@@ -20,6 +20,7 @@ __all__ = [
     Praetorian,
     PraetorianError,
     auth_required,
+    auth_accepted,
     roles_required,
     roles_accepted,
     current_user,

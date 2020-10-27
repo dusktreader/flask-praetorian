@@ -1,6 +1,10 @@
 import functools
 
-from flask_praetorian.exceptions import PraetorianError, MissingRoleError, MissingToken
+from flask_praetorian.exceptions import (
+    PraetorianError,
+    MissingRoleError,
+    MissingToken,
+)
 
 
 from flask_praetorian.utilities import (
