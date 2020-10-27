@@ -12,21 +12,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python_version: 3.7.4
+    - name: get-poetry
+      run: pip install poetry==1.0.9
     - name: login
-      uses: abatilo/actions-poetry@v1.5.0
-      with:
-        python_version: 3.7.4
-        poetry_version: 1.0.9
-        args: config http-basic.pypi dusktreader ${{ secrets.PYPI_PASSWORD }}
+      run: poetry config http-basic.pypi dusktreader ${{ secrets.PYPI_PASSWORD }}
     - name: build
-      uses: abatilo/actions-poetry@v1.5.0
-      with:
-        python_version: 3.7.4
-        poetry_version: 1.0.9
-        args: build
+      run: poetry build
     - name: publish
-      uses: abatilo/actions-poetry@v1.5.0
-      with:
-        python_version: 3.7.4
-        poetry_version: 1.0.9
-        args: publish
+      run: poetry publish
