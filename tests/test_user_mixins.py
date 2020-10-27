@@ -13,7 +13,7 @@ class TestSQLAlchemyUserMixin:
         db.session.add(the_dude)
         db.session.commit()
         assert mixin_guard.authenticate("TheDude", "abides") == the_dude
-        with pytest.raises(flask_praetorian.exceptions.MissingUserError):
+        with pytest.raises(flask_praetorian.exceptions.AuthenticationError):
             mixin_guard.authenticate("TheBro", "abides")
         with pytest.raises(flask_praetorian.exceptions.AuthenticationError):
             mixin_guard.authenticate("TheDude", "is_undudelike")

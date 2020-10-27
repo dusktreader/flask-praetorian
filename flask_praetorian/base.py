@@ -353,13 +353,12 @@ class Praetorian:
             "Praetorian must be initialized before this method is available",
         )
         user = self.user_class.lookup(username)
-        MissingUserError.require_condition(
-            user is not None,
-            'Could not find the requested user',
-        )
         AuthenticationError.require_condition(
-            self._verify_password(password, user.password),
-            'The password is incorrect',
+            user is not None and self._verify_password(
+                password,
+                user.password,
+            ),
+            'The username and/or password are incorrect',
         )
 
         """

@@ -64,8 +64,8 @@ class TestPraetorian:
         """
         This test verifies that the authenticate function can be used to
         retrieve a User instance when the correct username and password are
-        supplied. It also verifies that exceptions are raised when a user
-        cannot be found or the passwords do not match
+        supplied. It also verifies that an AuthenticationError is raised
+        when a valid user/password combination are not supplied.
         """
         the_dude = user_class(
             username='TheDude',
@@ -74,7 +74,7 @@ class TestPraetorian:
         db.session.add(the_dude)
         db.session.commit()
         assert default_guard.authenticate('TheDude', 'abides') == the_dude
-        with pytest.raises(MissingUserError):
+        with pytest.raises(AuthenticationError):
             default_guard.authenticate('TheBro', 'abides')
         with pytest.raises(AuthenticationError):
             default_guard.authenticate('TheDude', 'is_undudelike')
