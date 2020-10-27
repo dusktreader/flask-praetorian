@@ -1,6 +1,6 @@
 import functools
 
-from flask_praetorian.exceptions import PraetorianError, MissingRoleError
+from flask_praetorian.exceptions import PraetorianError, MissingRoleError, MissingToken
 
 
 from flask_praetorian.utilities import (
@@ -14,18 +14,23 @@ from flask_praetorian.utilities import (
 
 def _verify_and_add_jwt(optional=False):
     """
-    This helper method just checks and adds jwt data to the app context. Will
-    not add jwt data if it is already present. Only use in this module
+    This helper method just checks and adds jwt data to the app context.
+    If optional is False and the header is missing the token, just returns.
+
+    Will not add jwt data if it is already present.
+
+    Only use in this module
     """
     if not app_context_has_jwt_data():
         guard = current_guard()
         try:
             token = guard.read_token_from_header()
-            jwt_data = guard.extract_jwt_token(token)
-            add_jwt_data_to_app_context(jwt_data)
-        except Exception as e:
-            if not optional:
-                raise e
+        except MissingToken as err:
+            if optional:
+                return
+            raise err
+        jwt_data = guard.extract_jwt_token(token)
+        add_jwt_data_to_app_context(jwt_data)
 
 
 def auth_required(method):

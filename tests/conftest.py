@@ -108,7 +108,7 @@ def app(tmpdir_factory):
     def kinda_protected():
         try:
             authed_user = flask_praetorian.current_user().username
-        except Exception as e:  # noqa: F841
+        except Exception:
             authed_user = None
         return jsonify(message='success', user=authed_user)
 
