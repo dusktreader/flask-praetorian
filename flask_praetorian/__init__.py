@@ -2,6 +2,7 @@ from flask_praetorian.base import Praetorian
 from flask_praetorian.exceptions import PraetorianError
 from flask_praetorian.decorators import (
     auth_required,
+    auth_accepted,
     roles_required,
     roles_accepted,
 )
@@ -19,6 +20,7 @@ __all__ = [
     Praetorian,
     PraetorianError,
     auth_required,
+    auth_accepted,
     roles_required,
     roles_accepted,
     current_user,

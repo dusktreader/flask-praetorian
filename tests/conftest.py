@@ -103,7 +103,16 @@ def app(tmpdir_factory):
     def unprotected():
         return jsonify(message="success")
 
-    @app.route("/protected")
+    @app.route('/kinda_protected')
+    @flask_praetorian.auth_accepted
+    def kinda_protected():
+        try:
+            authed_user = flask_praetorian.current_user().username
+        except Exception:
+            authed_user = None
+        return jsonify(message='success', user=authed_user)
+
+    @app.route('/protected')
     @flask_praetorian.auth_required
     def protected():
         return jsonify(message="success")
