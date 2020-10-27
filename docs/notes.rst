@@ -21,6 +21,14 @@ perpetuity.
 Once a token's access lifespan and refresh lifespan are both expired, the user must
 log in again.
 
+Rate Limiting
+-------------
+
+There is not any sort of rate-limiting protection offered by flask-praetorian.
+Thus, if your app does not implment such a thing, it could be vulnerable to brute
+force attacks. It's advisable that you implement some sort of system for limiting
+incorrect username/password attempts.
+
 Error Handling
 --------------
 
