@@ -7,6 +7,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+v1.1.0 - 2020-12-07
+-------------------
+- Added 2-factor email token registration and password reset
+- Added function hooks at token encoding time
+- Migrated to github actions away from travis-ci
+- Added support for tokens in cookies
+- Added MongoDB example
+- Added auth_accepted decorator for optional auth support
+- Updated documentation
+
 v1.0.0 - 2019-07-23
 -------------------
 - Upgraded flask dependency to > 1.0
