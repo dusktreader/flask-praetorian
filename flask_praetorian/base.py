@@ -825,9 +825,9 @@ class Praetorian:
         )
 
         return self.send_token_email(
-            email, user, template, confirmation_sender,
-            confirmation_uri, subject, custom_token=custom_token,
-            sender=sender
+            email, user=user, template=template, action_sender=sender,
+            action_uri=confirmation_uri, subject=subject,
+            custom_token=custom_token,
         )
 
     def send_reset_email(
@@ -894,16 +894,15 @@ class Praetorian:
         )
 
         return self.send_token_email(
-            user.email, user, template, reset_sender,
-            reset_uri, subject, custom_token=custom_token,
-            sender=sender
+            user.email, user=user, template=template, action_sender=sender,
+            action_uri=reset_uri, subject=subject, custom_token=custom_token,
         )
 
     def send_token_email(
         self, email, user=None, template=None,
         action_sender=None, action_uri=None,
         subject=None, override_access_lifespan=None,
-        custom_token=None, sender='no-reply@praetorian'
+        custom_token=None,
     ):
         """
         Sends an email to a user, containing a time expiring
@@ -929,6 +928,8 @@ class Praetorian:
         :param: override_access_lifespan: Overrides the JWT_ACCESS_LIFESPAN
                                           to set an access lifespan for the
                                           registration token.
+        :param: custom_token:             The token to be carried as the
+                                          email's payload
         """
         notification = {
                 'result': None,
@@ -940,6 +941,11 @@ class Praetorian:
                 'confirmation_uri': action_uri,  # backwards compatibility
                 'action_uri': action_uri,
         }
+
+        PraetorianError.require_condition(
+            'mail' in flask.current_app.extensions,
+            "Your app must have a mail extension enabled to register by email",
+        )
 
         PraetorianError.require_condition(
             action_sender,
@@ -956,10 +962,6 @@ class Praetorian:
                 template = fh.read()
 
         with PraetorianError.handle_errors('fail sending email'):
-            flask.current_app.logger.debug(
-                "NOTIFICATION: {}".format(notification)
-            )
-
             jinja_tmpl = jinja2.Template(template)
             notification['message'] = jinja_tmpl.render(notification).strip()
 
@@ -984,7 +986,6 @@ class Praetorian:
         retrieved
         """
         data = self.extract_jwt_token(token, access_type=AccessType.register)
-        flask.current_app.logger.debug("DATA: {}".format(data))
         user_id = data.get('id')
         PraetorianError.require_condition(
             user_id is not None,
