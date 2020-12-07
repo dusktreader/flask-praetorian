@@ -826,7 +826,8 @@ class Praetorian:
 
         return self.send_token_email(
             email, user=user, template=template, action_sender=sender,
-            action_uri=confirmation_uri, subject=subject, custom_token=custom_token,
+            action_uri=confirmation_uri, subject=subject,
+            custom_token=custom_token,
         )
 
     def send_reset_email(
@@ -927,7 +928,8 @@ class Praetorian:
         :param: override_access_lifespan: Overrides the JWT_ACCESS_LIFESPAN
                                           to set an access lifespan for the
                                           registration token.
-        :param: custom_token:             The token to be carried as the email's payload
+        :param: custom_token:             The token to be carried as the
+                                          email's payload
         """
         notification = {
                 'result': None,
