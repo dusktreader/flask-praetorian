@@ -509,7 +509,7 @@ class Praetorian:
             self.encode_jwt_token_hook(**payload_parts)
         return jwt.encode(
             payload_parts, self.encode_key, self.encode_algorithm,
-        ).decode('utf-8')
+        )
 
     def encode_eternal_jwt_token(self, user, **custom_claims):
         """
@@ -577,7 +577,7 @@ class Praetorian:
             self.refresh_jwt_token_hook(**payload_parts)
         return jwt.encode(
             payload_parts, self.encode_key, self.encode_algorithm,
-        ).decode('utf-8')
+        )
 
     def extract_jwt_token(self, token, access_type=AccessType.access):
         """

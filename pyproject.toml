@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flask-praetorian"
-version = "1.1.0"
+version = "1.2.0"
 description = "Strong, Simple, and Precise security for Flask APIs (using jwt)"
 authors = ["Tucker Beck <tucker.beck@gmail.com>"]
 license = "MIT"
@@ -11,8 +11,8 @@ repository = "https://github.com/dusktreader/flask-praetorian"
 
 
 [tool.poetry.dependencies]
-python = "^3.5"
-pyjwt = "^1.7"
+python = "^3.6"
+pyjwt = "^2.0"
 pendulum = "^2.1"
 passlib = "^1.7"
 flask-buzz = "^0.1.7"
