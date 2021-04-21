@@ -16,7 +16,7 @@ jobs:
       with:
         python-version: 3.8.9
     - name: get-poetry
-      run: pip install poetry==1.1.16
+      run: pip install poetry==1.1.6
     - name: login
       run: poetry config http-basic.pypi dusktreader ${{ secrets.PYPI_PASSWORD }}
     - name: build
