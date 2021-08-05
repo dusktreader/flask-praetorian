@@ -721,21 +721,27 @@ class Praetorian:
         return self._unpack_cookie(flask.request.cookies)
 
     def read_token(self):
-        exc = None
-        if 'header' in self.jwt_places:
+        """
+        Tries to unpack the token from the current flask request in the locations configured with JWT_PLACES
+        Check-Order is defined by the value order in JWT_PLACES.
+        """
+        for place in self.jwt_places:
             try:
-                return self.read_token_from_header()
-            except MissingToken as e:
-                exc = e
-        if 'cookie' in self.jwt_places:
-            try:
-                return self.read_token_from_cookie()
-            except MissingToken as e:
-                exc = e
-        if exc:
-            raise MissingToken("JWT token not found in {}".format(
-                self.jwt_places))
+                token = getattr(self, "read_token_from_{place}".format(place=place.lower()))()
+                if token:
+                    return token
+            except MissingToken:
+                pass
+            except AttributeError:
+                flask.current_app.logger.warning("Flask_Praetorian hasn't implemented reading JWT tokens from location {place}. Please reconfigure JWT_PLACES.".format(place=place.lower()))
+                flask.current_app.logger.warning("Values accepted in JWT_PLACES are: {def_places}".format(def_places=DEFAULT_JWT_PLACES))
 
+        raise MissingToken("Could not find token in any of the given locations: {locations}".format(
+            locations=self.jwt_places,
+        ))  
+        
+        
+        
     def pack_header_for_user(
             self, user,
             override_access_lifespan=None, override_refresh_lifespan=None,
