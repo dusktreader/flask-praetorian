@@ -727,9 +727,7 @@ class Praetorian:
         """
         for place in self.jwt_places:
             try:
-                token = getattr(self, "read_token_from_{place}".format(place=place.lower()))()
-                if token:
-                    return token
+                return getattr(self, "read_token_from_{place}".format(place=place.lower()))()
             except MissingToken:
                 pass
             except AttributeError:
