@@ -17,6 +17,7 @@ from flask_praetorian.utilities import (
 
 from enum import Enum
 
+
 def _verify_and_add_jwt(optional=False):
     """
     This helper method just checks and adds jwt data to the app context.
@@ -86,7 +87,9 @@ def roles_required(*required_rolenames):
                 not current_guard().roles_disabled,
                 "This feature is not available because roles are disabled",
             )
-            role_set = set([str(n.value) if isinstance(n, Enum) else str(n) for n in required_rolenames])
+            role_set = set([str(n.value) if isinstance(n, Enum)
+                            else str(n)
+                            for n in required_rolenames])
             _verify_and_add_jwt()
             try:
                 MissingRoleError.require_condition(
@@ -117,7 +120,9 @@ def roles_accepted(*accepted_rolenames):
                 not current_guard().roles_disabled,
                 "This feature is not available because roles are disabled",
             )
-            role_set = set([str(n.value) if isinstance(n, Enum) else str(n) for n in accepted_rolenames])
+            role_set = set([str(n.value) if isinstance(n, Enum)
+                            else str(n)
+                            for n in accepted_rolenames])
             _verify_and_add_jwt()
             try:
                 MissingRoleError.require_condition(
