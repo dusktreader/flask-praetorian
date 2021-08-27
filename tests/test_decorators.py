@@ -3,7 +3,7 @@ import pytest
 import freezegun
 
 from flask_praetorian.exceptions import MissingRoleError
-
+from flask_praetorian.constants import DEFAULT_JWT_PLACES
 
 class TestPraetorianDecorators:
 
@@ -92,7 +92,7 @@ class TestPraetorianDecorators:
             headers={},
         )
         assert (
-            "JWT token not found"
+            "Could not find token in any of the given locations: {places}".format(places=DEFAULT_JWT_PLACES)
             in response.json['message']
         )
         assert response.status_code == 401
