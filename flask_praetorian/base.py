@@ -1,5 +1,6 @@
 import datetime
 import flask
+from flask import current_app
 import jinja2
 import jwt
 import pendulum
@@ -722,24 +723,27 @@ class Praetorian:
 
     def read_token(self):
         """
-        Tries to unpack the token from the current flask request in the locations configured with JWT_PLACES
+        Tries to unpack the token from the current flask request
+        in the locations configured by JWT_PLACES.
         Check-Order is defined by the value order in JWT_PLACES.
         """
         for place in self.jwt_places:
             try:
-                return getattr(self, "read_token_from_{place}".format(place=place.lower()))()
+                return getattr(self, "read_token_from_{place}"
+                                     .format(place=place.lower()))()
             except MissingToken:
                 pass
             except AttributeError:
-                flask.current_app.logger.warning("Flask_Praetorian hasn't implemented reading JWT tokens from location {place}. Please reconfigure JWT_PLACES.".format(place=place.lower()))
-                flask.current_app.logger.warning("Values accepted in JWT_PLACES are: {def_places}".format(def_places=DEFAULT_JWT_PLACES))
+                current_app.logger.warning("Flask_Praetorian hasn't implemented reading JWT tokens from location {place}. Please reconfigure JWT_PLACES."
+                                           .format(place=place.lower()))
+                current_app.logger.warning("Values accepted in JWT_PLACES are: {def_places}"
+                                           .format(
+                                               def_places=DEFAULT_JWT_PLACES
+                                               ))
 
-        raise MissingToken("Could not find token in any of the given locations: {locations}".format(
-            locations=self.jwt_places,
-        ))  
-        
-        
-        
+        raise MissingToken("Could not find token in any of the given locations: {locations}"
+                           .format(locations=self.jwt_places))
+
     def pack_header_for_user(
             self, user,
             override_access_lifespan=None, override_refresh_lifespan=None,
