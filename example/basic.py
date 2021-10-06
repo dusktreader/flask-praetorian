@@ -102,27 +102,27 @@ with app.app_context():
     db.session.add(
         User(
             username="TheDude",
-            password=guard.hash_password("abides"),
+            hashed_password=guard.hash_password("abides"),
         )
     )
     db.session.add(
         User(
             username="Walter",
-            password=guard.hash_password("calmerthanyouare"),
+            hashed_password=guard.hash_password("calmerthanyouare"),
             roles="admin",
         )
     )
     db.session.add(
         User(
             username="Donnie",
-            password=guard.hash_password("iamthewalrus"),
+            hashed_password=guard.hash_password("iamthewalrus"),
             roles="operator",
         )
     )
     db.session.add(
         User(
             username="Maude",
-            password=guard.hash_password("andthorough"),
+            hashed_password=guard.hash_password("andthorough"),
             roles="operator,admin",
         )
     )
