@@ -24,3 +24,6 @@ docs/build/*
 auto-save-list
 tramp
 .\#*
+
+### Visual Studio Code folder
+.vscode
