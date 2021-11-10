@@ -73,12 +73,12 @@ class Praetorian:
     """
 
     def __init__(
-            self,
-            app=None,
-            user_class=None,
-            is_blacklisted=None,
-            encode_jwt_token_hook=None,
-            refresh_jwt_token_hook=None,
+        self,
+        app=None,
+        user_class=None,
+        is_blacklisted=None,
+        encode_jwt_token_hook=None,
+        refresh_jwt_token_hook=None,
     ):
         self.pwd_ctx = None
         self.hash_scheme = None
@@ -94,12 +94,12 @@ class Praetorian:
             )
 
     def init_app(
-            self,
-            app=None,
-            user_class=None,
-            is_blacklisted=None,
-            encode_jwt_token_hook=None,
-            refresh_jwt_token_hook=None,
+        self,
+        app=None,
+        user_class=None,
+        is_blacklisted=None,
+        encode_jwt_token_hook=None,
+        refresh_jwt_token_hook=None,
     ):
         """
         Initializes the Praetorian extension
@@ -128,36 +128,36 @@ class Praetorian:
                                         the jwt.
         """
         PraetorianError.require_condition(
-            app.config.get('SECRET_KEY') is not None,
+            app.config.get("SECRET_KEY") is not None,
             "There must be a SECRET_KEY app config setting set",
         )
 
         self.roles_disabled = app.config.get(
-            'PRAETORIAN_ROLES_DISABLED',
+            "PRAETORIAN_ROLES_DISABLED",
             DEFAULT_ROLES_DISABLED,
         )
 
         self.hash_autoupdate = app.config.get(
-            'PRAETORIAN_HASH_AUTOUPDATE',
+            "PRAETORIAN_HASH_AUTOUPDATE",
             DEFAULT_HASH_AUTOUPDATE,
         )
 
         self.hash_autotest = app.config.get(
-            'PRAETORIAN_HASH_AUTOTEST',
+            "PRAETORIAN_HASH_AUTOTEST",
             DEFAULT_HASH_AUTOTEST,
         )
 
         self.pwd_ctx = CryptContext(
             schemes=app.config.get(
-                'PRAETORIAN_HASH_ALLOWED_SCHEMES',
+                "PRAETORIAN_HASH_ALLOWED_SCHEMES",
                 DEFAULT_HASH_ALLOWED_SCHEMES,
             ),
             default=app.config.get(
-                'PRAETORIAN_HASH_SCHEME',
+                "PRAETORIAN_HASH_SCHEME",
                 DEFAULT_HASH_SCHEME,
             ),
             deprecated=app.config.get(
-                'PRAETORIAN_HASH_DEPRECATED_SCHEMES',
+                "PRAETORIAN_HASH_DEPRECATED_SCHEMES",
                 DEFAULT_HASH_DEPRECATED_SCHEMES,
             ),
         )
@@ -166,7 +166,7 @@ class Praetorian:
         PraetorianError.require_condition(
             self.hash_scheme in valid_schemes or self.hash_scheme is None,
             "If {} is set, it must be one of the following schemes: {}".format(
-                'PRAETORIAN_HASH_SCHEME',
+                "PRAETORIAN_HASH_SCHEME",
                 valid_schemes,
             ),
         )
@@ -176,75 +176,75 @@ class Praetorian:
         self.encode_jwt_token_hook = encode_jwt_token_hook
         self.refresh_jwt_token_hook = refresh_jwt_token_hook
 
-        self.encode_key = app.config['SECRET_KEY']
+        self.encode_key = app.config["SECRET_KEY"]
         self.allowed_algorithms = app.config.get(
-            'JWT_ALLOWED_ALGORITHMS',
+            "JWT_ALLOWED_ALGORITHMS",
             DEFAULT_JWT_ALLOWED_ALGORITHMS,
         )
         self.encode_algorithm = app.config.get(
-            'JWT_ALGORITHM',
+            "JWT_ALGORITHM",
             DEFAULT_JWT_ALGORITHM,
         )
         self.access_lifespan = app.config.get(
-            'JWT_ACCESS_LIFESPAN',
+            "JWT_ACCESS_LIFESPAN",
             DEFAULT_JWT_ACCESS_LIFESPAN,
         )
         self.refresh_lifespan = app.config.get(
-            'JWT_REFRESH_LIFESPAN',
+            "JWT_REFRESH_LIFESPAN",
             DEFAULT_JWT_REFRESH_LIFESPAN,
         )
         self.reset_lifespan = app.config.get(
-            'JWT_RESET_LIFESPAN',
+            "JWT_RESET_LIFESPAN",
             DEFAULT_JWT_RESET_LIFESPAN,
         )
         self.jwt_places = app.config.get(
-            'JWT_PLACES',
+            "JWT_PLACES",
             DEFAULT_JWT_PLACES,
         )
         self.cookie_name = app.config.get(
-            'JWT_COOKIE_NAME',
+            "JWT_COOKIE_NAME",
             DEFAULT_JWT_COOKIE_NAME,
         )
         self.header_name = app.config.get(
-            'JWT_HEADER_NAME',
+            "JWT_HEADER_NAME",
             DEFAULT_JWT_HEADER_NAME,
         )
         self.header_type = app.config.get(
-            'JWT_HEADER_TYPE',
+            "JWT_HEADER_TYPE",
             DEFAULT_JWT_HEADER_TYPE,
         )
         self.user_class_validation_method = app.config.get(
-            'USER_CLASS_VALIDATION_METHOD',
+            "USER_CLASS_VALIDATION_METHOD",
             DEFAULT_USER_CLASS_VALIDATION_METHOD,
         )
 
         self.confirmation_template = app.config.get(
-            'PRAETORIAN_CONFIRMATION_TEMPLATE',
+            "PRAETORIAN_CONFIRMATION_TEMPLATE",
             DEFAULT_CONFIRMATION_TEMPLATE,
         )
         self.confirmation_uri = app.config.get(
-            'PRAETORIAN_CONFIRMATION_URI',
+            "PRAETORIAN_CONFIRMATION_URI",
         )
         self.confirmation_sender = app.config.get(
-            'PRAETORIAN_CONFIRMATION_SENDER',
+            "PRAETORIAN_CONFIRMATION_SENDER",
         )
         self.confirmation_subject = app.config.get(
-            'PRAETORIAN_CONFIRMATION_SUBJECT',
+            "PRAETORIAN_CONFIRMATION_SUBJECT",
             DEFAULT_CONFIRMATION_SUBJECT,
         )
 
         self.reset_template = app.config.get(
-            'PRAETORIAN_RESET_TEMPLATE',
+            "PRAETORIAN_RESET_TEMPLATE",
             DEFAULT_RESET_TEMPLATE,
         )
         self.reset_uri = app.config.get(
-            'PRAETORIAN_RESET_URI',
+            "PRAETORIAN_RESET_URI",
         )
         self.reset_sender = app.config.get(
-            'PRAETORIAN_RESET_SENDER',
+            "PRAETORIAN_RESET_SENDER",
         )
         self.reset_subject = app.config.get(
-            'PRAETORIAN_RESET_SUBJECT',
+            "PRAETORIAN_RESET_SUBJECT",
             DEFAULT_RESET_SUBJECT,
         )
 
@@ -266,17 +266,17 @@ class Praetorian:
             "refresh lifespan was not configured",
         )
 
-        if not app.config.get('DISABLE_PRAETORIAN_ERROR_HANDLER'):
+        if not app.config.get("DISABLE_PRAETORIAN_ERROR_HANDLER"):
             app.register_error_handler(
                 PraetorianError,
                 PraetorianError.build_error_handler(),
             )
 
-        self.is_testing = app.config.get('TESTING', False)
+        self.is_testing = app.config.get("TESTING", False)
 
-        if not hasattr(app, 'extensions'):
+        if not hasattr(app, "extensions"):
             app.extensions = {}
-        app.extensions['praetorian'] = self
+        app.extensions["praetorian"] = self
 
         return app
 
@@ -296,18 +296,22 @@ class Praetorian:
         - ``password`` attribute. Provides hashed password for instance
         """
         PraetorianError.require_condition(
-            getattr(user_class, 'lookup', None) is not None,
-            textwrap.dedent("""
+            getattr(user_class, "lookup", None) is not None,
+            textwrap.dedent(
+                """
                 The user_class must have a lookup class method:
                 user_class.lookup(<str>) -> <user instance>
-            """),
+                """
+            ),
         )
         PraetorianError.require_condition(
-            getattr(user_class, 'identify', None) is not None,
-            textwrap.dedent("""
+            getattr(user_class, "identify", None) is not None,
+            textwrap.dedent(
+                """
                 The user_class must have an identify class method:
                 user_class.identify(<identity>) -> <user instance>
-            """),
+                """
+            ),
         )
 
         dummy_user = None
@@ -321,24 +325,30 @@ class Praetorian:
         if dummy_user:
             PraetorianError.require_condition(
                 hasattr(dummy_user, "identity"),
-                textwrap.dedent("""
+                textwrap.dedent(
+                    """
                     Instances of user_class must have an identity attribute:
                     user_instance.identity -> <unique id for instance>
-                """),
+                    """
+                ),
             )
             PraetorianError.require_condition(
                 self.roles_disabled or hasattr(dummy_user, "rolenames"),
-                textwrap.dedent("""
+                textwrap.dedent(
+                    """
                     Instances of user_class must have a rolenames attribute:
                     user_instance.rolenames -> [<role1>, <role2>, ...]
-                """),
+                    """
+                ),
             )
             PraetorianError.require_condition(
                 hasattr(dummy_user, "password"),
-                textwrap.dedent("""
+                textwrap.dedent(
+                    """
                     Instances of user_class must have a password attribute:
                     user_instance.rolenames -> <hashed password>
-                """),
+                    """
+                ),
             )
 
         return user_class
@@ -354,11 +364,12 @@ class Praetorian:
         )
         user = self.user_class.lookup(username)
         AuthenticationError.require_condition(
-            user is not None and self._verify_password(
+            user is not None
+            and self._verify_password(
                 password,
                 user.password,
             ),
-            'The username and/or password are incorrect',
+            "The username and/or password are incorrect",
         )
 
         """
@@ -389,7 +400,7 @@ class Praetorian:
         )
         return self.pwd_ctx.verify(raw_password, hashed_password)
 
-    @deprecated('Use `hash_password` instead.')
+    @deprecated("Use `hash_password` instead.")
     def encrypt_password(self, raw_password):
         """
         *NOTE* This should be deprecated as its an incorrect definition for
@@ -421,7 +432,7 @@ class Praetorian:
         """
         MissingUserError.require_condition(
             user is not None,
-            'Could not find the requested user',
+            "Could not find the requested user",
         )
         user_validate_method = getattr(
             user, self.user_class_validation_method, None
@@ -434,11 +445,14 @@ class Praetorian:
         )
 
     def encode_jwt_token(
-            self, user,
-            override_access_lifespan=None, override_refresh_lifespan=None,
-            bypass_user_check=False, is_registration_token=False,
-            is_reset_token=False,
-            **custom_claims
+        self,
+        user,
+        override_access_lifespan=None,
+        override_refresh_lifespan=None,
+        bypass_user_check=False,
+        is_registration_token=False,
+        is_reset_token=False,
+        **custom_claims
     ):
         """
         Encodes user data into a jwt token that can be used for authorization
@@ -471,7 +485,7 @@ class Praetorian:
         if not bypass_user_check:
             self._check_user(user)
 
-        moment = pendulum.now('UTC')
+        moment = pendulum.now("UTC")
 
         if override_refresh_lifespan is None:
             refresh_lifespan = self.refresh_lifespan
@@ -489,11 +503,11 @@ class Praetorian:
         )
 
         payload_parts = {
-            'iat': moment.int_timestamp,
-            'exp': access_expiration,
-            'jti': str(uuid.uuid4()),
-            'id': user.identity,
-            'rls': ','.join(user.rolenames),
+            "iat": moment.int_timestamp,
+            "exp": access_expiration,
+            "jti": str(uuid.uuid4()),
+            "id": user.identity,
+            "rls": ",".join(user.rolenames),
             REFRESH_EXPIRATION_CLAIM: refresh_expiration,
         }
         if is_registration_token:
@@ -508,7 +522,9 @@ class Praetorian:
         if self.encode_jwt_token_hook:
             self.encode_jwt_token_hook(**payload_parts)
         return jwt.encode(
-            payload_parts, self.encode_key, self.encode_algorithm,
+            payload_parts,
+            self.encode_key,
+            self.encode_algorithm,
         )
 
     def encode_eternal_jwt_token(self, user, **custom_claims):
@@ -544,10 +560,10 @@ class Praetorian:
                                            accessability will expire. May not
                                            exceed the refresh lifespan
         """
-        moment = pendulum.now('UTC')
+        moment = pendulum.now("UTC")
         data = self.extract_jwt_token(token, access_type=AccessType.refresh)
 
-        user = self.user_class.identify(data['id'])
+        user = self.user_class.identify(data["id"])
         self._check_user(user)
 
         if override_access_lifespan is None:
@@ -564,11 +580,11 @@ class Praetorian:
             k: v for (k, v) in data.items() if k not in RESERVED_CLAIMS
         }
         payload_parts = {
-            'iat': moment.int_timestamp,
-            'exp': access_expiration,
-            'jti': data['jti'],
-            'id': data['id'],
-            'rls': ','.join(user.rolenames),
+            "iat": moment.int_timestamp,
+            "exp": access_expiration,
+            "jti": data["jti"],
+            "id": data["id"],
+            "rls": ",".join(user.rolenames),
             REFRESH_EXPIRATION_CLAIM: refresh_expiration,
         }
         payload_parts.update(custom_claims)
@@ -576,7 +592,9 @@ class Praetorian:
         if self.refresh_jwt_token_hook:
             self.refresh_jwt_token_hook(**payload_parts)
         return jwt.encode(
-            payload_parts, self.encode_key, self.encode_algorithm,
+            payload_parts,
+            self.encode_key,
+            self.encode_algorithm,
         )
 
     def extract_jwt_token(self, token, access_type=AccessType.access):
@@ -584,12 +602,12 @@ class Praetorian:
         Extracts a data dictionary from a jwt token
         """
         # Note: we disable exp verification because we will do it ourselves
-        with InvalidTokenHeader.handle_errors('failed to decode JWT token'):
+        with InvalidTokenHeader.handle_errors("failed to decode JWT token"):
             data = jwt.decode(
                 token,
                 self.encode_key,
                 algorithms=self.allowed_algorithms,
-                options={'verify_exp': False},
+                options={"verify_exp": False},
             )
         self._validate_jwt_data(data, access_type=access_type)
         return data
@@ -599,81 +617,81 @@ class Praetorian:
         Validates that the data for a jwt token is valid
         """
         MissingClaimError.require_condition(
-            'jti' in data,
-            'Token is missing jti claim',
+            "jti" in data,
+            "Token is missing jti claim",
         )
         BlacklistedError.require_condition(
-            not self.is_blacklisted(data['jti']),
-            'Token has a blacklisted jti',
+            not self.is_blacklisted(data["jti"]),
+            "Token has a blacklisted jti",
         )
         MissingClaimError.require_condition(
-            'id' in data,
-            'Token is missing id field',
+            "id" in data,
+            "Token is missing id field",
         )
         MissingClaimError.require_condition(
-            'exp' in data,
-            'Token is missing exp claim',
+            "exp" in data,
+            "Token is missing exp claim",
         )
         MissingClaimError.require_condition(
             REFRESH_EXPIRATION_CLAIM in data,
-            'Token is missing {} claim'.format(REFRESH_EXPIRATION_CLAIM),
+            "Token is missing {} claim".format(REFRESH_EXPIRATION_CLAIM),
         )
-        moment = pendulum.now('UTC').int_timestamp
+        moment = pendulum.now("UTC").int_timestamp
         if access_type == AccessType.access:
             MisusedRegistrationToken.require_condition(
                 IS_REGISTRATION_TOKEN_CLAIM not in data,
-                "registration token used for access"
+                "registration token used for access",
             )
             MisusedResetToken.require_condition(
                 IS_RESET_TOKEN_CLAIM not in data,
-                "password reset token used for access"
+                "password reset token used for access",
             )
             ExpiredAccessError.require_condition(
-                moment <= data['exp'],
-                'access permission has expired',
+                moment <= data["exp"],
+                "access permission has expired",
             )
         elif access_type == AccessType.refresh:
             MisusedRegistrationToken.require_condition(
                 IS_REGISTRATION_TOKEN_CLAIM not in data,
-                "registration token used for refresh"
+                "registration token used for refresh",
             )
             MisusedResetToken.require_condition(
                 IS_RESET_TOKEN_CLAIM not in data,
-                "password reset token used for refresh"
+                "password reset token used for refresh",
             )
             EarlyRefreshError.require_condition(
-                moment > data['exp'],
-                'access permission for token has not expired. may not refresh',
+                moment > data["exp"],
+                "access permission for token has not expired. may not refresh",
             )
             ExpiredRefreshError.require_condition(
                 moment <= data[REFRESH_EXPIRATION_CLAIM],
-                'refresh permission for token has expired',
+                "refresh permission for token has expired",
             )
         elif access_type == AccessType.register:
             ExpiredAccessError.require_condition(
-                moment <= data['exp'],
-                'register permission has expired',
+                moment <= data["exp"],
+                "register permission has expired",
             )
             InvalidRegistrationToken.require_condition(
                 IS_REGISTRATION_TOKEN_CLAIM in data,
-                "invalid registration token used for verification"
+                "invalid registration token used for verification",
             )
             MisusedResetToken.require_condition(
                 IS_RESET_TOKEN_CLAIM not in data,
-                "password reset token used for registration"
+                "password reset token used for registration",
             )
         elif access_type == AccessType.reset:
             MisusedRegistrationToken.require_condition(
                 IS_REGISTRATION_TOKEN_CLAIM not in data,
-                "registration token used for reset"
+                "registration token used for reset",
             )
             ExpiredAccessError.require_condition(
-                moment <= data['exp'],
-                'reset permission has expired',
+                moment <= data["exp"],
+                "reset permission has expired",
             )
             InvalidResetToken.require_condition(
                 IS_RESET_TOKEN_CLAIM in data,
-                "invalid reset token used for verification"
+                "invalid reset token used for verification",
             )
 
     def _unpack_header(self, headers):
@@ -688,7 +706,7 @@ class Praetorian:
             ),
         )
 
-        match = re.match(self.header_type + r'\s*([\w\.-]+)', jwt_header)
+        match = re.match(self.header_type + r"\s*([\w\.-]+)", jwt_header)
         InvalidTokenHeader.require_condition(
             match is not None,
             "JWT header structure is invalid",
@@ -710,7 +728,8 @@ class Praetorian:
         MissingToken.require_condition(
             jwt_cookie is not None,
             "JWT token not found in cookie under '{}'".format(
-                self.cookie_name),
+                self.cookie_name
+            ),
         )
         return jwt_cookie
 
@@ -721,25 +740,50 @@ class Praetorian:
         return self._unpack_cookie(flask.request.cookies)
 
     def read_token(self):
-        exc = None
-        if 'header' in self.jwt_places:
+        """
+        Tries to unpack the token from the current flask request
+        in the locations configured by JWT_PLACES.
+        Check-Order is defined by the value order in JWT_PLACES.
+        """
+
+        for place in self.jwt_places:
             try:
-                return self.read_token_from_header()
-            except MissingToken as e:
-                exc = e
-        if 'cookie' in self.jwt_places:
-            try:
-                return self.read_token_from_cookie()
-            except MissingToken as e:
-                exc = e
-        if exc:
-            raise MissingToken("JWT token not found in {}".format(
-                self.jwt_places))
+                return getattr(
+                    self,
+                    "read_token_from_{place}".format(
+                        place=place.lower(),
+                    ),
+                )()
+            except MissingToken:
+                pass
+            except AttributeError:
+                flask.current_app.logger.warning(
+                    textwrap.dedent(
+                        f"""
+                        Flask_Praetorian hasn't implemented reading JWT tokens
+                        from location {place.lower()}.
+                        Please reconfigure JWT_PLACES.
+                        Values accepted in JWT_PLACES are:
+                        {DEFAULT_JWT_PLACES}
+                        """
+                    )
+                )
+
+        raise MissingToken(
+            textwrap.dedent(
+                f"""
+                Could not find token in any
+                 of the given locations: {self.jwt_places}
+                """
+            ).replace("\n", "")
+        )
 
     def pack_header_for_user(
-            self, user,
-            override_access_lifespan=None, override_refresh_lifespan=None,
-            **custom_claims
+        self,
+        user,
+        override_access_lifespan=None,
+        override_refresh_lifespan=None,
+        **custom_claims
     ):
         """
         Encodes a jwt token and packages it into a header dict for a given user
@@ -765,12 +809,17 @@ class Praetorian:
             override_refresh_lifespan=override_refresh_lifespan,
             **custom_claims
         )
-        return {self.header_name: self.header_type + ' ' + token}
+        return {self.header_name: self.header_type + " " + token}
 
     def send_registration_email(
-        self, email, user=None, template=None,
-        confirmation_sender=None, confirmation_uri=None,
-        subject=None, override_access_lifespan=None
+        self,
+        email,
+        user=None,
+        template=None,
+        confirmation_sender=None,
+        confirmation_uri=None,
+        subject=None,
+        override_access_lifespan=None,
     ):
         """
         Sends a registration email to a new user, containing a time expiring
@@ -821,19 +870,28 @@ class Praetorian:
         custom_token = self.encode_jwt_token(
             user,
             override_access_lifespan=override_access_lifespan,
-            bypass_user_check=True, is_registration_token=True,
+            bypass_user_check=True,
+            is_registration_token=True,
         )
 
         return self.send_token_email(
-            email, user=user, template=template, action_sender=sender,
-            action_uri=confirmation_uri, subject=subject,
+            email,
+            user=user,
+            template=template,
+            action_sender=sender,
+            action_uri=confirmation_uri,
+            subject=subject,
             custom_token=custom_token,
         )
 
     def send_reset_email(
-        self, email, template=None,
-        reset_sender=None, reset_uri=None,
-        subject=None, override_access_lifespan=None
+        self,
+        email,
+        template=None,
+        reset_sender=None,
+        reset_uri=None,
+        subject=None,
+        override_access_lifespan=None,
     ):
         """
         Sends a password reset email to a user, containing a time expiring
@@ -879,7 +937,7 @@ class Praetorian:
         user = self.user_class.lookup(email)
         MissingUserError.require_condition(
             user is not None,
-            'Could not find the requested user',
+            "Could not find the requested user",
         )
 
         flask.current_app.logger.debug(
@@ -890,18 +948,29 @@ class Praetorian:
         custom_token = self.encode_jwt_token(
             user,
             override_access_lifespan=override_access_lifespan,
-            bypass_user_check=False, is_reset_token=True,
+            bypass_user_check=False,
+            is_reset_token=True,
         )
 
         return self.send_token_email(
-            user.email, user=user, template=template, action_sender=sender,
-            action_uri=reset_uri, subject=subject, custom_token=custom_token,
+            user.email,
+            user=user,
+            template=template,
+            action_sender=sender,
+            action_uri=reset_uri,
+            subject=subject,
+            custom_token=custom_token,
         )
 
     def send_token_email(
-        self, email, user=None, template=None,
-        action_sender=None, action_uri=None,
-        subject=None, override_access_lifespan=None,
+        self,
+        email,
+        user=None,
+        template=None,
+        action_sender=None,
+        action_uri=None,
+        subject=None,
+        override_access_lifespan=None,
         custom_token=None,
     ):
         """
@@ -932,18 +1001,18 @@ class Praetorian:
                                           email's payload
         """
         notification = {
-                'result': None,
-                'message': None,
-                'user': str(user),
-                'email': email,
-                'token': custom_token,
-                'subject': subject,
-                'confirmation_uri': action_uri,  # backwards compatibility
-                'action_uri': action_uri,
+            "result": None,
+            "message": None,
+            "user": str(user),
+            "email": email,
+            "token": custom_token,
+            "subject": subject,
+            "confirmation_uri": action_uri,  # backwards compatibility
+            "action_uri": action_uri,
         }
 
         PraetorianError.require_condition(
-            'mail' in flask.current_app.extensions,
+            "mail" in flask.current_app.extensions,
             "Your app must have a mail extension enabled to register by email",
         )
 
@@ -961,19 +1030,19 @@ class Praetorian:
             with open(self.confirmation_template) as fh:
                 template = fh.read()
 
-        with PraetorianError.handle_errors('fail sending email'):
+        with PraetorianError.handle_errors("fail sending email"):
             jinja_tmpl = jinja2.Template(template)
-            notification['message'] = jinja_tmpl.render(notification).strip()
+            notification["message"] = jinja_tmpl.render(notification).strip()
 
             msg = Message(
-                    html=notification['message'],
-                    sender=action_sender,
-                    subject=notification['subject'],
-                    recipients=[notification['email']]
+                html=notification["message"],
+                sender=action_sender,
+                subject=notification["subject"],
+                recipients=[notification["email"]],
             )
 
             flask.current_app.logger.debug("Sending email to {}".format(email))
-            notification['result'] = flask.current_app.extensions['mail'].send(
+            notification["result"] = flask.current_app.extensions["mail"].send(
                 msg
             )
 
@@ -986,7 +1055,7 @@ class Praetorian:
         retrieved
         """
         data = self.extract_jwt_token(token, access_type=AccessType.register)
-        user_id = data.get('id')
+        user_id = data.get("id")
         PraetorianError.require_condition(
             user_id is not None,
             "Could not fetch an id from the registration token",
@@ -1005,7 +1074,7 @@ class Praetorian:
         and that the user can be properly retrieved
         """
         data = self.extract_jwt_token(token, access_type=AccessType.reset)
-        user_id = data.get('id')
+        user_id = data.get("id")
         PraetorianError.require_condition(
             user_id is not None,
             "Could not fetch an id from the reset token",
