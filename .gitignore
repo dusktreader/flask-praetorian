@@ -12,6 +12,7 @@ docs/build/*
 .cache/*
 .flake8
 .pytest_cache/*
+.vscode
 
 ### Emacs template
 # -*- mode: gitignore; -*-
