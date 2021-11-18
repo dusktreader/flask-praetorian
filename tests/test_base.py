@@ -23,7 +23,6 @@ from flask_praetorian.constants import (
     AccessType,
     DEFAULT_JWT_ACCESS_LIFESPAN,
     DEFAULT_JWT_REFRESH_LIFESPAN,
-    DEFAULT_JWT_COOKIE_NAME,
     DEFAULT_JWT_HEADER_NAME,
     DEFAULT_JWT_HEADER_TYPE,
     IS_REGISTRATION_TOKEN_CLAIM,
@@ -34,7 +33,6 @@ from flask_praetorian.constants import (
 
 
 class TestPraetorian:
-
     def test_hash_password(self, app, user_class, default_guard):
         """
         This test verifies that Praetorian hashes passwords using the scheme
@@ -42,23 +40,23 @@ class TestPraetorian:
         test verifies that the default scheme is used. Otherwise, the test
         verifies that the hashed password matches the supplied scheme.
         """
-        secret = default_guard.hash_password('some password')
-        assert default_guard.pwd_ctx.identify(secret) == 'pbkdf2_sha512'
+        secret = default_guard.hash_password("some password")
+        assert default_guard.pwd_ctx.identify(secret) == "pbkdf2_sha512"
 
     def test__verify_password(self, app, user_class, default_guard):
         """
         This test verifies that the _verify_password function can be used to
         successfully compare a raw password against its hashed version
         """
-        secret = default_guard.hash_password('some password')
-        assert default_guard._verify_password('some password', secret)
-        assert not default_guard._verify_password('not right', secret)
+        secret = default_guard.hash_password("some password")
+        assert default_guard._verify_password("some password", secret)
+        assert not default_guard._verify_password("not right", secret)
 
-        app.config['PRAETORIAN_HASH_SCHEME'] = 'pbkdf2_sha512'
+        app.config["PRAETORIAN_HASH_SCHEME"] = "pbkdf2_sha512"
         specified_guard = Praetorian(app, user_class)
-        secret = specified_guard.hash_password('some password')
-        assert specified_guard._verify_password('some password', secret)
-        assert not specified_guard._verify_password('not right', secret)
+        secret = specified_guard.hash_password("some password")
+        assert specified_guard._verify_password("some password", secret)
+        assert not specified_guard._verify_password("not right", secret)
 
     def test_authenticate(self, app, user_class, db, default_guard):
         """
@@ -68,52 +66,63 @@ class TestPraetorian:
         when a valid user/password combination are not supplied.
         """
         the_dude = user_class(
-            username='TheDude',
-            password=default_guard.hash_password('abides'),
+            username="TheDude",
+            password=default_guard.hash_password("abides"),
         )
         db.session.add(the_dude)
         db.session.commit()
-        assert default_guard.authenticate('TheDude', 'abides') == the_dude
+        assert default_guard.authenticate("TheDude", "abides") == the_dude
         with pytest.raises(AuthenticationError):
-            default_guard.authenticate('TheBro', 'abides')
+            default_guard.authenticate("TheBro", "abides")
         with pytest.raises(AuthenticationError):
-            default_guard.authenticate('TheDude', 'is_undudelike')
+            default_guard.authenticate("TheDude", "is_undudelike")
         db.session.delete(the_dude)
         db.session.commit()
 
     def test__validate_user_class__success_with_valid_user_class(
-            self, app, user_class, default_guard,
+        self,
+        app,
+        user_class,
+        default_guard,
     ):
         assert default_guard._validate_user_class(user_class)
 
     def test__validate_user_class__fails_if_class_has_no_lookup_classmethod(
-            self, app, default_guard,
+        self,
+        app,
+        default_guard,
     ):
         class NoLookupUser:
             @classmethod
             def identify(cls, id):
                 pass
+
         with pytest.raises(PraetorianError) as err_info:
             default_guard._validate_user_class(NoLookupUser)
         assert "must have a lookup class method" in err_info.value.message
 
     def test__validate_user_class__fails_if_class_has_no_identify_classmethod(
-            self, app, default_guard,
+        self,
+        app,
+        default_guard,
     ):
         class NoIdentifyUser:
             @classmethod
             def lookup(cls, username):
                 pass
+
         with pytest.raises(PraetorianError) as err_info:
             default_guard._validate_user_class(NoIdentifyUser)
         assert "must have an identify class method" in err_info.value.message
 
     def test__validate_user_class__fails_if_class_has_no_identity_attribute(
-            self, app, default_guard,
+        self,
+        app,
+        default_guard,
     ):
         class NoIdentityUser:
             rolenames = []
-            password = ''
+            password = ""
 
             @classmethod
             def identify(cls, id):
@@ -122,16 +131,19 @@ class TestPraetorian:
             @classmethod
             def lookup(cls, username):
                 pass
+
         with pytest.raises(PraetorianError) as err_info:
             default_guard._validate_user_class(NoIdentityUser)
         assert "must have an identity attribute" in err_info.value.message
 
     def test__validate_user_class__fails_if_class_has_no_rolenames_attribute(
-            self, app, default_guard,
+        self,
+        app,
+        default_guard,
     ):
         class NoRolenamesUser:
             identity = 0
-            password = ''
+            password = ""
 
             @classmethod
             def identify(cls, id):
@@ -140,16 +152,19 @@ class TestPraetorian:
             @classmethod
             def lookup(cls, username):
                 pass
+
         with pytest.raises(PraetorianError) as err_info:
             default_guard._validate_user_class(NoRolenamesUser)
         assert "must have a rolenames attribute" in err_info.value.message
 
     def test__validate_user_class__skips_rolenames_check_if_roles_are_disabled(
-            self, app, user_class,
+        self,
+        app,
+        user_class,
     ):
         class NoRolenamesUser:
             identity = 0
-            password = ''
+            password = ""
 
             @classmethod
             def identify(cls, id):
@@ -159,12 +174,14 @@ class TestPraetorian:
             def lookup(cls, username):
                 pass
 
-        app.config['PRAETORIAN_ROLES_DISABLED'] = True
+        app.config["PRAETORIAN_ROLES_DISABLED"] = True
         guard = Praetorian(app, user_class)
         assert guard._validate_user_class(NoRolenamesUser)
 
     def test__validate_user_class__fails_if_class_has_no_password_attribute(
-            self, app, default_guard,
+        self,
+        app,
+        default_guard,
     ):
         class NoPasswordUser:
             identity = 0
@@ -177,12 +194,15 @@ class TestPraetorian:
             @classmethod
             def lookup(cls, username):
                 pass
+
         with pytest.raises(PraetorianError) as err_info:
             default_guard._validate_user_class(NoPasswordUser)
         assert "must have a password attribute" in err_info.value.message
 
     def test__validate_user_class__skips_inst_check_if_constructor_req_params(
-            self, app, default_guard,
+        self,
+        app,
+        default_guard,
     ):
         class EmptyInitBlowsUpUser:
             def __init__(self, *args):
@@ -195,209 +215,238 @@ class TestPraetorian:
             @classmethod
             def lookup(cls, username):
                 pass
+
         assert default_guard._validate_user_class(EmptyInitBlowsUpUser)
 
     def test__validate_jwt_data__fails_when_missing_jti(
-            self, app, user_class,
+        self,
+        app,
+        user_class,
     ):
         guard = Praetorian(app, user_class)
         data = dict()
         with pytest.raises(MissingClaimError) as err_info:
             guard._validate_jwt_data(data, AccessType.access)
-        assert 'missing jti' in str(err_info.value)
+        assert "missing jti" in str(err_info.value)
 
     def test__validate_jwt_data__fails_when_jit_is_blacklisted(
-            self, app, user_class,
+        self,
+        app,
+        user_class,
     ):
         guard = Praetorian(app, user_class, is_blacklisted=(lambda jti: True))
-        data = dict(jti='jti')
+        data = dict(jti="jti")
         with pytest.raises(BlacklistedError):
             guard._validate_jwt_data(data, AccessType.access)
 
     def test__validate_jwt_data__fails_when_id_is_missing(
-            self, app, user_class,
+        self,
+        app,
+        user_class,
     ):
         guard = Praetorian(app, user_class)
-        data = dict(jti='jti')
+        data = dict(jti="jti")
         with pytest.raises(MissingClaimError) as err_info:
             guard._validate_jwt_data(data, AccessType.access)
-        assert 'missing id' in str(err_info.value)
+        assert "missing id" in str(err_info.value)
 
     def test__validate_jwt_data__fails_when_exp_is_missing(
-            self, app, user_class,
+        self,
+        app,
+        user_class,
     ):
         guard = Praetorian(app, user_class)
-        data = dict(jti='jti', id=1)
+        data = dict(jti="jti", id=1)
         with pytest.raises(MissingClaimError) as err_info:
             guard._validate_jwt_data(data, AccessType.access)
-        assert 'missing exp' in str(err_info.value)
+        assert "missing exp" in str(err_info.value)
 
     def test__validate_jwt_data__fails_when_refresh_is_missing(
-            self, app, user_class,
+        self,
+        app,
+        user_class,
     ):
         guard = Praetorian(app, user_class)
         data = {
-            'jti': 'jti',
-            'id': 1,
-            'exp': pendulum.parse('2017-05-21 19:54:30').int_timestamp,
+            "jti": "jti",
+            "id": 1,
+            "exp": pendulum.parse("2017-05-21 19:54:30").int_timestamp,
         }
         with pytest.raises(MissingClaimError) as err_info:
             guard._validate_jwt_data(data, AccessType.access)
-        assert 'missing {}'.format(
-            REFRESH_EXPIRATION_CLAIM
-        ) in str(err_info.value)
+        assert "missing {}".format(REFRESH_EXPIRATION_CLAIM) in str(
+            err_info.value
+        )
 
     def test__validate_jwt_data__fails_when_access_has_expired(
-            self, app, user_class,
+        self,
+        app,
+        user_class,
     ):
         guard = Praetorian(app, user_class)
         data = {
-            'jti': 'jti',
-            'id': 1,
-            'exp': pendulum.parse('2017-05-21 19:54:30').int_timestamp,
+            "jti": "jti",
+            "id": 1,
+            "exp": pendulum.parse("2017-05-21 19:54:30").int_timestamp,
             REFRESH_EXPIRATION_CLAIM: pendulum.parse(
-                '2017-05-21 20:54:30'
+                "2017-05-21 20:54:30"
             ).int_timestamp,
         }
-        moment = pendulum.parse('2017-05-21 19:54:32')
+        moment = pendulum.parse("2017-05-21 19:54:32")
         with freezegun.freeze_time(moment):
             with pytest.raises(ExpiredAccessError):
                 guard._validate_jwt_data(data, AccessType.access)
 
     def test__validate_jwt_data__fails_on_early_refresh(
-            self, app, user_class,
+        self,
+        app,
+        user_class,
     ):
         guard = Praetorian(app, user_class)
         data = {
-            'jti': 'jti',
-            'id': 1,
-            'exp': pendulum.parse('2017-05-21 19:54:30').int_timestamp,
+            "jti": "jti",
+            "id": 1,
+            "exp": pendulum.parse("2017-05-21 19:54:30").int_timestamp,
             REFRESH_EXPIRATION_CLAIM: pendulum.parse(
-                '2017-05-21 20:54:30'
+                "2017-05-21 20:54:30"
             ).int_timestamp,
         }
-        moment = pendulum.parse('2017-05-21 19:54:28')
+        moment = pendulum.parse("2017-05-21 19:54:28")
         with freezegun.freeze_time(moment):
             with pytest.raises(EarlyRefreshError):
                 guard._validate_jwt_data(data, AccessType.refresh)
 
     def test__validate_jwt_data__fails_when_refresh_has_expired(
-            self, app, user_class,
+        self,
+        app,
+        user_class,
     ):
         guard = Praetorian(app, user_class)
         data = {
-            'jti': 'jti',
-            'id': 1,
-            'exp': pendulum.parse('2017-05-21 19:54:30').int_timestamp,
+            "jti": "jti",
+            "id": 1,
+            "exp": pendulum.parse("2017-05-21 19:54:30").int_timestamp,
             REFRESH_EXPIRATION_CLAIM: pendulum.parse(
-                '2017-05-21 20:54:30'
+                "2017-05-21 20:54:30"
             ).int_timestamp,
         }
-        moment = pendulum.parse('2017-05-21 20:54:32')
+        moment = pendulum.parse("2017-05-21 20:54:32")
         with freezegun.freeze_time(moment):
             with pytest.raises(ExpiredRefreshError):
                 guard._validate_jwt_data(data, AccessType.refresh)
 
     def test__validate_jwt_data__fails_on_access_with_register_claim(
-            self, app, user_class,
+        self,
+        app,
+        user_class,
     ):
         guard = Praetorian(app, user_class)
         data = {
-            'jti': 'jti',
-            'id': 1,
-            'exp': pendulum.parse('2017-05-21 19:54:30').int_timestamp,
+            "jti": "jti",
+            "id": 1,
+            "exp": pendulum.parse("2017-05-21 19:54:30").int_timestamp,
             REFRESH_EXPIRATION_CLAIM: pendulum.parse(
-                '2017-05-21 20:54:30'
+                "2017-05-21 20:54:30"
             ).int_timestamp,
             IS_REGISTRATION_TOKEN_CLAIM: True,
         }
-        moment = pendulum.parse('2017-05-21 19:54:28')
+        moment = pendulum.parse("2017-05-21 19:54:28")
         with freezegun.freeze_time(moment):
             with pytest.raises(MisusedRegistrationToken):
                 guard._validate_jwt_data(data, AccessType.access)
 
     def test__validate_jwt_data__fails_on_refresh_with_register_claim(
-            self, app, user_class,
+        self,
+        app,
+        user_class,
     ):
         guard = Praetorian(app, user_class)
         data = {
-            'jti': 'jti',
-            'id': 1,
-            'exp': pendulum.parse('2017-05-21 19:54:30').int_timestamp,
+            "jti": "jti",
+            "id": 1,
+            "exp": pendulum.parse("2017-05-21 19:54:30").int_timestamp,
             REFRESH_EXPIRATION_CLAIM: pendulum.parse(
-                '2017-05-21 20:54:30'
+                "2017-05-21 20:54:30"
             ).int_timestamp,
             IS_REGISTRATION_TOKEN_CLAIM: True,
         }
-        moment = pendulum.parse('2017-05-21 19:54:32')
+        moment = pendulum.parse("2017-05-21 19:54:32")
         with freezegun.freeze_time(moment):
             with pytest.raises(MisusedRegistrationToken):
                 guard._validate_jwt_data(data, AccessType.refresh)
 
     def test__validate_jwt_data__fails_on_access_with_reset_claim(
-            self, app, user_class,
+        self,
+        app,
+        user_class,
     ):
         guard = Praetorian(app, user_class)
         data = {
-            'jti': 'jti',
-            'id': 1,
-            'exp': pendulum.parse('2017-05-21 19:54:30').int_timestamp,
+            "jti": "jti",
+            "id": 1,
+            "exp": pendulum.parse("2017-05-21 19:54:30").int_timestamp,
             REFRESH_EXPIRATION_CLAIM: pendulum.parse(
-                '2017-05-21 20:54:30'
+                "2017-05-21 20:54:30"
             ).int_timestamp,
             IS_RESET_TOKEN_CLAIM: True,
         }
-        moment = pendulum.parse('2017-05-21 19:54:28')
+        moment = pendulum.parse("2017-05-21 19:54:28")
         with freezegun.freeze_time(moment):
             with pytest.raises(MisusedResetToken):
                 guard._validate_jwt_data(data, AccessType.access)
 
     def test__validate_jwt_data__succeeds_with_valid_jwt(
-            self, app, user_class,
+        self,
+        app,
+        user_class,
     ):
         guard = Praetorian(app, user_class)
         data = {
-            'jti': 'jti',
-            'id': 1,
-            'exp': pendulum.parse('2017-05-21 19:54:30').int_timestamp,
+            "jti": "jti",
+            "id": 1,
+            "exp": pendulum.parse("2017-05-21 19:54:30").int_timestamp,
             REFRESH_EXPIRATION_CLAIM: pendulum.parse(
-                '2017-05-21 20:54:30'
+                "2017-05-21 20:54:30"
             ).int_timestamp,
         }
-        moment = pendulum.parse('2017-05-21 19:54:28')
+        moment = pendulum.parse("2017-05-21 19:54:28")
         with freezegun.freeze_time(moment):
             guard._validate_jwt_data(data, AccessType.access)
 
     def test__validate_jwt_data__succeeds_when_refreshing(
-            self, app, user_class,
+        self,
+        app,
+        user_class,
     ):
         guard = Praetorian(app, user_class)
         data = {
-            'jti': 'jti',
-            'id': 1,
-            'exp': pendulum.parse('2017-05-21 19:54:30').int_timestamp,
+            "jti": "jti",
+            "id": 1,
+            "exp": pendulum.parse("2017-05-21 19:54:30").int_timestamp,
             REFRESH_EXPIRATION_CLAIM: pendulum.parse(
-                '2017-05-21 20:54:30'
+                "2017-05-21 20:54:30"
             ).int_timestamp,
         }
-        moment = pendulum.parse('2017-05-21 19:54:32')
+        moment = pendulum.parse("2017-05-21 19:54:32")
         with freezegun.freeze_time(moment):
             guard._validate_jwt_data(data, AccessType.refresh)
 
     def test__validate_jwt_data__succeeds_when_registering(
-            self, app, user_class,
+        self,
+        app,
+        user_class,
     ):
         guard = Praetorian(app, user_class)
         data = {
-            'jti': 'jti',
-            'id': 1,
-            'exp': pendulum.parse('2017-05-21 19:54:30').int_timestamp,
+            "jti": "jti",
+            "id": 1,
+            "exp": pendulum.parse("2017-05-21 19:54:30").int_timestamp,
             REFRESH_EXPIRATION_CLAIM: pendulum.parse(
-                '2017-05-21 20:54:30'
+                "2017-05-21 20:54:30"
             ).int_timestamp,
             IS_REGISTRATION_TOKEN_CLAIM: True,
         }
-        moment = pendulum.parse('2017-05-21 19:54:28')
+        moment = pendulum.parse("2017-05-21 19:54:28")
         with freezegun.freeze_time(moment):
             guard._validate_jwt_data(data, AccessType.register)
 
@@ -419,27 +468,31 @@ class TestPraetorian:
         """
         guard = Praetorian(app, user_class)
         the_dude = user_class(
-            username='TheDude',
-            password=guard.hash_password('abides'),
-            roles='admin,operator',
+            username="TheDude",
+            password=guard.hash_password("abides"),
+            roles="admin,operator",
         )
-        moment = pendulum.parse('2017-05-21 18:39:55')
+        moment = pendulum.parse("2017-05-21 18:39:55")
         with freezegun.freeze_time(moment):
             token = guard.encode_jwt_token(the_dude)
             token_data = jwt.decode(
-                token, guard.encode_key, algorithms=guard.allowed_algorithms,
+                token,
+                guard.encode_key,
+                algorithms=guard.allowed_algorithms,
             )
-            assert token_data['iat'] == moment.int_timestamp
-            assert token_data['exp'] == (
-                moment + DEFAULT_JWT_ACCESS_LIFESPAN
-            ).int_timestamp
-            assert token_data[REFRESH_EXPIRATION_CLAIM] == (
-                moment + DEFAULT_JWT_REFRESH_LIFESPAN
-            ).int_timestamp
-            assert token_data['id'] == the_dude.id
-            assert token_data['rls'] == 'admin,operator'
+            assert token_data["iat"] == moment.int_timestamp
+            assert (
+                token_data["exp"]
+                == (moment + DEFAULT_JWT_ACCESS_LIFESPAN).int_timestamp
+            )
+            assert (
+                token_data[REFRESH_EXPIRATION_CLAIM]
+                == (moment + DEFAULT_JWT_REFRESH_LIFESPAN).int_timestamp
+            )
+            assert token_data["id"] == the_dude.id
+            assert token_data["rls"] == "admin,operator"
 
-        moment = pendulum.parse('2017-05-21 18:39:55')
+        moment = pendulum.parse("2017-05-21 18:39:55")
         override_access_lifespan = pendulum.Duration(minutes=1)
         override_refresh_lifespan = pendulum.Duration(hours=1)
         with freezegun.freeze_time(moment):
@@ -449,19 +502,23 @@ class TestPraetorian:
                 override_refresh_lifespan=override_refresh_lifespan,
             )
             token_data = jwt.decode(
-                token, guard.encode_key, algorithms=guard.allowed_algorithms,
+                token,
+                guard.encode_key,
+                algorithms=guard.allowed_algorithms,
             )
-            assert token_data['iat'] == moment.int_timestamp
-            assert token_data['exp'] == (
-                moment + override_access_lifespan
-            ).int_timestamp
-            assert token_data[REFRESH_EXPIRATION_CLAIM] == (
-                moment + override_refresh_lifespan
-            ).int_timestamp
-            assert token_data['id'] == the_dude.id
-            assert token_data['rls'] == 'admin,operator'
+            assert token_data["iat"] == moment.int_timestamp
+            assert (
+                token_data["exp"]
+                == (moment + override_access_lifespan).int_timestamp
+            )
+            assert (
+                token_data[REFRESH_EXPIRATION_CLAIM]
+                == (moment + override_refresh_lifespan).int_timestamp
+            )
+            assert token_data["id"] == the_dude.id
+            assert token_data["rls"] == "admin,operator"
 
-        moment = pendulum.parse('2017-05-21 18:39:55')
+        moment = pendulum.parse("2017-05-21 18:39:55")
         override_access_lifespan = pendulum.Duration(hours=1)
         override_refresh_lifespan = pendulum.Duration(minutes=1)
         with freezegun.freeze_time(moment):
@@ -471,19 +528,22 @@ class TestPraetorian:
                 override_refresh_lifespan=override_refresh_lifespan,
             )
             token_data = jwt.decode(
-                token, guard.encode_key, algorithms=guard.allowed_algorithms,
+                token,
+                guard.encode_key,
+                algorithms=guard.allowed_algorithms,
             )
-            assert token_data['iat'] == moment.int_timestamp
-            assert token_data['exp'] == token_data[REFRESH_EXPIRATION_CLAIM]
-            assert token_data[REFRESH_EXPIRATION_CLAIM] == (
-                moment + override_refresh_lifespan
-            ).int_timestamp
-            assert token_data['id'] == the_dude.id
-            assert token_data['rls'] == 'admin,operator'
+            assert token_data["iat"] == moment.int_timestamp
+            assert token_data["exp"] == token_data[REFRESH_EXPIRATION_CLAIM]
+            assert (
+                token_data[REFRESH_EXPIRATION_CLAIM]
+                == (moment + override_refresh_lifespan).int_timestamp
+            )
+            assert token_data["id"] == the_dude.id
+            assert token_data["rls"] == "admin,operator"
 
         validating_guard = Praetorian(app, validating_user_class)
         brandt = validating_user_class(
-            username='brandt',
+            username="brandt",
             password=guard.hash_password("can't watch"),
             is_active=True,
         )
@@ -491,34 +551,38 @@ class TestPraetorian:
         brandt.is_active = False
         with pytest.raises(InvalidUserError) as err_info:
             validating_guard.encode_jwt_token(brandt)
-        expected_message = 'The user is not valid or has had access revoked'
+        expected_message = "The user is not valid or has had access revoked"
         assert expected_message in str(err_info.value)
 
-        moment = pendulum.parse('2018-08-18 08:55:12')
+        moment = pendulum.parse("2018-08-18 08:55:12")
         with freezegun.freeze_time(moment):
             token = guard.encode_jwt_token(
                 the_dude,
-                duder='brief',
-                el_duderino='not brief',
+                duder="brief",
+                el_duderino="not brief",
             )
             token_data = jwt.decode(
-                token, guard.encode_key, algorithms=guard.allowed_algorithms,
+                token,
+                guard.encode_key,
+                algorithms=guard.allowed_algorithms,
             )
-            assert token_data['iat'] == moment.int_timestamp
-            assert token_data['exp'] == (
-                moment + DEFAULT_JWT_ACCESS_LIFESPAN
-            ).int_timestamp
-            assert token_data[REFRESH_EXPIRATION_CLAIM] == (
-                moment + DEFAULT_JWT_REFRESH_LIFESPAN
-            ).int_timestamp
-            assert token_data['id'] == the_dude.id
-            assert token_data['rls'] == 'admin,operator'
-            assert token_data['duder'] == 'brief'
-            assert token_data['el_duderino'] == 'not brief'
+            assert token_data["iat"] == moment.int_timestamp
+            assert (
+                token_data["exp"]
+                == (moment + DEFAULT_JWT_ACCESS_LIFESPAN).int_timestamp
+            )
+            assert (
+                token_data[REFRESH_EXPIRATION_CLAIM]
+                == (moment + DEFAULT_JWT_REFRESH_LIFESPAN).int_timestamp
+            )
+            assert token_data["id"] == the_dude.id
+            assert token_data["rls"] == "admin,operator"
+            assert token_data["duder"] == "brief"
+            assert token_data["el_duderino"] == "not brief"
 
         with pytest.raises(ClaimCollisionError) as err_info:
-            guard.encode_jwt_token(the_dude, exp='nice marmot')
-        expected_message = 'custom claims collide'
+            guard.encode_jwt_token(the_dude, exp="nice marmot")
+        expected_message = "custom claims collide"
         assert expected_message in str(err_info.value)
 
     def test_encode_eternal_jwt_token(self, app, user_class):
@@ -529,28 +593,32 @@ class TestPraetorian:
         """
         guard = Praetorian(app, user_class)
         the_dude = user_class(
-            username='TheDude',
-            password=guard.hash_password('abides'),
-            roles='admin,operator',
+            username="TheDude",
+            password=guard.hash_password("abides"),
+            roles="admin,operator",
         )
-        moment = pendulum.parse('2017-05-21 18:39:55')
+        moment = pendulum.parse("2017-05-21 18:39:55")
         with freezegun.freeze_time(moment):
             token = guard.encode_eternal_jwt_token(the_dude)
             token_data = jwt.decode(
-                token, guard.encode_key, algorithms=guard.allowed_algorithms,
+                token,
+                guard.encode_key,
+                algorithms=guard.allowed_algorithms,
             )
-            assert token_data['iat'] == moment.int_timestamp
-            assert token_data['exp'] == (
-                moment + VITAM_AETERNUM
-            ).int_timestamp
-            assert token_data[REFRESH_EXPIRATION_CLAIM] == (
-                moment + VITAM_AETERNUM
-            ).int_timestamp
-            assert token_data['id'] == the_dude.id
+            assert token_data["iat"] == moment.int_timestamp
+            assert token_data["exp"] == (moment + VITAM_AETERNUM).int_timestamp
+            assert (
+                token_data[REFRESH_EXPIRATION_CLAIM]
+                == (moment + VITAM_AETERNUM).int_timestamp
+            )
+            assert token_data["id"] == the_dude.id
 
     def test_refresh_jwt_token(
-            self, app, db,
-            user_class, validating_user_class,
+        self,
+        app,
+        db,
+        user_class,
+        validating_user_class,
     ):
         """
         This test::
@@ -574,44 +642,47 @@ class TestPraetorian:
         """
         guard = Praetorian(app, user_class)
         the_dude = user_class(
-            username='TheDude',
-            password=guard.hash_password('abides'),
-            roles='admin,operator',
+            username="TheDude",
+            password=guard.hash_password("abides"),
+            roles="admin,operator",
         )
         db.session.add(the_dude)
         db.session.commit()
 
-        moment = pendulum.parse('2017-05-21 18:39:55')
+        moment = pendulum.parse("2017-05-21 18:39:55")
         with freezegun.freeze_time(moment):
             token = guard.encode_jwt_token(the_dude)
         new_moment = (
-            pendulum.parse('2017-05-21 18:39:55') +
-            DEFAULT_JWT_ACCESS_LIFESPAN +
-            pendulum.Duration(minutes=1)
+            pendulum.parse("2017-05-21 18:39:55")
+            + DEFAULT_JWT_ACCESS_LIFESPAN
+            + pendulum.Duration(minutes=1)
         )
         with freezegun.freeze_time(new_moment):
             new_token = guard.refresh_jwt_token(token)
             new_token_data = jwt.decode(
-                new_token, guard.encode_key,
+                new_token,
+                guard.encode_key,
                 algorithms=guard.allowed_algorithms,
             )
-            assert new_token_data['iat'] == new_moment.int_timestamp
-            assert new_token_data['exp'] == (
-                new_moment + DEFAULT_JWT_ACCESS_LIFESPAN
-            ).int_timestamp
-            assert new_token_data[REFRESH_EXPIRATION_CLAIM] == (
-                moment + DEFAULT_JWT_REFRESH_LIFESPAN
-            ).int_timestamp
-            assert new_token_data['id'] == the_dude.id
-            assert new_token_data['rls'] == 'admin,operator'
+            assert new_token_data["iat"] == new_moment.int_timestamp
+            assert (
+                new_token_data["exp"]
+                == (new_moment + DEFAULT_JWT_ACCESS_LIFESPAN).int_timestamp
+            )
+            assert (
+                new_token_data[REFRESH_EXPIRATION_CLAIM]
+                == (moment + DEFAULT_JWT_REFRESH_LIFESPAN).int_timestamp
+            )
+            assert new_token_data["id"] == the_dude.id
+            assert new_token_data["rls"] == "admin,operator"
 
-        moment = pendulum.parse('2017-05-21 18:39:55')
+        moment = pendulum.parse("2017-05-21 18:39:55")
         with freezegun.freeze_time(moment):
             token = guard.encode_jwt_token(the_dude)
         new_moment = (
-            pendulum.parse('2017-05-21 18:39:55') +
-            DEFAULT_JWT_ACCESS_LIFESPAN +
-            pendulum.Duration(minutes=1)
+            pendulum.parse("2017-05-21 18:39:55")
+            + DEFAULT_JWT_ACCESS_LIFESPAN
+            + pendulum.Duration(minutes=1)
         )
         with freezegun.freeze_time(new_moment):
             new_token = guard.refresh_jwt_token(
@@ -619,14 +690,16 @@ class TestPraetorian:
                 override_access_lifespan=pendulum.Duration(hours=2),
             )
             new_token_data = jwt.decode(
-                new_token, guard.encode_key,
+                new_token,
+                guard.encode_key,
                 algorithms=guard.allowed_algorithms,
             )
-            assert new_token_data['exp'] == (
-                new_moment + pendulum.Duration(hours=2)
-            ).int_timestamp
+            assert (
+                new_token_data["exp"]
+                == (new_moment + pendulum.Duration(hours=2)).int_timestamp
+            )
 
-        moment = pendulum.parse('2017-05-21 18:39:55')
+        moment = pendulum.parse("2017-05-21 18:39:55")
         with freezegun.freeze_time(moment):
             token = guard.encode_jwt_token(
                 the_dude,
@@ -640,25 +713,27 @@ class TestPraetorian:
                 override_access_lifespan=pendulum.Duration(hours=2),
             )
             new_token_data = jwt.decode(
-                new_token, guard.encode_key,
+                new_token,
+                guard.encode_key,
                 algorithms=guard.allowed_algorithms,
             )
-            assert new_token_data['exp'] == new_token_data[
-                REFRESH_EXPIRATION_CLAIM
-            ]
+            assert (
+                new_token_data["exp"]
+                == new_token_data[REFRESH_EXPIRATION_CLAIM]
+            )
 
-        expiring_interval = (
-            DEFAULT_JWT_ACCESS_LIFESPAN + pendulum.Duration(minutes=1)
+        expiring_interval = DEFAULT_JWT_ACCESS_LIFESPAN + pendulum.Duration(
+            minutes=1
         )
         validating_guard = Praetorian(app, validating_user_class)
         brandt = validating_user_class(
-            username='brandt',
+            username="brandt",
             password=guard.hash_password("can't watch"),
             is_active=True,
         )
         db.session.add(brandt)
         db.session.commit()
-        moment = pendulum.parse('2017-05-21 18:39:55')
+        moment = pendulum.parse("2017-05-21 18:39:55")
         with freezegun.freeze_time(moment):
             token = guard.encode_jwt_token(brandt)
         new_moment = moment + expiring_interval
@@ -671,20 +746,20 @@ class TestPraetorian:
         with freezegun.freeze_time(new_moment):
             with pytest.raises(InvalidUserError) as err_info:
                 validating_guard.refresh_jwt_token(token)
-        expected_message = 'The user is not valid or has had access revoked'
+        expected_message = "The user is not valid or has had access revoked"
         assert expected_message in str(err_info.value)
 
-        expiring_interval = (
-            DEFAULT_JWT_ACCESS_LIFESPAN + pendulum.Duration(minutes=1)
+        expiring_interval = DEFAULT_JWT_ACCESS_LIFESPAN + pendulum.Duration(
+            minutes=1
         )
         guard = Praetorian(app, user_class)
         bunny = user_class(
-            username='bunny',
+            username="bunny",
             password=guard.hash_password("can't blow that far"),
         )
         db.session.add(bunny)
         db.session.commit()
-        moment = pendulum.parse('2017-05-21 18:39:55')
+        moment = pendulum.parse("2017-05-21 18:39:55")
         with freezegun.freeze_time(moment):
             token = guard.encode_jwt_token(bunny)
         db.session.delete(bunny)
@@ -693,38 +768,41 @@ class TestPraetorian:
         with freezegun.freeze_time(new_moment):
             with pytest.raises(MissingUserError) as err_info:
                 validating_guard.refresh_jwt_token(token)
-        expected_message = 'Could not find the requested user'
+        expected_message = "Could not find the requested user"
         assert expected_message in str(err_info.value)
 
-        moment = pendulum.parse('2018-08-14 09:05:24')
+        moment = pendulum.parse("2018-08-14 09:05:24")
         with freezegun.freeze_time(moment):
             token = guard.encode_jwt_token(
                 the_dude,
-                duder='brief',
-                el_duderino='not brief',
+                duder="brief",
+                el_duderino="not brief",
             )
         new_moment = (
-            pendulum.parse('2018-08-14 09:05:24') +
-            DEFAULT_JWT_ACCESS_LIFESPAN +
-            pendulum.Duration(minutes=1)
+            pendulum.parse("2018-08-14 09:05:24")
+            + DEFAULT_JWT_ACCESS_LIFESPAN
+            + pendulum.Duration(minutes=1)
         )
         with freezegun.freeze_time(new_moment):
             new_token = guard.refresh_jwt_token(token)
             new_token_data = jwt.decode(
-                new_token, guard.encode_key,
+                new_token,
+                guard.encode_key,
                 algorithms=guard.allowed_algorithms,
             )
-            assert new_token_data['iat'] == new_moment.int_timestamp
-            assert new_token_data['exp'] == (
-                new_moment + DEFAULT_JWT_ACCESS_LIFESPAN
-            ).int_timestamp
-            assert new_token_data[REFRESH_EXPIRATION_CLAIM] == (
-                moment + DEFAULT_JWT_REFRESH_LIFESPAN
-            ).int_timestamp
-            assert new_token_data['id'] == the_dude.id
-            assert new_token_data['rls'] == 'admin,operator'
-            assert new_token_data['duder'] == 'brief'
-            assert new_token_data['el_duderino'] == 'not brief'
+            assert new_token_data["iat"] == new_moment.int_timestamp
+            assert (
+                new_token_data["exp"]
+                == (new_moment + DEFAULT_JWT_ACCESS_LIFESPAN).int_timestamp
+            )
+            assert (
+                new_token_data[REFRESH_EXPIRATION_CLAIM]
+                == (moment + DEFAULT_JWT_REFRESH_LIFESPAN).int_timestamp
+            )
+            assert new_token_data["id"] == the_dude.id
+            assert new_token_data["rls"] == "admin,operator"
+            assert new_token_data["duder"] == "brief"
+            assert new_token_data["el_duderino"] == "not brief"
 
     def test_read_token_from_header(self, app, db, user_class, client):
         """
@@ -734,51 +812,54 @@ class TestPraetorian:
         """
         guard = Praetorian(app, user_class)
         the_dude = user_class(
-            username='TheDude',
-            password=guard.hash_password('abides'),
-            roles='admin,operator',
+            username="TheDude",
+            password=guard.hash_password("abides"),
+            roles="admin,operator",
         )
         db.session.add(the_dude)
         db.session.commit()
 
-        moment = pendulum.parse('2017-05-21 18:39:55')
+        moment = pendulum.parse("2017-05-21 18:39:55")
         with freezegun.freeze_time(moment):
             token = guard.encode_jwt_token(the_dude)
 
         client.get(
-            '/unprotected',
+            "/unprotected",
             headers={
-                'Content-Type': 'application/json',
-                DEFAULT_JWT_HEADER_NAME: DEFAULT_JWT_HEADER_TYPE + ' ' + token,
+                "Content-Type": "application/json",
+                DEFAULT_JWT_HEADER_NAME: DEFAULT_JWT_HEADER_TYPE + " " + token,
             },
         )
 
         assert guard.read_token_from_header() == token
+        assert guard.read_token() == token
 
-    def test_read_token_from_cookie(self, app, db, user_class, client):
+    def test_read_token_from_cookie(
+        self, app, db, user_class, client, use_cookie
+    ):
         """
         This test verifies that a token may be properly read from a flask
         request's cookies using the configuration settings for cookie
         """
         guard = Praetorian(app, user_class)
         the_dude = user_class(
-            username='TheDude',
-            password=guard.hash_password('abides'),
-            roles='admin,operator',
+            username="TheDude",
+            password=guard.hash_password("abides"),
+            roles="admin,operator",
         )
         db.session.add(the_dude)
         db.session.commit()
 
-        moment = pendulum.parse('2017-05-21 18:39:55')
+        moment = pendulum.parse("2017-05-21 18:39:55")
         with freezegun.freeze_time(moment):
             token = guard.encode_jwt_token(the_dude)
-
-        client.set_cookie('localhost', DEFAULT_JWT_COOKIE_NAME, token)
-        client.get(
-            '/unprotected',
-        )
+            with use_cookie(token):
+                client.get(
+                    "/unprotected",
+                )
 
         assert guard.read_token_from_cookie() == token
+        assert guard.read_token() == token
 
     def test_pack_header_for_user(self, app, user_class):
         """
@@ -789,32 +870,36 @@ class TestPraetorian:
         """
         guard = Praetorian(app, user_class)
         the_dude = user_class(
-            username='TheDude',
-            password=guard.hash_password('abides'),
-            roles='admin,operator',
+            username="TheDude",
+            password=guard.hash_password("abides"),
+            roles="admin,operator",
         )
 
-        moment = pendulum.parse('2017-05-21 18:39:55')
+        moment = pendulum.parse("2017-05-21 18:39:55")
         with freezegun.freeze_time(moment):
             header_dict = guard.pack_header_for_user(the_dude)
             token_header = header_dict.get(DEFAULT_JWT_HEADER_NAME)
             assert token_header is not None
-            token = token_header.replace(DEFAULT_JWT_HEADER_TYPE, '')
+            token = token_header.replace(DEFAULT_JWT_HEADER_TYPE, "")
             token = token.strip()
             token_data = jwt.decode(
-                token, guard.encode_key, algorithms=guard.allowed_algorithms,
+                token,
+                guard.encode_key,
+                algorithms=guard.allowed_algorithms,
             )
-            assert token_data['iat'] == moment.int_timestamp
-            assert token_data['exp'] == (
-                moment + DEFAULT_JWT_ACCESS_LIFESPAN
-            ).int_timestamp
-            assert token_data[REFRESH_EXPIRATION_CLAIM] == (
-                moment + DEFAULT_JWT_REFRESH_LIFESPAN
-            ).int_timestamp
-            assert token_data['id'] == the_dude.id
-            assert token_data['rls'] == 'admin,operator'
+            assert token_data["iat"] == moment.int_timestamp
+            assert (
+                token_data["exp"]
+                == (moment + DEFAULT_JWT_ACCESS_LIFESPAN).int_timestamp
+            )
+            assert (
+                token_data[REFRESH_EXPIRATION_CLAIM]
+                == (moment + DEFAULT_JWT_REFRESH_LIFESPAN).int_timestamp
+            )
+            assert token_data["id"] == the_dude.id
+            assert token_data["rls"] == "admin,operator"
 
-        moment = pendulum.parse('2017-05-21 18:39:55')
+        moment = pendulum.parse("2017-05-21 18:39:55")
         override_access_lifespan = pendulum.Duration(minutes=1)
         override_refresh_lifespan = pendulum.Duration(hours=1)
         with freezegun.freeze_time(moment):
@@ -825,44 +910,52 @@ class TestPraetorian:
             )
             token_header = header_dict.get(DEFAULT_JWT_HEADER_NAME)
             assert token_header is not None
-            token = token_header.replace(DEFAULT_JWT_HEADER_TYPE, '')
+            token = token_header.replace(DEFAULT_JWT_HEADER_TYPE, "")
             token = token.strip()
             token_data = jwt.decode(
-                token, guard.encode_key, algorithms=guard.allowed_algorithms,
+                token,
+                guard.encode_key,
+                algorithms=guard.allowed_algorithms,
             )
-            assert token_data['exp'] == (
-                moment + override_access_lifespan
-            ).int_timestamp
-            assert token_data[REFRESH_EXPIRATION_CLAIM] == (
-                moment + override_refresh_lifespan
-            ).int_timestamp
-            assert token_data['id'] == the_dude.id
+            assert (
+                token_data["exp"]
+                == (moment + override_access_lifespan).int_timestamp
+            )
+            assert (
+                token_data[REFRESH_EXPIRATION_CLAIM]
+                == (moment + override_refresh_lifespan).int_timestamp
+            )
+            assert token_data["id"] == the_dude.id
 
-        moment = pendulum.parse('2018-08-14 09:08:39')
+        moment = pendulum.parse("2018-08-14 09:08:39")
         with freezegun.freeze_time(moment):
             header_dict = guard.pack_header_for_user(
                 the_dude,
-                duder='brief',
-                el_duderino='not brief',
+                duder="brief",
+                el_duderino="not brief",
             )
             token_header = header_dict.get(DEFAULT_JWT_HEADER_NAME)
             assert token_header is not None
-            token = token_header.replace(DEFAULT_JWT_HEADER_TYPE, '')
+            token = token_header.replace(DEFAULT_JWT_HEADER_TYPE, "")
             token = token.strip()
             token_data = jwt.decode(
-                token, guard.encode_key, algorithms=guard.allowed_algorithms,
+                token,
+                guard.encode_key,
+                algorithms=guard.allowed_algorithms,
             )
-            assert token_data['iat'] == moment.int_timestamp
-            assert token_data['exp'] == (
-                moment + DEFAULT_JWT_ACCESS_LIFESPAN
-            ).int_timestamp
-            assert token_data[REFRESH_EXPIRATION_CLAIM] == (
-                moment + DEFAULT_JWT_REFRESH_LIFESPAN
-            ).int_timestamp
-            assert token_data['id'] == the_dude.id
-            assert token_data['rls'] == 'admin,operator'
-            assert token_data['duder'] == 'brief'
-            assert token_data['el_duderino'] == 'not brief'
+            assert token_data["iat"] == moment.int_timestamp
+            assert (
+                token_data["exp"]
+                == (moment + DEFAULT_JWT_ACCESS_LIFESPAN).int_timestamp
+            )
+            assert (
+                token_data[REFRESH_EXPIRATION_CLAIM]
+                == (moment + DEFAULT_JWT_REFRESH_LIFESPAN).int_timestamp
+            )
+            assert token_data["id"] == the_dude.id
+            assert token_data["rls"] == "admin,operator"
+            assert token_data["duder"] == "brief"
+            assert token_data["el_duderino"] == "not brief"
 
     def test_reset_email(self, app, user_class, db, tmpdir, default_guard):
         """
@@ -878,15 +971,15 @@ class TestPraetorian:
               <body>{{ token }}</body>
             </html>
         """
-        template_file = tmpdir.join('test_template.html')
+        template_file = tmpdir.join("test_template.html")
         template_file.write(template)
 
-        app.config['TESTING'] = True
-        app.config['PRAETORIAN_EMAIL_TEMPLATE'] = str(template_file)
-        app.config['PRAETORIAN_RESET_ENDPOINT'] = 'unprotected'
+        app.config["TESTING"] = True
+        app.config["PRAETORIAN_EMAIL_TEMPLATE"] = str(template_file)
+        app.config["PRAETORIAN_RESET_ENDPOINT"] = "unprotected"
 
         # create our default test user
-        the_dude = user_class(username='TheDude')
+        the_dude = user_class(username="TheDude")
         db.session.add(the_dude)
         db.session.commit()
 
@@ -894,26 +987,27 @@ class TestPraetorian:
             # test a bad username
             with pytest.raises(MissingUserError):
                 notify = default_guard.send_reset_email(
-                    email='fail@whale.org',
-                    reset_sender='you@whatever.com',
+                    email="fail@whale.org",
+                    reset_sender="you@whatever.com",
                 )
 
             # test a good username
             notify = default_guard.send_reset_email(
                 email=the_dude.username,
-                reset_sender='you@whatever.com',
+                reset_sender="you@whatever.com",
             )
-            token = notify['token']
+            token = notify["token"]
 
             # test our own interpretation and what we got back from flask_mail
-            assert token in notify['message']
-            assert notify['message'] == outbox[0].html
+            assert token in notify["message"]
+            assert notify["message"] == outbox[0].html
 
-            assert not notify['result']
+            assert not notify["result"]
 
         # test our token is good
         jwt_data = default_guard.extract_jwt_token(
-            notify['token'], access_type=AccessType.reset,
+            notify["token"],
+            access_type=AccessType.reset,
         )
         assert jwt_data[IS_RESET_TOKEN_CLAIM]
 
@@ -921,7 +1015,12 @@ class TestPraetorian:
         assert validated_user == the_dude
 
     def test_registration_email(
-            self, app, user_class, db, tmpdir, default_guard,
+        self,
+        app,
+        user_class,
+        db,
+        tmpdir,
+        default_guard,
     ):
         """
         This test verifies email based registration functions as expected.
@@ -936,39 +1035,45 @@ class TestPraetorian:
               <body>{{ token }}</body>
             </html>
         """
-        template_file = tmpdir.join('test_template.html')
+        template_file = tmpdir.join("test_template.html")
         template_file.write(template)
 
-        app.config['TESTING'] = True
-        app.config['PRAETORIAN_EMAIL_TEMPLATE'] = str(template_file)
-        app.config['PRAETORIAN_CONFIRMATION_ENDPOINT'] = 'unprotected'
+        app.config["TESTING"] = True
+        app.config["PRAETORIAN_EMAIL_TEMPLATE"] = str(template_file)
+        app.config["PRAETORIAN_CONFIRMATION_ENDPOINT"] = "unprotected"
 
         # create our default test user
-        the_dude = user_class(username='TheDude')
+        the_dude = user_class(username="TheDude")
         db.session.add(the_dude)
         db.session.commit()
 
         with app.mail.record_messages() as outbox:
             notify = default_guard.send_registration_email(
-                'the@dude.com', user=the_dude,
-                confirmation_sender='you@whatever.com',
+                "the@dude.com",
+                user=the_dude,
+                confirmation_sender="you@whatever.com",
             )
-            token = notify['token']
+            token = notify["token"]
 
             # test our own interpretation and what we got back from flask_mail
-            assert token in notify['message']
-            assert notify['message'] == outbox[0].html
+            assert token in notify["message"]
+            assert notify["message"] == outbox[0].html
 
-            assert not notify['result']
+            assert not notify["result"]
 
         # test our token is good
         jwt_data = default_guard.extract_jwt_token(
-            notify['token'], access_type=AccessType.register,
+            notify["token"],
+            access_type=AccessType.register,
         )
         assert jwt_data[IS_REGISTRATION_TOKEN_CLAIM]
 
     def test_get_user_from_registration_token(
-            self, app, user_class, db, default_guard,
+        self,
+        app,
+        user_class,
+        db,
+        default_guard,
     ):
         """
         This test verifies that a user can be extracted from an email based
@@ -978,15 +1083,17 @@ class TestPraetorian:
         """
         # create our default test user
         the_dude = user_class(
-            username='TheDude',
-            email='the@dude.com',
-            password=default_guard.hash_password('abides'),
+            username="TheDude",
+            email="the@dude.com",
+            password=default_guard.hash_password("abides"),
         )
         db.session.add(the_dude)
         db.session.commit()
 
         reg_token = default_guard.encode_jwt_token(
-            the_dude, bypass_user_check=True, is_registration_token=True,
+            the_dude,
+            bypass_user_check=True,
+            is_registration_token=True,
         )
         extracted_user = default_guard.get_user_from_registration_token(
             reg_token
@@ -997,7 +1104,7 @@ class TestPraetorian:
            test to ensure a registration token that is expired
                sets off an 'ExpiredAccessError' exception
         """
-        moment = pendulum.parse('2019-01-30 16:30:00')
+        moment = pendulum.parse("2019-01-30 16:30:00")
         with freezegun.freeze_time(moment):
             expired_reg_token = default_guard.encode_jwt_token(
                 the_dude,
@@ -1006,7 +1113,7 @@ class TestPraetorian:
                 is_registration_token=True,
             )
 
-        moment = pendulum.parse('2019-01-30 16:40:00')
+        moment = pendulum.parse("2019-01-30 16:40:00")
         with freezegun.freeze_time(moment):
             with pytest.raises(ExpiredAccessError):
                 default_guard.get_user_from_registration_token(
@@ -1020,12 +1127,12 @@ class TestPraetorian:
         test verifies that the default scheme is used. Otherwise, the test
         verifies that the hashed password matches the supplied scheme.
         """
-        pbkdf2_sha512_password = default_guard.hash_password('pbkdf2_sha512')
+        pbkdf2_sha512_password = default_guard.hash_password("pbkdf2_sha512")
 
         # create our default test user
         the_dude = user_class(
-            username='TheDude',
-            email='the@dude.com',
+            username="TheDude",
+            email="the@dude.com",
             password=pbkdf2_sha512_password,
         )
         db.session.add(the_dude)
@@ -1040,13 +1147,13 @@ class TestPraetorian:
         Test a password hashed with something other than
             PRAETORIAN_HASH_ALLOWED_SCHEME triggers an Exception.
         """
-        app.config['PRAETORIAN_HASH_SCHEME'] = 'bcrypt'
+        app.config["PRAETORIAN_HASH_SCHEME"] = "bcrypt"
         default_guard = Praetorian(app, user_class)
-        bcrypt_password = default_guard.hash_password('bcrypt_password')
+        bcrypt_password = default_guard.hash_password("bcrypt_password")
         the_dude.password = bcrypt_password
 
-        del app.config['PRAETORIAN_HASH_SCHEME']
-        app.config['PRAETORIAN_HASH_DEPRECATED_SCHEMES'] = ['bcrypt']
+        del app.config["PRAETORIAN_HASH_SCHEME"]
+        app.config["PRAETORIAN_HASH_DEPRECATED_SCHEMES"] = ["bcrypt"]
         default_guard = Praetorian(app, user_class)
         with pytest.raises(LegacyScheme):
             default_guard.verify_and_update(the_dude)
@@ -1058,8 +1165,7 @@ class TestPraetorian:
         """
         the_dude_old_password = the_dude.password
         updated_dude = default_guard.verify_and_update(
-            the_dude,
-            'bcrypt_password'
+            the_dude, "bcrypt_password"
         )
         assert updated_dude.password != the_dude_old_password
 
@@ -1070,7 +1176,7 @@ class TestPraetorian:
         """
         the_dude.password = bcrypt_password
         with pytest.raises(AuthenticationError):
-            default_guard.verify_and_update(user=the_dude, password='failme')
+            default_guard.verify_and_update(user=the_dude, password="failme")
 
         # put away your toys
         db.session.delete(the_dude)
@@ -1084,12 +1190,12 @@ class TestPraetorian:
         """
 
         default_guard = Praetorian(app, user_class)
-        pbkdf2_sha512_password = default_guard.hash_password('start_password')
+        pbkdf2_sha512_password = default_guard.hash_password("start_password")
 
         # create our default test user
         the_dude = user_class(
-            username='TheDude',
-            email='the@dude.com',
+            username="TheDude",
+            email="the@dude.com",
             password=pbkdf2_sha512_password,
         )
         db.session.add(the_dude)
@@ -1098,40 +1204,39 @@ class TestPraetorian:
         """
         Test the existing model as a baseline
         """
-        assert default_guard.authenticate(the_dude.username, 'start_password')
+        assert default_guard.authenticate(the_dude.username, "start_password")
 
         """
         Test the existing model with a bad password as a baseline
         """
         with pytest.raises(AuthenticationError):
-            default_guard.authenticate(the_dude.username, 'failme')
+            default_guard.authenticate(the_dude.username, "failme")
 
         """
         Test the updated model with a bad hash scheme and AUTOTEST enabled.
         Should raise and exception
         """
-        app.config['PRAETORIAN_HASH_SCHEME'] = 'bcrypt'
+        app.config["PRAETORIAN_HASH_SCHEME"] = "bcrypt"
         default_guard = Praetorian(app, user_class)
-        bcrypt_password = default_guard.hash_password('bcrypt_password')
+        bcrypt_password = default_guard.hash_password("bcrypt_password")
         the_dude.password = bcrypt_password
 
-        del app.config['PRAETORIAN_HASH_SCHEME']
-        app.config['PRAETORIAN_HASH_DEPRECATED_SCHEMES'] = ['bcrypt']
-        app.config['PRAETORIAN_HASH_AUTOTEST'] = True
+        del app.config["PRAETORIAN_HASH_SCHEME"]
+        app.config["PRAETORIAN_HASH_DEPRECATED_SCHEMES"] = ["bcrypt"]
+        app.config["PRAETORIAN_HASH_AUTOTEST"] = True
         default_guard = Praetorian(app, user_class)
         with pytest.raises(LegacyScheme):
-            default_guard.authenticate(the_dude.username, 'bcrypt_password')
+            default_guard.authenticate(the_dude.username, "bcrypt_password")
 
         """
         Test the updated model with a bad hash scheme and AUTOUPDATE enabled.
         Should return an updated user object we need to save ourselves.
         """
         the_dude_old_password = the_dude.password
-        app.config['PRAETORIAN_HASH_AUTOUPDATE'] = True
+        app.config["PRAETORIAN_HASH_AUTOUPDATE"] = True
         default_guard = Praetorian(app, user_class)
         updated_dude = default_guard.authenticate(
-            the_dude.username,
-            'bcrypt_password'
+            the_dude.username, "bcrypt_password"
         )
         assert updated_dude.password != the_dude_old_password
 

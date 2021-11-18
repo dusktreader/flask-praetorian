@@ -103,16 +103,16 @@ def app(tmpdir_factory):
     def unprotected():
         return jsonify(message="success")
 
-    @app.route('/kinda_protected')
+    @app.route("/kinda_protected")
     @flask_praetorian.auth_accepted
     def kinda_protected():
         try:
             authed_user = flask_praetorian.current_user().username
         except Exception:
             authed_user = None
-        return jsonify(message='success', user=authed_user)
+        return jsonify(message="success", user=authed_user)
 
-    @app.route('/protected')
+    @app.route("/protected")
     @flask_praetorian.auth_required
     def protected():
         return jsonify(message="success")
@@ -230,3 +230,31 @@ def clean_flask_app_config(app):
         stock_config = app.config.copy()
         yield
         app.config = stock_config.copy()
+
+
+@pytest.fixture(autouse=True)
+def use_cookie(client, default_guard):
+
+    class withCookie:
+        guard = default_guard
+        _client = client
+        server_name = "localhost.localdomain"
+
+        def __init__(self, token):
+            self.token = token
+
+        def __enter__(self):
+            self._client.set_cookie(
+                self.server_name,
+                self.guard.cookie_name,
+                self.token,
+                expires=None,
+            )
+            return self
+
+        def __exit__(self, *_):
+            self._client.delete_cookie(
+                self.server_name, self.guard.cookie_name
+            )
+
+    return withCookie
