@@ -1,7 +1,7 @@
 import textwrap
 import pendulum
 import pytest
-import freezegun
+import plummet
 from flask_praetorian.exceptions import MissingRoleError
 
 
@@ -62,7 +62,7 @@ class TestPraetorianDecorators:
 
         # Token is present and valid
         moment = pendulum.parse("2017-05-24 10:38:45")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             response = client.get(
                 "/kinda_protected",
                 headers=default_guard.pack_header_for_user(self.the_dude),
@@ -105,14 +105,14 @@ class TestPraetorianDecorators:
 
         # Token is expired
         moment = pendulum.parse("2017-05-24 10:18:45")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             headers = default_guard.pack_header_for_user(self.the_dude)
         moment = (
             moment
             + default_guard.access_lifespan
             + pendulum.Duration(seconds=1)
         )
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             response = client.get(
                 "/protected",
                 headers=headers,
@@ -122,7 +122,7 @@ class TestPraetorianDecorators:
 
         # Token is present and valid in header or cookie
         moment = pendulum.parse("2017-05-24 10:38:45")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             response = client.get(
                 "/protected",
                 headers=default_guard.pack_header_for_user(self.the_dude),

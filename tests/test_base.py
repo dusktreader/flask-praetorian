@@ -1,4 +1,4 @@
-import freezegun
+import plummet
 import jwt
 import pendulum
 import pytest
@@ -293,7 +293,7 @@ class TestPraetorian:
             ).int_timestamp,
         }
         moment = pendulum.parse("2017-05-21 19:54:32")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             with pytest.raises(ExpiredAccessError):
                 guard._validate_jwt_data(data, AccessType.access)
 
@@ -312,7 +312,7 @@ class TestPraetorian:
             ).int_timestamp,
         }
         moment = pendulum.parse("2017-05-21 19:54:28")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             with pytest.raises(EarlyRefreshError):
                 guard._validate_jwt_data(data, AccessType.refresh)
 
@@ -331,7 +331,7 @@ class TestPraetorian:
             ).int_timestamp,
         }
         moment = pendulum.parse("2017-05-21 20:54:32")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             with pytest.raises(ExpiredRefreshError):
                 guard._validate_jwt_data(data, AccessType.refresh)
 
@@ -351,7 +351,7 @@ class TestPraetorian:
             IS_REGISTRATION_TOKEN_CLAIM: True,
         }
         moment = pendulum.parse("2017-05-21 19:54:28")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             with pytest.raises(MisusedRegistrationToken):
                 guard._validate_jwt_data(data, AccessType.access)
 
@@ -371,7 +371,7 @@ class TestPraetorian:
             IS_REGISTRATION_TOKEN_CLAIM: True,
         }
         moment = pendulum.parse("2017-05-21 19:54:32")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             with pytest.raises(MisusedRegistrationToken):
                 guard._validate_jwt_data(data, AccessType.refresh)
 
@@ -391,7 +391,7 @@ class TestPraetorian:
             IS_RESET_TOKEN_CLAIM: True,
         }
         moment = pendulum.parse("2017-05-21 19:54:28")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             with pytest.raises(MisusedResetToken):
                 guard._validate_jwt_data(data, AccessType.access)
 
@@ -410,7 +410,7 @@ class TestPraetorian:
             ).int_timestamp,
         }
         moment = pendulum.parse("2017-05-21 19:54:28")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             guard._validate_jwt_data(data, AccessType.access)
 
     def test__validate_jwt_data__succeeds_when_refreshing(
@@ -428,7 +428,7 @@ class TestPraetorian:
             ).int_timestamp,
         }
         moment = pendulum.parse("2017-05-21 19:54:32")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             guard._validate_jwt_data(data, AccessType.refresh)
 
     def test__validate_jwt_data__succeeds_when_registering(
@@ -447,7 +447,7 @@ class TestPraetorian:
             IS_REGISTRATION_TOKEN_CLAIM: True,
         }
         moment = pendulum.parse("2017-05-21 19:54:28")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             guard._validate_jwt_data(data, AccessType.register)
 
     def test_encode_jwt_token(self, app, user_class, validating_user_class):
@@ -473,7 +473,7 @@ class TestPraetorian:
             roles="admin,operator",
         )
         moment = pendulum.parse("2017-05-21 18:39:55")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(the_dude)
             token_data = jwt.decode(
                 token,
@@ -495,7 +495,7 @@ class TestPraetorian:
         moment = pendulum.parse("2017-05-21 18:39:55")
         override_access_lifespan = pendulum.Duration(minutes=1)
         override_refresh_lifespan = pendulum.Duration(hours=1)
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(
                 the_dude,
                 override_access_lifespan=override_access_lifespan,
@@ -521,7 +521,7 @@ class TestPraetorian:
         moment = pendulum.parse("2017-05-21 18:39:55")
         override_access_lifespan = pendulum.Duration(hours=1)
         override_refresh_lifespan = pendulum.Duration(minutes=1)
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(
                 the_dude,
                 override_access_lifespan=override_access_lifespan,
@@ -555,7 +555,7 @@ class TestPraetorian:
         assert expected_message in str(err_info.value)
 
         moment = pendulum.parse("2018-08-18 08:55:12")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(
                 the_dude,
                 duder="brief",
@@ -598,7 +598,7 @@ class TestPraetorian:
             roles="admin,operator",
         )
         moment = pendulum.parse("2017-05-21 18:39:55")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             token = guard.encode_eternal_jwt_token(the_dude)
             token_data = jwt.decode(
                 token,
@@ -650,14 +650,14 @@ class TestPraetorian:
         db.session.commit()
 
         moment = pendulum.parse("2017-05-21 18:39:55")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(the_dude)
         new_moment = (
             pendulum.parse("2017-05-21 18:39:55")
             + DEFAULT_JWT_ACCESS_LIFESPAN
             + pendulum.Duration(minutes=1)
         )
-        with freezegun.freeze_time(new_moment):
+        with plummet.frozen_time(new_moment):
             new_token = guard.refresh_jwt_token(token)
             new_token_data = jwt.decode(
                 new_token,
@@ -677,14 +677,14 @@ class TestPraetorian:
             assert new_token_data["rls"] == "admin,operator"
 
         moment = pendulum.parse("2017-05-21 18:39:55")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(the_dude)
         new_moment = (
             pendulum.parse("2017-05-21 18:39:55")
             + DEFAULT_JWT_ACCESS_LIFESPAN
             + pendulum.Duration(minutes=1)
         )
-        with freezegun.freeze_time(new_moment):
+        with plummet.frozen_time(new_moment):
             new_token = guard.refresh_jwt_token(
                 token,
                 override_access_lifespan=pendulum.Duration(hours=2),
@@ -700,14 +700,14 @@ class TestPraetorian:
             )
 
         moment = pendulum.parse("2017-05-21 18:39:55")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(
                 the_dude,
                 override_refresh_lifespan=pendulum.Duration(hours=2),
                 override_access_lifespan=pendulum.Duration(minutes=30),
             )
         new_moment = moment + pendulum.Duration(minutes=31)
-        with freezegun.freeze_time(new_moment):
+        with plummet.frozen_time(new_moment):
             new_token = guard.refresh_jwt_token(
                 token,
                 override_access_lifespan=pendulum.Duration(hours=2),
@@ -734,16 +734,16 @@ class TestPraetorian:
         db.session.add(brandt)
         db.session.commit()
         moment = pendulum.parse("2017-05-21 18:39:55")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(brandt)
         new_moment = moment + expiring_interval
-        with freezegun.freeze_time(new_moment):
+        with plummet.frozen_time(new_moment):
             validating_guard.refresh_jwt_token(token)
         brandt.is_active = False
         db.session.merge(brandt)
         db.session.commit()
         new_moment = new_moment + expiring_interval
-        with freezegun.freeze_time(new_moment):
+        with plummet.frozen_time(new_moment):
             with pytest.raises(InvalidUserError) as err_info:
                 validating_guard.refresh_jwt_token(token)
         expected_message = "The user is not valid or has had access revoked"
@@ -760,19 +760,19 @@ class TestPraetorian:
         db.session.add(bunny)
         db.session.commit()
         moment = pendulum.parse("2017-05-21 18:39:55")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(bunny)
         db.session.delete(bunny)
         db.session.commit()
         new_moment = moment + expiring_interval
-        with freezegun.freeze_time(new_moment):
+        with plummet.frozen_time(new_moment):
             with pytest.raises(MissingUserError) as err_info:
                 validating_guard.refresh_jwt_token(token)
         expected_message = "Could not find the requested user"
         assert expected_message in str(err_info.value)
 
         moment = pendulum.parse("2018-08-14 09:05:24")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(
                 the_dude,
                 duder="brief",
@@ -783,7 +783,7 @@ class TestPraetorian:
             + DEFAULT_JWT_ACCESS_LIFESPAN
             + pendulum.Duration(minutes=1)
         )
-        with freezegun.freeze_time(new_moment):
+        with plummet.frozen_time(new_moment):
             new_token = guard.refresh_jwt_token(token)
             new_token_data = jwt.decode(
                 new_token,
@@ -820,7 +820,7 @@ class TestPraetorian:
         db.session.commit()
 
         moment = pendulum.parse("2017-05-21 18:39:55")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(the_dude)
 
         client.get(
@@ -851,7 +851,7 @@ class TestPraetorian:
         db.session.commit()
 
         moment = pendulum.parse("2017-05-21 18:39:55")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(the_dude)
             with use_cookie(token):
                 client.get(
@@ -876,7 +876,7 @@ class TestPraetorian:
         )
 
         moment = pendulum.parse("2017-05-21 18:39:55")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             header_dict = guard.pack_header_for_user(the_dude)
             token_header = header_dict.get(DEFAULT_JWT_HEADER_NAME)
             assert token_header is not None
@@ -902,7 +902,7 @@ class TestPraetorian:
         moment = pendulum.parse("2017-05-21 18:39:55")
         override_access_lifespan = pendulum.Duration(minutes=1)
         override_refresh_lifespan = pendulum.Duration(hours=1)
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             header_dict = guard.pack_header_for_user(
                 the_dude,
                 override_access_lifespan=override_access_lifespan,
@@ -928,7 +928,7 @@ class TestPraetorian:
             assert token_data["id"] == the_dude.id
 
         moment = pendulum.parse("2018-08-14 09:08:39")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             header_dict = guard.pack_header_for_user(
                 the_dude,
                 duder="brief",
@@ -1105,7 +1105,7 @@ class TestPraetorian:
                sets off an 'ExpiredAccessError' exception
         """
         moment = pendulum.parse("2019-01-30 16:30:00")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             expired_reg_token = default_guard.encode_jwt_token(
                 the_dude,
                 bypass_user_check=True,
@@ -1114,7 +1114,7 @@ class TestPraetorian:
             )
 
         moment = pendulum.parse("2019-01-30 16:40:00")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             with pytest.raises(ExpiredAccessError):
                 default_guard.get_user_from_registration_token(
                     expired_reg_token
