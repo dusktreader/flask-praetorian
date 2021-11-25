@@ -1,7 +1,8 @@
 import textwrap
 import pendulum
+import plummet
 import pytest
-import freezegun
+
 from flask_praetorian.exceptions import MissingRoleError
 
 
@@ -61,8 +62,7 @@ class TestPraetorianDecorators:
         assert response.json["user"] is None
 
         # Token is present and valid
-        moment = pendulum.parse("2017-05-24 10:38:45")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time('2017-05-24 10:38:45'):
             response = client.get(
                 "/kinda_protected",
                 headers=default_guard.pack_header_for_user(self.the_dude),
@@ -104,15 +104,15 @@ class TestPraetorianDecorators:
         assert response.status_code == 401
 
         # Token is expired
-        moment = pendulum.parse("2017-05-24 10:18:45")
-        with freezegun.freeze_time(moment):
+        moment = pendulum.parse('2017-05-24 10:18:45')
+        with plummet.frozen_time(moment):
             headers = default_guard.pack_header_for_user(self.the_dude)
         moment = (
             moment
             + default_guard.access_lifespan
             + pendulum.Duration(seconds=1)
         )
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time(moment):
             response = client.get(
                 "/protected",
                 headers=headers,
@@ -121,8 +121,7 @@ class TestPraetorianDecorators:
             assert "access permission has expired" in response.json["message"]
 
         # Token is present and valid in header or cookie
-        moment = pendulum.parse("2017-05-24 10:38:45")
-        with freezegun.freeze_time(moment):
+        with plummet.frozen_time('2017-05-24 10:38:45'):
             response = client.get(
                 "/protected",
                 headers=default_guard.pack_header_for_user(self.the_dude),
