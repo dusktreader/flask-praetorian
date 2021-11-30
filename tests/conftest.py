@@ -1,6 +1,3 @@
-from unittest import mock
-
-import pendulum
 import pytest
 
 import flask_praetorian
