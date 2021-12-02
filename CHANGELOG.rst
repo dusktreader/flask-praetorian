@@ -7,6 +7,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+Unreleased
+----------
+
+v1.3.0 - 2021-11-25
+-------------------
+- Replaced freezegun dependency with plummet
+- Decorators can read tokens from cookies
+
 v1.2.0 - 2021-04-20
 -------------------
 - Dropped support for Python 3.5
