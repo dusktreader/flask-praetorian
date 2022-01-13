@@ -836,7 +836,7 @@ class Praetorian:
                                           used
         :param: confirmation_sender:      The sender that shoudl be attached
                                           to the confirmation email. Overrides
-                                          the PRAETORIAN_CONFIRMRATION_SENDER
+                                          the PRAETORIAN_CONFIRMATION_SENDER
                                           config setting
         :param: confirmation_uri:         The uri that should be visited to
                                           complete email registration. Should
