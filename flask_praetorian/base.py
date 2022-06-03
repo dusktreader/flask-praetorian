@@ -275,8 +275,8 @@ class Praetorian:
         self.is_testing = app.config.get("TESTING", False)
 
         if not hasattr(app, "extensions"):
-            app.extensions = {}
-        app.extensions["praetorian"] = self
+            app.ctx.extensions = {}
+        app.ctx.extensions["praetorian"] = self
 
         return app
 
