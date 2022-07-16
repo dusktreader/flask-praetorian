@@ -9,7 +9,6 @@ import copy
 from tortoise import Tortoise, run_async
 from sanic.log import logger
 from sanic_testing.reusable import ReusableClient
-from sanic_testing import TestManager
 from sanic.exceptions import SanicException
 
 from models import ValidatingUser, MixinUser, User
@@ -41,7 +40,6 @@ def app(tmpdir_factory):
     sanic_app = create_app(db_path=f'sqlite://{str(db_path)}')
     # Hack to do some poor code work in the app for some workarounds for broken fucntions under pytest
     sanic_app.config['PYTESTING'] = True
-    mgr = TestManager(sanic_app)
 
     sanic_app.config.SUPPRESS_SEND = 1 # Don't actually send mails
     _mail.init_app(sanic_app)
