@@ -1,19 +1,31 @@
-import buzz
+from buzz import Buzz
+
+from sanic.log import logger
 
 from sanic.handlers import ErrorHandler
+from sanic.exceptions import SanicException
+from sanic import json
 
+"""
 class PraetorianErrorHandler(ErrorHandler):
     def default(self, request, exception):
         exception = PraetorianError(exception)
         return super().default(request, exception)
+"""
 
 
-class PraetorianError(buzz.Buzz):
+class PraetorianError(SanicException, Buzz):
     """
     Provides a custom exception class for sanic-praetorian based on py-buzz.
     `py-buzz on gitub <https://github.com/dusktreader/py-buzz>`_
     """
-    status_code = 401
+    def __init__(self, message, *args, **kwargs):
+        self.status = kwargs.get('status', 401)
+        self.message = message
+        self.extra_args = args
+        self.extra_kwargs = kwargs
+        self.json_response = json({"message": message, "data": self.__class__.__name__, "status": self.status}, status=self.status)
+        super().__init__(self.message, self.status)
 
 
 class MissingClaimError(PraetorianError):
@@ -27,7 +39,7 @@ class BlacklistedError(PraetorianError):
     """
     The jwt token has been blacklisted and may not be used any more
     """
-    status_code = 403
+    status = 403
 
 
 class ExpiredAccessError(PraetorianError):
@@ -41,7 +53,7 @@ class EarlyRefreshError(PraetorianError):
     """
     The jwt token has not yet expired for access and may not be refreshed
     """
-    status_code = 425  # HTTP Status Code : 425 Too Early
+    status = 425  # HTTP Status Code : 425 Too Early
 
 
 class ExpiredRefreshError(PraetorianError):
@@ -69,14 +81,14 @@ class InvalidUserError(PraetorianError):
     """
     The user is no longer valid and is now not authorized
     """
-    status_code = 403
+    status = 403
 
 
 class MissingRoleError(PraetorianError):
     """
     The token is missing a required role
     """
-    status_code = 403
+    status = 403
 
 
 class MissingUserError(PraetorianError):

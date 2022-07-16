@@ -35,7 +35,6 @@ from sanic_praetorian.exceptions import (
     MisusedResetToken,
     ConfigurationError,
     PraetorianError,
-    PraetorianErrorHandler
 )
 
 from sanic_praetorian.constants import (
@@ -276,14 +275,7 @@ class Praetorian:
             "refresh lifespan was not configured",
         )
 
-        if not app.config.get("DISABLE_PRAETORIAN_ERROR_HANDLER"):
-            """
-            app.register_error_handler(
-                PraetorianError,
-                PraetorianError.build_error_handler(),
-            )
-            """
-            app.error_handler = PraetorianErrorHandler
+        #if not app.config.get("DISABLE_PRAETORIAN_ERROR_HANDLER"):
 
         self.is_testing = app.config.get("TESTING", False)
 
@@ -712,6 +704,9 @@ class Praetorian:
         Unpacks a jwt token from a request header
         """
         jwt_header = headers.get(self.header_name)
+        logger.critical(f'#########################################################################')
+        logger.critical(f'Header: {self.header_name}')
+        logger.critical(f'JWT_Header: {jwt_header}')
         MissingToken.require_condition(
             jwt_header is not None,
             "JWT token not found in headers under '{}'".format(
@@ -734,14 +729,9 @@ class Praetorian:
         try:
             if not request:
                 request = Request.get_current()
-            logger.critical(f'Request found!!: {request.headers}')
+            logger.critical(f'Header Request found!!: {request.headers}')
         except Exception:
             pass
-        logger.critical(f"Request: {request}")
-        logger.critical(f"Request.dir: {dir(request)}")
-        #logger.critical(f"Request.Header: {dir(request.Header)}")
-        #logger.critical(f"Request.Header: {request.Header.items}")
-        #logger.critical(f"Request.Header: {request.Header.keys()}")
 
         return self._unpack_header(request.headers)
 
@@ -765,7 +755,7 @@ class Praetorian:
         try:
             if not request:
                 request = Request.get_current()
-            logger.critical(f'Request found!!: {request.headers}')
+            logger.critical(f'Cookie Request found!!: {request.headers}')
         except Exception:
             pass
         return self._unpack_cookie(request.cookies)
@@ -776,10 +766,10 @@ class Praetorian:
         in the locations configured by JWT_PLACES.
         Check-Order is defined by the value order in JWT_PLACES.
         """
+        logger.critical(f'Request: {request.headers}')
         try:
             if not request:
                 request = Request.get_current()
-            logger.critical(f'Request found!!: {request.headers}')
         except Exception:
             pass
 
