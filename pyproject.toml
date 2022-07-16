@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "sanic-praetorian"
 version = "1.3.0"
-description = "Strong, Simple, and Precise security for Sanic APIs (using jwt)"
-authors = ["Tucker Beck <tucker.beck@gmail.com>"]
+description = "Strong, Simple, (now async!) and Precise security for Sanic APIs (using jwt)"
+authors = ["Rob Dailey <rob@suspected.org>"]
 license = "MIT"
 readme = "README.rst"
-homepage = "https://flask-praetorian.readthedocs.io/en/latest/"
-documentation = "https://flask-praetorian.readthedocs.io/en/latest/"
-repository = "https://github.com/dusktreader/flask-praetorian"
+homepage = "https://sanic-praetorian.readthedocs.io/en/latest/"
+documentation = "https://sanic-praetorian.readthedocs.io/en/latest/"
+repository = "https://github.com/pahrohfit/sanic-praetorian"
 
 
 [tool.poetry.dependencies]
