@@ -2,7 +2,7 @@
 name = "sanic-praetorian"
 version = "1.3.0"
 description = "Strong, Simple, (now async!) and Precise security for Sanic APIs (using jwt)"
-authors = ["Rob Dailey <rob@suspected.org>"]
+authors = "Rob Dailey <rob@suspected.org>"
 license = "MIT"
 readme = "README.rst"
 homepage = "https://sanic-praetorian.readthedocs.io/en/latest/"
