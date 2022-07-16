@@ -127,6 +127,7 @@ def clean_sanic_app_config(app):
 def client(app):
     return ReusableClient(app, host='127.0.0.1', port='8000')
 
+
 @pytest.fixture(autouse=True)
 def use_cookie(app, default_guard):
     class withCookie:
@@ -153,3 +154,52 @@ def use_cookie(app, default_guard):
             )
 
     return withCookie
+
+
+@pytest.fixture()
+async def the_dude(user_class, default_guard):
+    """
+    This fixture creates 4 users with different roles to test the
+    decorators thoroughly
+    """
+    return await user_class.create(
+        username="TheDude",
+        email="thedude@praetorian",
+        password=default_guard.hash_password("abides"),
+    )
+
+@pytest.fixture()
+async def walter(user_class, default_guard):
+    return await user_class.create(
+        username="Walter",
+        email="walter@praetorian",
+        password=default_guard.hash_password("calmerthanyouare"),
+        roles="admin",
+    )
+
+@pytest.fixture()
+async def donnie(user_class, default_guard):
+    return await user_class.create(
+        username="Donnie",
+        email="donnie@praetorian",
+        password=default_guard.hash_password("iamthewalrus"),
+        roles="operator",
+    )
+
+@pytest.fixture()
+async def maude(user_class, default_guard):
+    return await user_class.create(
+        username="Maude",
+        email="maude@praetorian",
+        password=default_guard.hash_password("andthorough"),
+        roles="operator,admin",
+    )
+
+@pytest.fixture()
+async def jesus(user_class, default_guard):
+    return await user_class.create(
+        username="Jesus",
+        email="jeuss@praetorian",
+        password=default_guard.hash_password("hecanroll"),
+        roles="admin,god",
+    )

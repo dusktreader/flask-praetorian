@@ -3,6 +3,7 @@ from tortoise import fields
 from tortoise.exceptions import DoesNotExist
 
 from sanic_praetorian import TortoiseUserMixin
+from sanic.log import logger
 
 
 class User(Model):
@@ -48,6 +49,8 @@ class User(Model):
             return await cls.filter(id=id).get()
         except DoesNotExist:
             return None
+        except Exception as e:
+            logger.critical(f"Fuck!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: {e}")
 
     @property
     def identity(self):

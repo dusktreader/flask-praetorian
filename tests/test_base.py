@@ -6,7 +6,6 @@ import pytest
 from httpx import Cookies
 
 from sanic.log import logger
-from sanic_testing.reusable import ReusableClient
 
 from models import User
 
@@ -803,14 +802,13 @@ class TestPraetorian:
         await brandt.delete()
         await bunny.delete()
 
-    async def test_read_token_from_header(self, app, user_class):
+    async def test_read_token_from_header(self, app, user_class, client):
         """
         This test verifies that a token may be properly read from a flask
         request's header using the configuration settings for header name and
         type
         """
-        _client = ReusableClient(app, host='127.0.0.1', port='8000')
-        with _client:
+        with client:
             guard = Praetorian(app, user_class)
             the_dude = await user_class.create(
                 username="TheDude",
@@ -822,7 +820,7 @@ class TestPraetorian:
             with plummet.frozen_time('2017-05-21 18:39:55'):
                 token = await guard.encode_jwt_token(the_dude)
 
-            request, _ = _client.get(
+            request, _ = client.get(
                 "/unprotected",
                 headers={
                     "Content-Type": "application/json",
@@ -836,14 +834,13 @@ class TestPraetorian:
             await the_dude.delete()
 
     async def test_read_token_from_cookie(
-        self, app, user_class
+        self, app, user_class, client
     ):
         """
         This test verifies that a token may be properly read from a flask
         request's cookies using the configuration settings for cookie
         """
-        _client = ReusableClient(app, host='127.0.0.1', port='8000')
-        with _client:
+        with client:
             guard = Praetorian(app, user_class)
             the_dude = await user_class.create(
                 username="TheDude",
@@ -853,12 +850,10 @@ class TestPraetorian:
             )
 
             cookies = Cookies()
-    
             with plummet.frozen_time('2017-05-21 18:39:55'):
                 token = await guard.encode_jwt_token(the_dude)
                 cookies[guard.cookie_name] = token
-                #with use_cookie(token):
-                request, _ = _client.get(
+                request, _ = client.get(
                     "/unprotected",
                     cookies=cookies
                 )

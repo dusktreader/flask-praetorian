@@ -19,14 +19,20 @@ class PraetorianError(SanicException, Buzz):
     Provides a custom exception class for sanic-praetorian based on py-buzz.
     `py-buzz on gitub <https://github.com/dusktreader/py-buzz>`_
     """
+    status: int = 401
+    json_response: dict = dict({})
+
     def __init__(self, message, *args, **kwargs):
-        self.status = kwargs.get('status', 401)
-        self.message = message
+        self.status = self.status
+        self.message = f'{self.__class__.__name__}: {message}'
         self.extra_args = args
         self.extra_kwargs = kwargs
-        self.json_response = json({"message": message, "data": self.__class__.__name__, "status": self.status}, status=self.status)
+        self.json_response = json({"error": message, "data": self.__class__.__name__, "status": self.status}, status=self.status)
         super().__init__(self.message, self.status)
 
+    def __str__(self):
+        return f"{super().__str__()} ({self.status})"
+    
 
 class MissingClaimError(PraetorianError):
     """

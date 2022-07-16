@@ -50,55 +50,58 @@ def create_app(db_path=None):
 
     @sanic_app.route("/kinda_protected")
     @sanic_praetorian.auth_accepted
-    def kinda_protected(request):
+    async def kinda_protected(request):
         try:
-            authed_user = sanic_praetorian.current_user().username
-        except Exception:
+            authed_user = await sanic_praetorian.current_user()
+            logger.critical(f'Returning authed_user: {authed_user.username}')
+            return json({"message": "success", "user": authed_user.username})
+        except Exception as e:
+            logger.critical(f'Fuck: {e}')
             authed_user = None
-        return json(message="success", user=authed_user)
+            return json({"message": "success", "user": authed_user})
 
     @sanic_app.route("/protected")
     @sanic_praetorian.auth_required
-    def protected(request):
-        return json(message="success")
+    async def protected(request):
+        return json({"message": "success"})
 
     @sanic_app.route("/protected_admin_required")
     @sanic_praetorian.auth_required
     @sanic_praetorian.roles_required("admin")
-    def protected_admin_required(request):
-        return json(message="success")
+    async def protected_admin_required(request):
+        return json({"message": "success"})
 
     @sanic_app.route("/protected_admin_and_operator_required")
     @sanic_praetorian.auth_required
     @sanic_praetorian.roles_required("admin", "operator")
-    def protected_admin_and_operator_required(request):
-        return json(message="success")
+    async def protected_admin_and_operator_required(request):
+        return json({"message": "success"})
 
     @sanic_app.route("/protected_admin_and_operator_accepted")
     @sanic_praetorian.auth_required
     @sanic_praetorian.roles_accepted("admin", "operator")
-    def protected_admin_and_operator_accepted(request):
-        return json(message="success")
+    async def protected_admin_and_operator_accepted(request):
+        return json({"message": "success"})
 
     @sanic_app.route("/undecorated_admin_required")
     @sanic_praetorian.roles_required("admin")
-    def undecorated_admin_required(request):
-        return json(message="success")
+    async def undecorated_admin_required(request):
+        return json({"message": "success"})
 
     @sanic_app.route("/undecorated_admin_accepted")
     @sanic_praetorian.roles_accepted("admin")
-    def undecorated_admin_accepted(request):
-        return json(message="success")
+    async def undecorated_admin_accepted(request):
+        return json({"message": "success"})
 
     @sanic_app.route("/reversed_decorators")
     @sanic_praetorian.roles_required("admin", "operator")
     @sanic_praetorian.auth_required
-    def reversed_decorators(request):
-        return json(message="success")
+    async def reversed_decorators(request):
+        return json({"message": "success"})
 
     @sanic_app.route("/registration_confirmation")
     def reg_confirm(request):
-        return json(message="fuck")
+        return json({"message": "fuck"})
 
     if not db_path:
         db_path = 'sqlite://:memory:'

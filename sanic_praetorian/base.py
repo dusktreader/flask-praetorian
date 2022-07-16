@@ -275,7 +275,9 @@ class Praetorian:
             "refresh lifespan was not configured",
         )
 
+        # TODO: Not working
         #if not app.config.get("DISABLE_PRAETORIAN_ERROR_HANDLER"):
+        #    app.error_handler.add(PraetorianError, PraetorianError.json)
 
         self.is_testing = app.config.get("TESTING", False)
 
