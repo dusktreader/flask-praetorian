@@ -706,9 +706,6 @@ class Praetorian:
         Unpacks a jwt token from a request header
         """
         jwt_header = headers.get(self.header_name)
-        logger.critical(f'#########################################################################')
-        logger.critical(f'Header: {self.header_name}')
-        logger.critical(f'JWT_Header: {jwt_header}')
         MissingToken.require_condition(
             jwt_header is not None,
             "JWT token not found in headers under '{}'".format(
@@ -731,7 +728,6 @@ class Praetorian:
         try:
             if not request:
                 request = Request.get_current()
-            logger.critical(f'Header Request found!!: {request.headers}')
         except Exception:
             pass
 
@@ -757,7 +753,6 @@ class Praetorian:
         try:
             if not request:
                 request = Request.get_current()
-            logger.critical(f'Cookie Request found!!: {request.headers}')
         except Exception:
             pass
         return self._unpack_cookie(request.cookies)
@@ -768,7 +763,6 @@ class Praetorian:
         in the locations configured by JWT_PLACES.
         Check-Order is defined by the value order in JWT_PLACES.
         """
-        logger.critical(f'Request: {request.headers}')
         try:
             if not request:
                 request = Request.get_current()
@@ -1064,7 +1058,7 @@ class Praetorian:
             msg = Message(
                 subject=notification["subject"],
                 recipients=[notification["email"]],
-                body=notification["message"],
+                html=notification["message"],
                 subtype="html",
                 reply_to=[action_sender],
             )

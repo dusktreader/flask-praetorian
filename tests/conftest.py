@@ -32,7 +32,7 @@ def app(tmpdir_factory):
         "sanic-praetorian-test",
         numbered=True,
     ).join("sqlite.db")
-    logger.critical(f'Using DB_Path: {str(db_path)}')
+    logger.info(f'Using DB_Path: {str(db_path)}')
     run_async(init(db_path=f'sqlite://{str(db_path)}'))
 
     sanic_app = create_app(db_path=f'sqlite://{str(db_path)}')

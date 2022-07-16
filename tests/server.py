@@ -41,6 +41,9 @@ def create_app(db_path=None):
     sanic_app.config.MAIL_FROM = 'fake@fake.com'
     sanic_app.config.JWT_PLACES = ['header', 'cookie']
 
+    sanic_app.config.FALLBACK_ERROR_FORMAT = "json"
+
+
     _guard.init_app(sanic_app, User)
     sanic_app.ctx.mail = _mail
 
@@ -53,10 +56,8 @@ def create_app(db_path=None):
     async def kinda_protected(request):
         try:
             authed_user = await sanic_praetorian.current_user()
-            logger.critical(f'Returning authed_user: {authed_user.username}')
             return json({"message": "success", "user": authed_user.username})
         except Exception as e:
-            logger.critical(f'Fuck: {e}')
             authed_user = None
             return json({"message": "success", "user": authed_user})
 
@@ -105,7 +106,7 @@ def create_app(db_path=None):
 
     if not db_path:
         db_path = 'sqlite://:memory:'
-    logger.critical(f'App db_path: {db_path}')
+    logger.info(f'App db_path: {db_path}')
     register_tortoise(
         sanic_app,
         db_url=db_path,

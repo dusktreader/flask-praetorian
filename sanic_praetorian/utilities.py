@@ -74,11 +74,8 @@ def add_jwt_data_to_app_context(jwt_data):
     Adds a dictionary of jwt data (presumably unpacked from a token) to the
     top of the sanic app's context
     """
-    try:
-        ctx = Sanic.get_app().ctx
-        ctx.jwt_data = jwt_data
-    except Exception as e:
-        logger.critical(f'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Fuck: {e}')
+    ctx = Sanic.get_app().ctx
+    ctx.jwt_data = jwt_data
 
 
 def get_jwt_data_from_app_context():
@@ -86,8 +83,6 @@ def get_jwt_data_from_app_context():
     Fetches a dict of jwt token data from the top of the sanic app's context
     """
     ctx = Sanic.get_app().ctx
-    logger.critical(f'Context: {ctx}')
-    logger.critical(f'Context: {vars(ctx)}')
     jwt_data = getattr(ctx, 'jwt_data', None)
     PraetorianError.require_condition(
         jwt_data is not None,
@@ -127,19 +122,13 @@ async def current_user():
     This method returns a user instance for jwt token data attached to the
     current sanic app's context
     """
-    user = None
-    user_id = None
-    try:
-        user_id = current_user_id()
-    except Exception as e:
-        logger.critical(f'***((((((((((((((((((((((((((((FUCK: {e}')
+    user_id = current_user_id()
     guard = current_guard()
     user = await guard.user_class.identify(user_id)
     PraetorianError.require_condition(
         user is not None,
         "Could not identify the current user from the current id",
     )
-    logger.critical('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
     return user
 
 

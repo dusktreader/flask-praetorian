@@ -1,7 +1,6 @@
-#from sqlalchemy import select
+from tortoise.exceptions import DoesNotExist
 
 
-#class SQLAlchemyUserMixin:
 class TortoiseUserMixin:
     """
     A short-cut providing required methods and attributes for a user class
@@ -25,12 +24,14 @@ class TortoiseUserMixin:
         """
         return self.id
 
+    """
     @property
     def password(self):
-        """
+        ""
         Provides the required attribute or property ``password``
-        """
+        ""
         return self.hashed_password
+    """
 
     @property
     def rolenames(self):
@@ -43,18 +44,20 @@ class TortoiseUserMixin:
             return []
 
     @classmethod
-    async def lookup(cls, username):
-        """
-        Provides the required classmethod ``lookup()``
-        """
-        #return cls.query.filter_by(username=username).one_or_none()
-        #return select(cls).where(cls.username == username)
-        return await cls.filter(username=username).one_or_none()
-
+    async def lookup(cls, username=None, email=None):
+        try:
+            if username:
+                return await cls.filter(username=username).get()
+            elif email:
+                return await cls.filter(email=email).get()
+            else:
+                return None
+        except DoesNotExist:
+            return None
+    
     @classmethod
     async def identify(cls, id):
-        """
-        Provides the required classmethod ``identify()``
-        """
-        #return cls.query.get(id)
-        return await cls.filter(id=id).one_or_none()
+        try:
+            return await cls.filter(id=id).get()
+        except DoesNotExist:
+            return None

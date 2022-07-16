@@ -27,12 +27,10 @@ async def _verify_and_add_jwt(request, optional=False):
 
     Only use in this module
     """
-    logger.critical(f'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     if not app_context_has_jwt_data():
         guard = current_guard()
         try:
             token = guard.read_token(request=request)
-            logger.critical(f'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
         except MissingToken as err:
             if optional:
                 return
@@ -70,8 +68,6 @@ def auth_accepted(method):
         try:
             await _verify_and_add_jwt(request, optional=True)
             return await method(request, *args, **kwargs)
-        except Exception as e:
-            logger.critical(f'Fuck!!!!!!: {e}')
         finally:
             remove_jwt_data_from_app_context()
     return wrapper

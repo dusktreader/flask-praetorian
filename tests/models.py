@@ -49,8 +49,6 @@ class User(Model):
             return await cls.filter(id=id).get()
         except DoesNotExist:
             return None
-        except Exception as e:
-            logger.critical(f"Fuck!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: {e}")
 
     @property
     def identity(self):

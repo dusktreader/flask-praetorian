@@ -39,12 +39,12 @@ class TestPraetorianUtilities:
         """
         jwt_data = {'a': 1}
         add_jwt_data_to_app_context(jwt_data)
-        assert Sanic.get_app()._app_ctx_stack.top.jwt_data == jwt_data
+        assert Sanic.get_app().ctx.jwt_data == jwt_data
         remove_jwt_data_from_app_context()
-        assert not hasattr(Sanic.get_app()._app_ctx_stack.top, 'jwt_data')
+        assert not hasattr(Sanic.get_app().ctx, 'jwt_data')
         remove_jwt_data_from_app_context()
 
-    def test_current_user_id(self, user_class, default_guard):
+    async def test_current_user_id(self, user_class, default_guard):
         """
         This test verifies that the current user id can be successfully
         determined based on jwt token data that has been added to the current
@@ -53,14 +53,14 @@ class TestPraetorianUtilities:
         jwt_data = {}
         add_jwt_data_to_app_context(jwt_data)
         with pytest.raises(PraetorianError) as err_info:
-            current_user()
+            await current_user()
         assert 'Could not fetch an id' in str(err_info.value)
 
         jwt_data = {'id': 31}
         add_jwt_data_to_app_context(jwt_data)
         assert current_user_id() == 31
 
-    def test_current_user(self, user_class, db_session, default_guard):
+    async def test_current_user(self, user_class, default_guard):
         """
         This test verifies that the current user can be successfully
         determined based on jwt token data that has been added to the current
@@ -69,24 +69,24 @@ class TestPraetorianUtilities:
         jwt_data = {}
         add_jwt_data_to_app_context(jwt_data)
         with pytest.raises(PraetorianError) as err_info:
-            current_user()
+            await current_user()
         assert 'Could not fetch an id' in str(err_info.value)
 
         jwt_data = {'id': 31}
         add_jwt_data_to_app_context(jwt_data)
         with pytest.raises(PraetorianError) as err_info:
-            current_user()
+            await current_user()
         assert 'Could not identify the current user' in str(err_info.value)
 
-        the_dude = user_class(
+        the_dude = await user_class.create(
             id=13,
             username='TheDude',
+            password=default_guard.hash_password('Abides'),
+            email="thedude@praetorian"
         )
-        db_session.add(the_dude)
-        db_session.commit()
         jwt_data = {'id': 13}
         add_jwt_data_to_app_context(jwt_data)
-        assert current_user() is the_dude
+        assert await current_user() == the_dude
 
     def test_current_rolenames(self, user_class, default_guard):
         """

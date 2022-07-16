@@ -26,7 +26,6 @@ class TestPraetorianDecorators:
                 "/kinda_protected",
                 headers={},
             )
-            logger.critical(f'Response: {vars(response)}')
             assert response.status == 200
             assert "success" in response.json["message"]
             assert response.json["user"] is None
@@ -145,8 +144,6 @@ class TestPraetorianDecorators:
                 headers=await default_guard.pack_header_for_user(walter),
             )
             assert response.status == 403
-            logger.critical(f"Got Response: {response}")
-            logger.critical(f"Got Response Vars: {vars(response)}")
             assert MissingRoleError.__name__ in response.json["message"]
             assert (
                 "This endpoint requires all the following roles"

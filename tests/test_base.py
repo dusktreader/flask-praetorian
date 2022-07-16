@@ -827,7 +827,6 @@ class TestPraetorian:
                     DEFAULT_JWT_HEADER_NAME: DEFAULT_JWT_HEADER_TYPE + " " + token,
                 },
             )
-            logger.critical(f'Request Sent Headers: {request.headers}')
 
             assert guard.read_token_from_header(request) == token
             assert guard.read_token(request) == token
@@ -1014,8 +1013,6 @@ class TestPraetorian:
         assert jwt_data[IS_RESET_TOKEN_CLAIM]
 
         validated_user = await default_guard.validate_reset_token(token)
-        logger.critical(f'Validated User: {validated_user}')
-        logger.critical(f'The Dude: {the_dude}')
         assert validated_user == the_dude
 
         await the_dude.delete()
