@@ -1,4 +1,3 @@
-from unittest import mock
 import sanic_praetorian
 import sanic_praetorian.exceptions
 import pytest

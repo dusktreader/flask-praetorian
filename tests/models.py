@@ -3,7 +3,6 @@ from tortoise import fields
 from tortoise.exceptions import DoesNotExist
 
 from sanic_praetorian import TortoiseUserMixin
-from sanic.log import logger
 
 
 class User(Model):

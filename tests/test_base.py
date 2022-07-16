@@ -5,8 +5,6 @@ import pytest
 
 from httpx import Cookies
 
-from models import User
-
 from sanic_praetorian import Praetorian
 from sanic_praetorian.exceptions import (
     AuthenticationError,

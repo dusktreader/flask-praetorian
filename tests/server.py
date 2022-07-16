@@ -10,7 +10,6 @@ from models import User
 from sanic import Sanic, json
 from sanic.log import logger
 
-from tortoise import Tortoise
 from tortoise.contrib.sanic import register_tortoise
 
 from sanic_praetorian import Praetorian
@@ -110,7 +109,6 @@ def create_app(db_path=None):
     register_tortoise(
         sanic_app,
         db_url=db_path,
-        #modules={"models": [User, MixinUser, ValidatingUser]},
         modules={"models": ['models']},
         generate_schemas=True,
     )

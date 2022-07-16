@@ -1,5 +1,4 @@
 import textwrap
-from unittest import mock
 import pendulum
 import plummet
 
@@ -7,10 +6,9 @@ from httpx import Cookies
 
 from sanic_praetorian.exceptions import MissingRoleError
 
-from sanic.log import logger
 
 class TestPraetorianDecorators:
-    async def test_auth_accepted(self, app, default_guard, mock_users, client):
+    async def test_auth_accepted(self, default_guard, mock_users, client):
         """
         This test verifies that the @auth_accepted decorator can be used
         to optionally use a properly structured auth header including
@@ -39,7 +37,7 @@ class TestPraetorianDecorators:
             assert response.json["user"] == the_dude.username
         await the_dude.delete()
 
-    async def test_auth_required(self, app, default_guard, mock_users, client):
+    async def test_auth_required(self, default_guard, mock_users, client):
         """
         This test verifies that the @auth_required decorator can be used
         to ensure that any access to a protected endpoint must have a properly
