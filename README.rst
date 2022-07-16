@@ -1,21 +1,25 @@
-.. image::  https://badge.fury.io/py/flask-praetorian.svg
-   :target: https://badge.fury.io/py/flask-praetorian
+.. image::  https://badge.fury.io/py/sanic-praetorian.svg
+   :target: https://badge.fury.io/py/sanic-praetorian
    :alt:    Latest Published Version
 
-.. image::  https://travis-ci.org/dusktreader/flask-praetorian.svg?branch=master
-   :target: https://travis-ci.org/dusktreader/flask-praetorian
+.. image::  https://travis-ci.org/dusktreader/sanic-praetorian.svg?branch=master
+   :target: https://travis-ci.org/dusktreader/sanic-praetorian
    :alt:    Build Status
 
-.. image::  https://readthedocs.org/projects/flask-praetorian/badge/?version=latest
-   :target: http://flask-praetorian.readthedocs.io/en/latest/?badge=latest
+.. image::  https://readthedocs.org/projects/sanic-praetorian/badge/?version=latest
+   :target: http://sanic-praetorian.readthedocs.io/en/latest/?badge=latest
    :alt:    Documentation Build Status
 
 ******************
- flask-praetorian
+ sanic-praetorian
 ******************
 
+**** WORK IN PROGRESS -- docs below are semi-correct, at best ****
+Development branch: sanic
+Working example: `tests/server.py`
+
 ---------------------------------------------------
-Strong, Simple, and Precise security for Flask APIs
+Strong, Simple, and Precise security for Sanic APIs
 ---------------------------------------------------
 
 API security should be strong, simple, and precise like a Roman Legionary.
@@ -28,15 +32,15 @@ access.
 This project was heavily influenced by
 `Flask-Security <https://pythonhosted.org/Flask-Security/>`_, but intends
 to supply only essential functionality. Instead of trying to anticipate the
-needs of all users, *flask-praetorian* will provide a simple and secure mechanism
+needs of all users, *sanic-praetorian* will provide a simple and secure mechanism
 to provide security for APIs specifically.
 
 This extesion offers a batteries-included approach to security for your API.
-For essential security concerns for Flask-based APIs,
-`flask-praetorian <https://github.com/dusktreader/flask-praetorian>`_ should
+For essential security concerns for Sanic-based APIs,
+`sanic-praetorian <https://github.com/dusktreader/sanic-praetorian>`_ should
 supply everything you need.
 
-The *flask-praetorian* package can be used to:
+The *sanic-praetorian* package can be used to:
 
 * Hash passwords for storing in your database
 * Verify plaintext passwords against the hashed, stored versions
@@ -49,7 +53,7 @@ The *flask-praetorian* package can be used to:
 * Register new users using email verification
 
 All of this is provided in a very simple to configure and initialize flask
-extension. Though simple, the security provided by *flask-praetorian* is strong
+extension. Though simple, the security provided by *sanic-praetorian* is strong
 due to the usage of the proven security technology of JWT
 and python's `PassLib <http://pythonhosted.org/passlib/>`_ package.
 
@@ -63,4 +67,4 @@ Documentation
 -------------
 
 The complete documentation can be found at the
-`flask-praetorian home page <http://flask-praetorian.readthedocs.io>`_
+`sanic-praetorian home page <http://sanic-praetorian.readthedocs.io>`_
