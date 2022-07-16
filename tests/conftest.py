@@ -1,5 +1,6 @@
 from sys import path as sys_path
 from os import path as os_path
+from webbrowser import get
 sys_path.insert(0, os_path.join(os_path.dirname(os_path.abspath(__file__)), ".."))
 
 import pytest
@@ -9,12 +10,14 @@ from tortoise import Tortoise, run_async
 from sanic.log import logger
 from sanic_testing.reusable import ReusableClient
 from sanic_testing import TestManager
+from sanic.exceptions import SanicException
 
 from models import ValidatingUser, MixinUser, User
 from server import create_app, _guard, _mail
 
 import nest_asyncio
 nest_asyncio.apply()
+
 
 # Hack for using the same DB instance directly and within the app
 async def init(db_path=None):
@@ -125,7 +128,9 @@ def clean_sanic_app_config(app):
 
 @pytest.fixture
 def client(app):
-    return ReusableClient(app, host='127.0.0.1', port='8000')
+    _client = ReusableClient(app, host='127.0.0.1', port='8000')
+    with _client:
+        yield _client
 
 
 @pytest.fixture(autouse=True)
@@ -157,49 +162,43 @@ def use_cookie(app, default_guard):
 
 
 @pytest.fixture()
-async def the_dude(user_class, default_guard):
-    """
-    This fixture creates 4 users with different roles to test the
-    decorators thoroughly
-    """
-    return await user_class.create(
-        username="TheDude",
-        email="thedude@praetorian",
-        password=default_guard.hash_password("abides"),
-    )
+def mock_users(user_class, default_guard):
 
-@pytest.fixture()
-async def walter(user_class, default_guard):
-    return await user_class.create(
-        username="Walter",
-        email="walter@praetorian",
-        password=default_guard.hash_password("calmerthanyouare"),
-        roles="admin",
-    )
+    logger.critical('Mock_Users has been called!')
+    async def _get_user(username: str = None, 
+                        class_name: object = user_class,
+                        guard_name: object = default_guard,
+                        **kwargs):
+        if not username:
+            raise SanicException("You must supply a valid test user name!")
 
-@pytest.fixture()
-async def donnie(user_class, default_guard):
-    return await user_class.create(
-        username="Donnie",
-        email="donnie@praetorian",
-        password=default_guard.hash_password("iamthewalrus"),
-        roles="operator",
-    )
+        # Set a default password of `something_secure`, unless one is provided
+        password = guard_name.hash_password(kwargs.get('password', 'something_secure'))
+        if kwargs.get('password'):
+            # If one is provided, and already a hash, use it instead
+            if guard_name.pwd_ctx.identify(str(kwargs['password'])):
+                password = kwargs['password']
 
-@pytest.fixture()
-async def maude(user_class, default_guard):
-    return await user_class.create(
-        username="Maude",
-        email="maude@praetorian",
-        password=default_guard.hash_password("andthorough"),
-        roles="operator,admin",
-    )
+        email=kwargs.get('email', f"praetorian_{username}@mock.com")
 
-@pytest.fixture()
-async def jesus(user_class, default_guard):
-    return await user_class.create(
-        username="Jesus",
-        email="jeuss@praetorian",
-        password=default_guard.hash_password("hecanroll"),
-        roles="admin,god",
-    )
+        # TODO: This is ugly, gotta be a nicer way
+        if kwargs.get('id'):
+            return await class_name.create(
+                username=username,
+                email=email,
+                password=password,
+                roles=kwargs.get('roles', ""),
+                is_active=kwargs.get('is_active', True),
+                id=kwargs['id'],
+            )
+        else:
+            return await class_name.create(
+                username=username,
+                email=email,
+                password=password,
+                roles=kwargs.get('roles', ""),
+                is_active=kwargs.get('is_active', True),
+            )
+
+    
+    return _get_user

@@ -5,8 +5,6 @@ import pytest
 
 from httpx import Cookies
 
-from sanic.log import logger
-
 from models import User
 
 from sanic_praetorian import Praetorian
@@ -39,7 +37,7 @@ from sanic_praetorian.constants import (
 
 
 class TestPraetorian:
-    async def test_hash_password(self, app, user_class, default_guard):
+    async def test_hash_password(self, default_guard):
         """
         This test verifies that Praetorian hashes passwords using the scheme
         specified by the HASH_SCHEME setting. If no scheme is supplied, the
@@ -64,33 +62,30 @@ class TestPraetorian:
         assert specified_guard._verify_password("some password", secret)
         assert not specified_guard._verify_password("not right", secret)
 
-    async def test_authenticate(self, app, user_class, default_guard):
+    async def test_authenticate(self, user_class, default_guard, mock_users):
         """
         This test verifies that the authenticate function can be used to
         retrieve a User instance when the correct username and password are
         supplied. It also verifies that an AuthenticationError is raised
         when a valid user/password combination are not supplied.
         """
-        the_dude = await user_class.create(username="TheDude",
-                                           password=default_guard.hash_password("abides"),
-                                           email='thedude@foo.com', roles="")
+        the_dude = await mock_users(username='the_dude', password='abides')
 
         loaded_user = await user_class.lookup(username=the_dude.username)
-        authed_user = await default_guard.authenticate("TheDude", "abides")
+        authed_user = await default_guard.authenticate("the_dude", "abides")
 
         assert loaded_user.id == authed_user.id
         assert loaded_user.password == authed_user.password
 
         with pytest.raises(AuthenticationError):
-            await default_guard.authenticate("TheBro", "abides")
+            await default_guard.authenticate("the_bro", "abides")
         with pytest.raises(AuthenticationError):
-            await default_guard.authenticate("TheDude", "is_undudelike")
+            await default_guard.authenticate("the_dude", "is_undudelike")
 
         await the_dude.delete()
 
     def test__validate_user_class__success_with_valid_user_class(
         self,
-        app,
         user_class,
         default_guard,
     ):
@@ -98,7 +93,6 @@ class TestPraetorian:
 
     def test__validate_user_class__fails_if_class_has_no_lookup_classmethod(
         self,
-        app,
         default_guard,
     ):
         class NoLookupUser:
@@ -112,7 +106,6 @@ class TestPraetorian:
 
     def test__validate_user_class__fails_if_class_has_no_identify_classmethod(
         self,
-        app,
         default_guard,
     ):
         class NoIdentifyUser:
@@ -126,7 +119,6 @@ class TestPraetorian:
 
     def test__validate_user_class__fails_if_class_has_no_identity_attribute(
         self,
-        app,
         default_guard,
     ):
         class NoIdentityUser:
@@ -147,7 +139,6 @@ class TestPraetorian:
 
     def test__validate_user_class__fails_if_class_has_no_rolenames_attribute(
         self,
-        app,
         default_guard,
     ):
         class NoRolenamesUser:
@@ -189,7 +180,6 @@ class TestPraetorian:
 
     def test__validate_user_class__fails_if_class_has_no_password_attribute(
         self,
-        app,
         default_guard,
     ):
         class NoPasswordUser:
@@ -210,7 +200,6 @@ class TestPraetorian:
 
     def test__validate_user_class__skips_inst_check_if_constructor_req_params(
         self,
-        app,
         default_guard,
     ):
         class EmptyInitBlowsUpUser:
@@ -450,7 +439,7 @@ class TestPraetorian:
         with plummet.frozen_time('2017-05-21 19:54:28'):
             guard._validate_jwt_data(data, AccessType.register)
 
-    async def test_encode_jwt_token(self, app, user_class, validating_user_class):
+    async def test_encode_jwt_token(self, app, user_class, validating_user_class, mock_users):
         """
         This test::
             * verifies that the encode_jwt_token correctly encodes jwt
@@ -467,12 +456,7 @@ class TestPraetorian:
               claims
         """
         guard = Praetorian(app, user_class)
-        the_dude = await user_class.create(
-            username="TheDude",
-            password=guard.hash_password("abides"),
-            email="thedude@foo.com",
-            roles="admin,operator",
-        )
+        the_dude = await mock_users(username="the_dude", password="abides", roles="admin,operator")
         moment = plummet.momentize('2017-05-21 18:39:55')
         with plummet.frozen_time(moment):
             token = await guard.encode_jwt_token(the_dude)
@@ -586,19 +570,14 @@ class TestPraetorian:
         expected_message = "custom claims collide"
         assert expected_message in str(err_info.value)
 
-    async def test_encode_eternal_jwt_token(self, app, user_class):
+    async def test_encode_eternal_jwt_token(self, app, user_class, mock_users):
         """
         This test verifies that the encode_eternal_jwt_token correctly encodes
         jwt data based on a user instance. Also verifies that the lifespan is
         set to the constant VITAM_AETERNUM
         """
         guard = Praetorian(app, user_class)
-        the_dude = await user_class.create(
-            username="TheDude",
-            password=guard.hash_password("abides"),
-            email="thedude@foo.com",
-            roles="admin,operator",
-        )
+        the_dude = await mock_users(username='the_dude', roles="admin,operator")
         moment = plummet.momentize('2017-05-21 18:39:55')
         with plummet.frozen_time(moment):
             token = await guard.encode_eternal_jwt_token(the_dude)
@@ -619,8 +598,8 @@ class TestPraetorian:
         self,
         app,
         user_class,
-        default_guard,
         validating_user_class,
+        mock_users,
     ):
         """
         This test::
@@ -643,9 +622,11 @@ class TestPraetorian:
               payload are also packaged in the new token's payload
         """
         guard = Praetorian(app, user_class)
-        the_dude = await User.create(username="TheDude",
-                                     password=guard.hash_password("abides"),
-                                     email='thedude@foo.com', roles="admin,operator")
+
+        the_dude = await mock_users(username="the_dude",
+                                    password="abides",
+                                    roles="admin,operator",
+                                    guard_name=guard)
 
         moment = plummet.momentize('2017-05-21 18:39:55')
         with plummet.frozen_time(moment):
@@ -723,12 +704,12 @@ class TestPraetorian:
         expiring_interval = DEFAULT_JWT_ACCESS_LIFESPAN + pendulum.Duration(
             minutes=1
         )
+
         validating_guard = Praetorian(app, validating_user_class)
-        brandt = await validating_user_class.create(username="brandt", 
-                                   password=guard.hash_password("can't watch"), 
-                                   email='brandt@foo.com',
-                                   is_active=True
-                                  )
+        brandt = await mock_users(username="brandt",
+                                  password="can't watch",
+                                  guard_name=validating_guard,
+                                  class_name=validating_user_class)
         moment = plummet.momentize('2017-05-21 18:39:55')
         with plummet.frozen_time(moment):
             token = await guard.encode_jwt_token(brandt)
@@ -747,13 +728,9 @@ class TestPraetorian:
         expiring_interval = DEFAULT_JWT_ACCESS_LIFESPAN + pendulum.Duration(
             minutes=1
         )
+
         guard = Praetorian(app, user_class)
-        bunny = await user_class.create(
-            username="bunny",
-            password=guard.hash_password("can't blow that far"),
-            email="bunny@foo.com",
-            roles=""
-        )
+        bunny = await mock_users(username="bunny", guard_name=guard)
         moment = plummet.momentize('2017-05-21 18:39:55')
         with plummet.frozen_time(moment):
             token = await guard.encode_jwt_token(bunny)
@@ -802,67 +779,55 @@ class TestPraetorian:
         await brandt.delete()
         await bunny.delete()
 
-    async def test_read_token_from_header(self, app, user_class, client):
+    async def test_read_token_from_header(self, app, user_class, client, mock_users):
         """
         This test verifies that a token may be properly read from a flask
         request's header using the configuration settings for header name and
         type
         """
-        with client:
-            guard = Praetorian(app, user_class)
-            the_dude = await user_class.create(
-                username="TheDude",
-                password=guard.hash_password("abides"),
-                email="thedude@foo.com",
-                roles="admin,operator",
-            )
-    
-            with plummet.frozen_time('2017-05-21 18:39:55'):
-                token = await guard.encode_jwt_token(the_dude)
+        guard = Praetorian(app, user_class)
+        the_dude = await mock_users(username='the_dude', password='abides', roles='admin,operator')
 
-            request, _ = client.get(
-                "/unprotected",
-                headers={
-                    "Content-Type": "application/json",
-                    DEFAULT_JWT_HEADER_NAME: DEFAULT_JWT_HEADER_TYPE + " " + token,
-                },
-            )
+        with plummet.frozen_time('2017-05-21 18:39:55'):
+            token = await guard.encode_jwt_token(the_dude)
 
-            assert guard.read_token_from_header(request) == token
-            assert guard.read_token(request) == token
-            await the_dude.delete()
+        request, _ = client.get(
+            "/unprotected",
+            headers={
+                "Content-Type": "application/json",
+                DEFAULT_JWT_HEADER_NAME: DEFAULT_JWT_HEADER_TYPE + " " + token,
+            },
+        )
+
+        assert guard.read_token_from_header(request) == token
+        assert guard.read_token(request) == token
+        await the_dude.delete()
 
     async def test_read_token_from_cookie(
-        self, app, user_class, client
+        self, app, user_class, client, mock_users
     ):
         """
         This test verifies that a token may be properly read from a flask
         request's cookies using the configuration settings for cookie
         """
-        with client:
-            guard = Praetorian(app, user_class)
-            the_dude = await user_class.create(
-                username="TheDude",
-                email="thedude@foo.com",
-                password=guard.hash_password("abides"),
-                roles="admin,operator",
+        guard = Praetorian(app, user_class)
+        the_dude = await mock_users(username='the_dude', roles='admin,operator')
+
+        cookies = Cookies()
+        with plummet.frozen_time('2017-05-21 18:39:55'):
+            token = await guard.encode_jwt_token(the_dude)
+            cookies[guard.cookie_name] = token
+            request, _ = client.get(
+                "/unprotected",
+                cookies=cookies
             )
 
-            cookies = Cookies()
-            with plummet.frozen_time('2017-05-21 18:39:55'):
-                token = await guard.encode_jwt_token(the_dude)
-                cookies[guard.cookie_name] = token
-                request, _ = client.get(
-                    "/unprotected",
-                    cookies=cookies
-                )
-   
-            assert guard.read_token_from_cookie(request) == token
-            assert guard.read_token(request) == token
-  
-            await the_dude.delete()
+        assert guard.read_token_from_cookie(request) == token
+        assert guard.read_token(request) == token
 
-    async def test_pack_header_for_user(self, app, user_class):
+        await the_dude.delete()
+
+    async def test_pack_header_for_user(self, app, user_class, mock_users):
         """
         This test::
           * verifies that the pack_header_for_user method can be used to
@@ -870,11 +835,7 @@ class TestPraetorian:
           * verifies that custom claims may be packaged as well
         """
         guard = Praetorian(app, user_class)
-        the_dude = user_class(
-            username="TheDude",
-            password=guard.hash_password("abides"),
-            roles="admin,operator",
-        )
+        the_dude = await mock_users(username='the_dude', roles='admin,operator')
 
         moment = plummet.momentize('2017-05-21 18:39:55')
         with plummet.frozen_time(moment):
@@ -958,7 +919,7 @@ class TestPraetorian:
             assert token_data["duder"] == "brief"
             assert token_data["el_duderino"] == "not brief"
 
-    async def test_reset_email(self, app, user_class, tmpdir, default_guard):
+    async def test_reset_email(self, app, tmpdir, default_guard, mock_users):
         """
         This test verifies email based password reset functions as expected.
         This includes sending messages with valid time expiring JWT tokens
@@ -980,9 +941,7 @@ class TestPraetorian:
         app.config["PRAETORIAN_RESET_ENDPOINT"] = "unprotected"
 
         # create our default test user
-        the_dude = await user_class.create(username="TheDude",
-                                           email="thedude@foo.com",
-                                           password="blah")
+        the_dude = await mock_users(username='the_dude', password='blah')
 
         with app.ctx.mail.record_messages() as outbox:
             # test a bad username
@@ -1023,6 +982,7 @@ class TestPraetorian:
         user_class,
         tmpdir,
         default_guard,
+        mock_users,
     ):
         """
         This test verifies email based registration functions as expected.
@@ -1045,9 +1005,7 @@ class TestPraetorian:
         app.config["PRAETORIAN_CONFIRMATION_ENDPOINT"] = "unprotected"
 
         # create our default test user
-        the_dude = await user_class.create(username="TheDude",
-                                           email="thedude@foo.com",
-                                           password=default_guard.hash_password("Abides"))
+        the_dude = await mock_users(username='the_dude', password='Abides')
 
         with app.ctx.mail.record_messages() as outbox:
             notify = await default_guard.send_registration_email(
@@ -1072,9 +1030,8 @@ class TestPraetorian:
 
     async def test_get_user_from_registration_token(
         self,
-        app,
-        user_class,
         default_guard,
+        mock_users,
     ):
         """
         This test verifies that a user can be extracted from an email based
@@ -1083,11 +1040,7 @@ class TestPraetorian:
         token may not be refreshed
         """
         # create our default test user
-        the_dude = await user_class.create(
-            username="TheDude",
-            email="the@dude.com",
-            password=default_guard.hash_password("abides"),
-        )
+        the_dude = await mock_users(username='the_dude')
 
         reg_token = await default_guard.encode_jwt_token(
             the_dude,
@@ -1117,7 +1070,7 @@ class TestPraetorian:
                     expired_reg_token
                 )
 
-    async def test_validate_and_update(self, app, user_class, default_guard):
+    async def test_validate_and_update(self, app, user_class, default_guard, mock_users):
         """
         This test verifies that Praetorian hashes passwords using the scheme
         specified by the HASH_SCHEME setting. If no scheme is supplied, the
@@ -1127,11 +1080,7 @@ class TestPraetorian:
         pbkdf2_sha512_password = default_guard.hash_password("pbkdf2_sha512")
 
         # create our default test user
-        the_dude = await user_class.create(
-            username="TheDude",
-            email="the@dude.com",
-            password=pbkdf2_sha512_password,
-        )
+        the_dude = await mock_users(username='the_dude', password=pbkdf2_sha512_password)
 
         """
         Test the current password is hashed with PRAETORIAN_HASH_SCHEME
@@ -1176,7 +1125,7 @@ class TestPraetorian:
         # put away your toys
         await the_dude.delete()
 
-    async def test_authenticate_validate_and_update(self, app, user_class):
+    async def test_authenticate_validate_and_update(self, app, user_class, mock_users):
         """
         This test verifies the authenticate() function, when altered by
         either 'PRAETORIAN_HASH_AUTOUPDATE' or 'PRAETORIAN_HASH_AUTOTEST'
@@ -1187,11 +1136,8 @@ class TestPraetorian:
         pbkdf2_sha512_password = default_guard.hash_password("start_password")
 
         # create our default test user
-        the_dude = await user_class.create(
-            username="TheDude",
-            email="the@dude.com",
-            password=pbkdf2_sha512_password,
-        )
+        the_dude = await mock_users(username='fuckyou', email="fuck@you.com", password=pbkdf2_sha512_password)
+        from sanic.log import logger
 
         """
         Test the existing model as a baseline

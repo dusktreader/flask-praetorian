@@ -44,7 +44,7 @@ class TestPraetorianUtilities:
         assert not hasattr(Sanic.get_app().ctx, 'jwt_data')
         remove_jwt_data_from_app_context()
 
-    async def test_current_user_id(self, user_class, default_guard):
+    async def test_current_user_id(self):
         """
         This test verifies that the current user id can be successfully
         determined based on jwt token data that has been added to the current
@@ -60,7 +60,7 @@ class TestPraetorianUtilities:
         add_jwt_data_to_app_context(jwt_data)
         assert current_user_id() == 31
 
-    async def test_current_user(self, user_class, default_guard):
+    async def test_current_user(self, mock_users):
         """
         This test verifies that the current user can be successfully
         determined based on jwt token data that has been added to the current
@@ -78,17 +78,12 @@ class TestPraetorianUtilities:
             await current_user()
         assert 'Could not identify the current user' in str(err_info.value)
 
-        the_dude = await user_class.create(
-            id=13,
-            username='TheDude',
-            password=default_guard.hash_password('Abides'),
-            email="thedude@praetorian"
-        )
+        the_dude = await mock_users(username="the_dude", password="Abides", id=13)
         jwt_data = {'id': 13}
         add_jwt_data_to_app_context(jwt_data)
         assert await current_user() == the_dude
 
-    def test_current_rolenames(self, user_class, default_guard):
+    def test_current_rolenames(self):
         """
         This test verifies that the rolenames attached to the current user
         can be extracted from the jwt token data that has been added to the
@@ -104,7 +99,7 @@ class TestPraetorianUtilities:
         add_jwt_data_to_app_context(jwt_data)
         assert current_rolenames() == set(['admin', 'operator'])
 
-    def test_current_custom_claims(self, user_class, default_guard):
+    def test_current_custom_claims(self):
         """
         This test verifies that any custom claims attached to the current jwt
         can be extracted from the jwt token data that has been added to the
