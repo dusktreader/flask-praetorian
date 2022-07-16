@@ -1,8 +1,8 @@
-import flask
+from sanic import Sanic
 import pendulum
 import pytest
 
-from flask_praetorian.utilities import (
+from sanic_praetorian.utilities import (
     add_jwt_data_to_app_context,
     app_context_has_jwt_data,
     remove_jwt_data_from_app_context,
@@ -12,7 +12,7 @@ from flask_praetorian.utilities import (
     current_custom_claims,
     duration_from_string,
 )
-from flask_praetorian.exceptions import (
+from sanic_praetorian.exceptions import (
     PraetorianError,
     ConfigurationError,
 )
@@ -39,16 +39,16 @@ class TestPraetorianUtilities:
         """
         jwt_data = {'a': 1}
         add_jwt_data_to_app_context(jwt_data)
-        assert flask._app_ctx_stack.top.jwt_data == jwt_data
+        assert Sanic.get_app()._app_ctx_stack.top.jwt_data == jwt_data
         remove_jwt_data_from_app_context()
-        assert not hasattr(flask._app_ctx_stack.top, 'jwt_data')
+        assert not hasattr(Sanic.get_app()._app_ctx_stack.top, 'jwt_data')
         remove_jwt_data_from_app_context()
 
-    def test_current_user_id(self, user_class, db, default_guard):
+    def test_current_user_id(self, user_class, default_guard):
         """
         This test verifies that the current user id can be successfully
         determined based on jwt token data that has been added to the current
-        flask app's context.
+        sanic app's context.
         """
         jwt_data = {}
         add_jwt_data_to_app_context(jwt_data)
@@ -60,11 +60,11 @@ class TestPraetorianUtilities:
         add_jwt_data_to_app_context(jwt_data)
         assert current_user_id() == 31
 
-    def test_current_user(self, user_class, db, default_guard):
+    def test_current_user(self, user_class, db_session, default_guard):
         """
         This test verifies that the current user can be successfully
         determined based on jwt token data that has been added to the current
-        flask app's context.
+        sanic app's context.
         """
         jwt_data = {}
         add_jwt_data_to_app_context(jwt_data)
@@ -82,17 +82,17 @@ class TestPraetorianUtilities:
             id=13,
             username='TheDude',
         )
-        db.session.add(the_dude)
-        db.session.commit()
+        db_session.add(the_dude)
+        db_session.commit()
         jwt_data = {'id': 13}
         add_jwt_data_to_app_context(jwt_data)
         assert current_user() is the_dude
 
-    def test_current_rolenames(self, user_class, db, default_guard):
+    def test_current_rolenames(self, user_class, default_guard):
         """
         This test verifies that the rolenames attached to the current user
         can be extracted from the jwt token data that has been added to the
-        current flask app's context
+        current sanic app's context
         """
         jwt_data = {}
         add_jwt_data_to_app_context(jwt_data)
@@ -104,11 +104,11 @@ class TestPraetorianUtilities:
         add_jwt_data_to_app_context(jwt_data)
         assert current_rolenames() == set(['admin', 'operator'])
 
-    def test_current_custom_claims(self, user_class, db, default_guard):
+    def test_current_custom_claims(self, user_class, default_guard):
         """
         This test verifies that any custom claims attached to the current jwt
         can be extracted from the jwt token data that has been added to the
-        current flask app's context
+        current sanic app's context
         """
         jwt_data = dict(
             id=13,

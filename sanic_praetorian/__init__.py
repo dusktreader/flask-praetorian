@@ -1,19 +1,19 @@
-from flask_praetorian.base import Praetorian
-from flask_praetorian.exceptions import PraetorianError
-from flask_praetorian.decorators import (
+from sanic_praetorian.base import Praetorian
+from sanic_praetorian.exceptions import PraetorianError
+from sanic_praetorian.decorators import (
     auth_required,
     auth_accepted,
     roles_required,
     roles_accepted,
 )
-from flask_praetorian.utilities import (
+from sanic_praetorian.utilities import (
     current_user,
     current_user_id,
     current_rolenames,
     current_custom_claims,
 )
 
-from flask_praetorian.user_mixins import SQLAlchemyUserMixin
+from sanic_praetorian.user_mixins import TortoiseUserMixin
 
 
 __all__ = [
@@ -27,5 +27,5 @@ __all__ = [
     current_user_id,
     current_rolenames,
     current_custom_claims,
-    SQLAlchemyUserMixin,
+    TortoiseUserMixin,
 ]

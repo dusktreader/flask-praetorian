@@ -1,5 +1,4 @@
 import datetime
-import flask
 import jinja2
 import jwt
 import pendulum
@@ -8,13 +7,16 @@ import textwrap
 import uuid
 import warnings
 
-from flask_mail import Message
+from sanic import Sanic, request, Request
+from sanic.log import logger
+
+from sanic_mailing import Message
 
 from passlib.context import CryptContext
 
-from flask_praetorian.utilities import deprecated, duration_from_string
+from sanic_praetorian.utilities import deprecated, duration_from_string
 
-from flask_praetorian.exceptions import (
+from sanic_praetorian.exceptions import (
     AuthenticationError,
     BlacklistedError,
     ClaimCollisionError,
@@ -33,9 +35,10 @@ from flask_praetorian.exceptions import (
     MisusedResetToken,
     ConfigurationError,
     PraetorianError,
+    PraetorianErrorHandler
 )
 
-from flask_praetorian.constants import (
+from sanic_praetorian.constants import (
     DEFAULT_JWT_ACCESS_LIFESPAN,
     DEFAULT_JWT_ALGORITHM,
     DEFAULT_JWT_ALLOWED_ALGORITHMS,
@@ -67,7 +70,7 @@ from flask_praetorian.constants import (
 
 class Praetorian:
     """
-    Comprises the implementation for the flask-praetorian flask extension.
+    Comprises the implementation for the sanic-praetorian sanic extension.
     Provides a tool that allows password authentication and token provision
     for applications and designated endpoints
     """
@@ -93,6 +96,9 @@ class Praetorian:
                 refresh_jwt_token_hook,
             )
 
+    async def open_session(self, request):
+        pass
+
     def init_app(
         self,
         app=None,
@@ -104,7 +110,7 @@ class Praetorian:
         """
         Initializes the Praetorian extension
 
-        :param: app:                    The flask app to bind this
+        :param: app:                    The sanic app to bind this
                                         extension to
         :param: user_class:             The class used to interact with
                                         user data
@@ -127,6 +133,10 @@ class Praetorian:
                                         which contains the ingredients for
                                         the jwt.
         """
+
+        """hook on request start etc."""
+        app.register_middleware(self.open_session, 'request')
+
         PraetorianError.require_condition(
             app.config.get("SECRET_KEY") is not None,
             "There must be a SECRET_KEY app config setting set",
@@ -267,14 +277,17 @@ class Praetorian:
         )
 
         if not app.config.get("DISABLE_PRAETORIAN_ERROR_HANDLER"):
+            """
             app.register_error_handler(
                 PraetorianError,
                 PraetorianError.build_error_handler(),
             )
+            """
+            app.error_handler = PraetorianErrorHandler
 
         self.is_testing = app.config.get("TESTING", False)
 
-        if not hasattr(app, "extensions"):
+        if not hasattr(app.ctx, "extensions"):
             app.ctx.extensions = {}
         app.ctx.extensions["praetorian"] = self
 
@@ -318,7 +331,7 @@ class Praetorian:
         try:
             dummy_user = user_class()
         except Exception:
-            flask.current_app.logger.debug(
+            logger.debug(
                 "Skipping instance validation because "
                 "user cannot be instantiated without arguments"
             )
@@ -353,7 +366,7 @@ class Praetorian:
 
         return user_class
 
-    def authenticate(self, username, password):
+    async def authenticate(self, username, password):
         """
         Verifies that a password matches the stored password for that username.
         If verification passes, the matching user instance is returned
@@ -362,7 +375,7 @@ class Praetorian:
             self.user_class is not None,
             "Praetorian must be initialized before this method is available",
         )
-        user = self.user_class.lookup(username)
+        user = await self.user_class.lookup(username=username)
         AuthenticationError.require_condition(
             user is not None
             and self._verify_password(
@@ -383,9 +396,9 @@ class Praetorian:
             but don't modify the user.
         """
         if self.hash_autoupdate:
-            self.verify_and_update(user=user, password=password)
+            await self.verify_and_update(user=user, password=password)
         elif self.hash_autotest:
-            self.verify_and_update(user=user)
+            await self.verify_and_update(user=user)
 
         return user
 
@@ -410,13 +423,13 @@ class Praetorian:
 
     def error_handler(self, error):
         """
-        Provides a flask error handler that is used for PraetorianErrors
+        Provides a sanic error handler that is used for PraetorianErrors
         (and derived exceptions).
         """
         warnings.warn(
             """
             error_handler is deprecated.
-            Use FlaskBuzz.build_error_handler instead
+            Use Buzz.build_error_handler instead
             """,
             warnings.DeprecationWarning,
         )
@@ -444,7 +457,7 @@ class Praetorian:
             "The user is not valid or has had access revoked",
         )
 
-    def encode_jwt_token(
+    async def encode_jwt_token(
         self,
         user,
         override_access_lifespan=None,
@@ -514,7 +527,7 @@ class Praetorian:
             payload_parts[IS_REGISTRATION_TOKEN_CLAIM] = True
         if is_reset_token:
             payload_parts[IS_RESET_TOKEN_CLAIM] = True
-        flask.current_app.logger.debug(
+        logger.debug(
             "Attaching custom claims: {}".format(custom_claims),
         )
         payload_parts.update(custom_claims)
@@ -527,7 +540,7 @@ class Praetorian:
             self.encode_algorithm,
         )
 
-    def encode_eternal_jwt_token(self, user, **custom_claims):
+    async def encode_eternal_jwt_token(self, user, **custom_claims):
         """
         This utility function encodes a jwt token that never expires
 
@@ -537,14 +550,14 @@ class Praetorian:
                   implements a blacklist so that a given token can be blocked
                   should it be lost or become a security concern
         """
-        return self.encode_jwt_token(
+        return await self.encode_jwt_token(
             user,
             override_access_lifespan=VITAM_AETERNUM,
             override_refresh_lifespan=VITAM_AETERNUM,
             **custom_claims
         )
 
-    def refresh_jwt_token(self, token, override_access_lifespan=None):
+    async def refresh_jwt_token(self, token, override_access_lifespan=None):
         """
         Creates a new token for a user if and only if the old token's access
         permission is expired but its refresh permission is not yet expired.
@@ -561,9 +574,9 @@ class Praetorian:
                                            exceed the refresh lifespan
         """
         moment = pendulum.now("UTC")
-        data = self.extract_jwt_token(token, access_type=AccessType.refresh)
+        data = await self.extract_jwt_token(token, access_type=AccessType.refresh)
 
-        user = self.user_class.identify(data["id"])
+        user = await self.user_class.identify(data["id"])
         self._check_user(user)
 
         if override_access_lifespan is None:
@@ -597,7 +610,7 @@ class Praetorian:
             self.encode_algorithm,
         )
 
-    def extract_jwt_token(self, token, access_type=AccessType.access):
+    async def extract_jwt_token(self, token, access_type=AccessType.access):
         """
         Extracts a data dictionary from a jwt token
         """
@@ -714,11 +727,23 @@ class Praetorian:
         token = match.group(1)
         return token
 
-    def read_token_from_header(self):
+    def read_token_from_header(self, request=None):
         """
-        Unpacks a jwt token from the current flask request
+        Unpacks a jwt token from the current sanic request
         """
-        return self._unpack_header(flask.request.headers)
+        try:
+            if not request:
+                request = Request.get_current()
+            logger.critical(f'Request found!!: {request.headers}')
+        except Exception:
+            pass
+        logger.critical(f"Request: {request}")
+        logger.critical(f"Request.dir: {dir(request)}")
+        #logger.critical(f"Request.Header: {dir(request.Header)}")
+        #logger.critical(f"Request.Header: {request.Header.items}")
+        #logger.critical(f"Request.Header: {request.Header.keys()}")
+
+        return self._unpack_header(request.headers)
 
     def _unpack_cookie(self, cookies):
         """
@@ -733,34 +758,44 @@ class Praetorian:
         )
         return jwt_cookie
 
-    def read_token_from_cookie(self):
+    def read_token_from_cookie(self, request=None):
         """
-        Unpacks a jwt token from the current flask request
+        Unpacks a jwt token from the current sanic request
         """
-        return self._unpack_cookie(flask.request.cookies)
+        try:
+            if not request:
+                request = Request.get_current()
+            logger.critical(f'Request found!!: {request.headers}')
+        except Exception:
+            pass
+        return self._unpack_cookie(request.cookies)
 
-    def read_token(self):
+    def read_token(self, request=None):
         """
-        Tries to unpack the token from the current flask request
+        Tries to unpack the token from the current sanic request
         in the locations configured by JWT_PLACES.
         Check-Order is defined by the value order in JWT_PLACES.
         """
+        try:
+            if not request:
+                request = Request.get_current()
+            logger.critical(f'Request found!!: {request.headers}')
+        except Exception:
+            pass
 
         for place in self.jwt_places:
             try:
                 return getattr(
                     self,
-                    "read_token_from_{place}".format(
-                        place=place.lower(),
-                    ),
-                )()
+                    "read_token_from_{}".format(place.lower())
+                )(request)
             except MissingToken:
                 pass
             except AttributeError:
-                flask.current_app.logger.warning(
+                logger.warning(
                     textwrap.dedent(
                         f"""
-                        Flask_Praetorian hasn't implemented reading JWT tokens
+                        Sanic_Praetorian hasn't implemented reading JWT tokens
                         from location {place.lower()}.
                         Please reconfigure JWT_PLACES.
                         Values accepted in JWT_PLACES are:
@@ -778,7 +813,7 @@ class Praetorian:
             ).replace("\n", "")
         )
 
-    def pack_header_for_user(
+    async def pack_header_for_user(
         self,
         user,
         override_access_lifespan=None,
@@ -803,7 +838,7 @@ class Praetorian:
                                            any claims supplied here must be
                                            JSON compatible types
         """
-        token = self.encode_jwt_token(
+        token = await self.encode_jwt_token(
             user,
             override_access_lifespan=override_access_lifespan,
             override_refresh_lifespan=override_refresh_lifespan,
@@ -811,7 +846,7 @@ class Praetorian:
         )
         return {self.header_name: self.header_type + " " + token}
 
-    def send_registration_email(
+    async def send_registration_email(
         self,
         email,
         user=None,
@@ -825,7 +860,7 @@ class Praetorian:
         Sends a registration email to a new user, containing a time expiring
             token usable for validation.  This requires your application
             is initialized with a `mail` extension, which supports
-            Flask-Mail's `Message()` object and a `send()` method.
+            async-mail's `Message()` object and a `send_message()` method.
 
         Returns a dict containing the information sent, along with the
             `result` from mail send.
@@ -862,19 +897,19 @@ class Praetorian:
 
         sender = confirmation_sender or self.confirmation_sender
 
-        flask.current_app.logger.debug(
+        logger.debug(
             "Generating token with lifespan: {}".format(
                 override_access_lifespan
             )
         )
-        custom_token = self.encode_jwt_token(
+        custom_token = await self.encode_jwt_token(
             user,
             override_access_lifespan=override_access_lifespan,
             bypass_user_check=True,
             is_registration_token=True,
         )
 
-        return self.send_token_email(
+        return await self.send_token_email(
             email,
             user=user,
             template=template,
@@ -884,7 +919,7 @@ class Praetorian:
             custom_token=custom_token,
         )
 
-    def send_reset_email(
+    async def send_reset_email(
         self,
         email,
         template=None,
@@ -897,7 +932,7 @@ class Praetorian:
         Sends a password reset email to a user, containing a time expiring
             token usable for validation.  This requires your application
             is initialized with a `mail` extension, which supports
-            Flask-Mail's `Message()` object and a `send()` method.
+            async-mail's `Message()` object and a `send_message()` method.
 
         Returns a dict containing the information sent, along with the
             `result` from mail send.
@@ -934,25 +969,25 @@ class Praetorian:
 
         sender = reset_sender or self.reset_sender
 
-        user = self.user_class.lookup(email)
+        user = await self.user_class.lookup(email=email)
         MissingUserError.require_condition(
             user is not None,
             "Could not find the requested user",
         )
 
-        flask.current_app.logger.debug(
+        logger.debug(
             "Generating token with lifespan: {}".format(
                 override_access_lifespan
             )
         )
-        custom_token = self.encode_jwt_token(
+        custom_token = await self.encode_jwt_token(
             user,
             override_access_lifespan=override_access_lifespan,
             bypass_user_check=False,
             is_reset_token=True,
         )
 
-        return self.send_token_email(
+        return await self.send_token_email(
             user.email,
             user=user,
             template=template,
@@ -962,7 +997,7 @@ class Praetorian:
             custom_token=custom_token,
         )
 
-    def send_token_email(
+    async def send_token_email(
         self,
         email,
         user=None,
@@ -977,8 +1012,8 @@ class Praetorian:
         Sends an email to a user, containing a time expiring
             token usable for several actions.  This requires
             your application is initialized with a `mail` extension,
-            which supports Flask-Mail's `Message()` object and
-            a `send()` method.
+            which supports async-mail's `Message()` object and
+            a `send_message()` method.
 
         Returns a dict containing the information sent, along with the
             `result` from mail send.
@@ -1012,7 +1047,7 @@ class Praetorian:
         }
 
         PraetorianError.require_condition(
-            "mail" in flask.current_app.extensions,
+            Sanic.get_app().ctx.mail,
             "Your app must have a mail extension enabled to register by email",
         )
 
@@ -1035,51 +1070,52 @@ class Praetorian:
             notification["message"] = jinja_tmpl.render(notification).strip()
 
             msg = Message(
-                html=notification["message"],
-                sender=action_sender,
                 subject=notification["subject"],
                 recipients=[notification["email"]],
+                body=notification["message"],
+                subtype="html",
+                reply_to=[action_sender],
             )
 
-            flask.current_app.logger.debug("Sending email to {}".format(email))
-            notification["result"] = flask.current_app.extensions["mail"].send(
+            logger.debug("Sending email to {}".format(email))
+            notification["result"] = await Sanic.get_app().ctx.mail.send_message(
                 msg
             )
 
         return notification
 
-    def get_user_from_registration_token(self, token):
+    async def get_user_from_registration_token(self, token):
         """
         Gets a user based on the registration token that is supplied. Verifies
         that the token is a regisration token and that the user can be properly
         retrieved
         """
-        data = self.extract_jwt_token(token, access_type=AccessType.register)
+        data = await self.extract_jwt_token(token, access_type=AccessType.register)
         user_id = data.get("id")
         PraetorianError.require_condition(
             user_id is not None,
             "Could not fetch an id from the registration token",
         )
-        user = self.user_class.identify(user_id)
+        user = await self.user_class.identify(user_id)
         PraetorianError.require_condition(
             user is not None,
             "Could not identify the user from the registration token",
         )
         return user
 
-    def validate_reset_token(self, token):
+    async def validate_reset_token(self, token):
         """
         Validates a password reset request based on the reset token
         that is supplied. Verifies that the token is a reset token
         and that the user can be properly retrieved
         """
-        data = self.extract_jwt_token(token, access_type=AccessType.reset)
+        data = await self.extract_jwt_token(token, access_type=AccessType.reset)
         user_id = data.get("id")
         PraetorianError.require_condition(
             user_id is not None,
             "Could not fetch an id from the reset token",
         )
-        user = self.user_class.identify(user_id)
+        user = await self.user_class.identify(user_id)
         PraetorianError.require_condition(
             user is not None,
             "Could not identify the user from the reset token",
@@ -1101,7 +1137,7 @@ class Praetorian:
         """
         return self.pwd_ctx.hash(raw_password)
 
-    def verify_and_update(self, user=None, password=None):
+    async def verify_and_update(self, user=None, password=None):
         """
         Validate a password hash contained in the user object is
              hashed with the defined hash scheme (PRAETORIAN_HASH_SCHEME).

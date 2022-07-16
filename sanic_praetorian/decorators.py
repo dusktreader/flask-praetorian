@@ -1,13 +1,13 @@
 import functools
 
-from flask_praetorian.exceptions import (
+from sanic_praetorian.exceptions import (
     PraetorianError,
     MissingRoleError,
     MissingToken,
 )
 
 
-from flask_praetorian.utilities import (
+from sanic_praetorian.utilities import (
     current_guard,
     add_jwt_data_to_app_context,
     app_context_has_jwt_data,
@@ -40,8 +40,8 @@ def _verify_and_add_jwt(optional=False):
 def auth_required(method):
     """
     This decorator is used to ensure that a user is authenticated before
-    being able to access a flask route. It also adds the current user to the
-    current flask context.
+    being able to access a sanic route. It also adds the current user to the
+    current sanic context.
     """
 
     @functools.wraps(method)
@@ -58,8 +58,8 @@ def auth_required(method):
 def auth_accepted(method):
     """
     This decorator is used to allow an authenticated user to be identified
-    while being able to access a flask route, and adds the current user to the
-    current flask context.
+    while being able to access a sanic route, and adds the current user to the
+    current sanic context.
     """
     @functools.wraps(method)
     def wrapper(*args, **kwargs):

@@ -1,10 +1,17 @@
-import flask_buzz
+import buzz
+
+from sanic.handlers import ErrorHandler
+
+class PraetorianErrorHandler(ErrorHandler):
+    def default(self, request, exception):
+        exception = PraetorianError(exception)
+        return super().default(request, exception)
 
 
-class PraetorianError(flask_buzz.FlaskBuzz):
+class PraetorianError(buzz.Buzz):
     """
-    Provides a custom exception class for flask-praetorian based on flask-buzz.
-    `flask-buzz on gitub <https://github.com/dusktreader/flask-buzz>`_
+    Provides a custom exception class for sanic-praetorian based on py-buzz.
+    `py-buzz on gitub <https://github.com/dusktreader/py-buzz>`_
     """
     status_code = 401
 

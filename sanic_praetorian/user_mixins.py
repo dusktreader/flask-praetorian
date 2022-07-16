@@ -1,4 +1,8 @@
-class SQLAlchemyUserMixin:
+#from sqlalchemy import select
+
+
+#class SQLAlchemyUserMixin:
+class TortoiseUserMixin:
     """
     A short-cut providing required methods and attributes for a user class
     implemented with sqlalchemy. Makes many assumptions about how the class
@@ -39,15 +43,18 @@ class SQLAlchemyUserMixin:
             return []
 
     @classmethod
-    def lookup(cls, username):
+    async def lookup(cls, username):
         """
         Provides the required classmethod ``lookup()``
         """
-        return cls.query.filter_by(username=username).one_or_none()
+        #return cls.query.filter_by(username=username).one_or_none()
+        #return select(cls).where(cls.username == username)
+        return await cls.filter(username=username).one_or_none()
 
     @classmethod
-    def identify(cls, id):
+    async def identify(cls, id):
         """
         Provides the required classmethod ``identify()``
         """
-        return cls.query.get(id)
+        #return cls.query.get(id)
+        return await cls.filter(id=id).one_or_none()

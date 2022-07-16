@@ -18,7 +18,7 @@ DEFAULT_ROLES_DISABLED = False
 DEFAULT_USER_CLASS_VALIDATION_METHOD = "is_valid"
 
 DEFAULT_CONFIRMATION_TEMPLATE = (
-    "{}/flask_praetorian/templates/registration_email.html".format(
+    "{}/sanic_praetorian/templates/registration_email.html".format(
         dirname(dirname(abspath(__file__))),
     )
 )
@@ -26,7 +26,7 @@ DEFAULT_CONFIRMATION_TEMPLATE = (
 DEFAULT_CONFIRMATION_SENDER = "you@whatever.com"
 DEFAULT_CONFIRMATION_SUBJECT = "Please confirm your registration"
 
-DEFAULT_RESET_TEMPLATE = "{}/flask_praetorian/templates/{}".format(
+DEFAULT_RESET_TEMPLATE = "{}/sanic_praetorian/templates/{}".format(
     dirname(dirname(abspath(__file__))),
     "reset_email.html",
 )
