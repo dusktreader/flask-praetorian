@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# flask-praetorian documentation build configuration file, created by
-# sphinx-quickstart on Thu Dec  8 09:38:59 2016.
+# sanic-praetorian documentation build configuration file, created by
+# sphinx-quickstart on Sat July  16 09:38:59 2022.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -70,7 +70,7 @@ release = project_metadata['version']
 
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
