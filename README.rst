@@ -14,9 +14,10 @@
  sanic-praetorian
 ******************
 
-**** WORK IN PROGRESS -- docs below are semi-correct, at best ****
-Development branch: sanic
-Working example: `tests/server.py`
+**** WORK IN PROGRESS -- docs below are semi-correct, at best ****<br />
+Development branch: sanic<br />
+Probably working branch: master<br />
+Working example: `tests/server.py`<br />
 
 ---------------------------------------------------
 Strong, Simple, and Precise security for Sanic APIs
@@ -35,9 +36,11 @@ to supply only essential functionality. Instead of trying to anticipate the
 needs of all users, *sanic-praetorian* will provide a simple and secure mechanism
 to provide security for APIs specifically.
 
+This project was heavily liftef from the awesome `Flask-Praetorian`.
+
 This extesion offers a batteries-included approach to security for your API.
 For essential security concerns for Sanic-based APIs,
-`sanic-praetorian <https://github.com/dusktreader/sanic-praetorian>`_ should
+`sanic-praetorian <https://github.com/pahrohfit/sanic-praetorian>`_ should
 supply everything you need.
 
 The *sanic-praetorian* package can be used to:
