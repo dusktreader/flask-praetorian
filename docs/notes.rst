@@ -24,7 +24,7 @@ log in again.
 Rate Limiting
 -------------
 
-There is not any sort of rate-limiting protection offered by flask-praetorian.
+There is not any sort of rate-limiting protection offered by sanic-praetorian.
 Thus, if your app does not implment such a thing, it could be vulnerable to brute
 force attacks. It's advisable that you implement some sort of system for limiting
 incorrect username/password attempts.
@@ -32,13 +32,13 @@ incorrect username/password attempts.
 Error Handling
 --------------
 
-By default, flask-praetorian will add an error handler to Flask for
+By default, sanic-praetorian will add an error handler to Sanic for
 PraetorianErrors. This error handler produces nicely formatted json responses
-with status codes that reflect the failures. The flask-praetorian package's
-custom exception type ``PraetorianError`` derives from the ``FlaskBuzz`` base
+with status codes that reflect the failures. The sanic-praetorian package's
+custom exception type ``PraetorianError`` derives from the ``pyBuzz`` base
 exception type from the
-`flask-buzz exceptions package <https://github.com/dusktreader/flask-buzz>`_.
-The flask-buzz package provides convenience methods for error handlers.
+`py-buzz exceptions package <https://github.com/dusktreader/py-buzz>`_.
+The py-buzz package provides convenience methods for error handlers.
 
 The error handling may be disabled by adding a configuration setting for
 ``DISABLE_PRAETORIAN_ERROR_HANDLER``. You may wish to do this if you want to
@@ -46,33 +46,7 @@ customize your error handling even further.
 
 For example, you may wish to have the error handler log messages about failures
 prior to returning an error response. In this case, you can still take
-advantage of flask-buzz's features to do so:
-
-.. code-block:: python
-
-   app.register_error_handler(
-       PraetorianError,
-       PraetorianError.build_error_handler(lambda e: logger.error(e.message)),
-   )
-
-Flask-Restplus compatibility
-----------------------------
-
-Flask-Restplus's error handler is not compatible with the normal Flask error
-handler. What's more, prior to Flask-Restplus 0.11.0, Flask-Restplus's error
-handler did not automatically handle derived exception classes, so you would
-need to handle each and every PraetorianError type in your handler.
-
-The
-`flask-buzz exceptions package <https://github.com/dusktreader/flask-buzz>`_
-provides a helper method for registering error handlers with flask-restplus:
-
-.. code-block:: python
-
-   PraetorianError.register_error_handler_with_flask_restplus(api)
-
-Like the normal Flask error handler, additional tasks may be passed to this
-method to be executed on the error prior to returning the response
+advantage of py-buzz's features to do so:
 
 Configuration Settings
 ----------------------
@@ -128,7 +102,7 @@ Configuration Settings
        validate that the user is active in the system.
      - ``'is_valid'``
    * - ``DISABLE_PRAETORIAN_ERROR_HANDLER``
-     - Do not register the flask error handler automatically. The user may wish
+     - Do not register the Sanic error handler automatically. The user may wish
        to configure the error handler themselves
      - ``None``
    * - ``PRAETORIAN_ROLES_DISABLED``

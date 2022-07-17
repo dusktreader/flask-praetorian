@@ -1,7 +1,7 @@
-flask-praetorian Developer Guide
+sanic-praetorian Developer Guide
 ================================
 
-This developer guide will help you get started on working on flask-praetorian
+This developer guide will help you get started on working on sanic-praetorian
 in a development environment so that you can add features and run tests
 
 Dependencies
@@ -45,9 +45,9 @@ Documentation
 readthedocs.org
 ...............
 
-Documentation for the flask-praetorian package is available on
-`readthedocs.org <http://flask-praetorian.readthedocs.io/en/latest/>`_. It is
-configured so that new documentation is generated from the flask-praetorian
+Documentation for the sanic-praetorian package is available on
+`readthedocs.org <http://sanic-praetorian.readthedocs.io/en/latest/>`_. It is
+configured so that new documentation is generated from the sanic-praetorian
 docs directory automatically whenever a new commit is pushed to the master
 branch. So, developers need not do anything to build documentation.
 
@@ -113,12 +113,12 @@ flake8
 ......
 
 The `flake8 tool <https://pypi.python.org/pypi/flake8>`_ is very useful for
-checking for compliant code style. Flake8 is included when *flask-praetorian* is
+checking for compliant code style. Flake8 is included when *sanic-praetorian* is
 installed with poetry.
 
 The flake8 tool is invoked by targeting a specific source directory::
 
-  $ poetry run flake8 flask_praetorian
+  $ poetry run flake8 sanic_praetorian
 
 Particular directories and source files may also be targeted directly
 
@@ -140,5 +140,5 @@ It is most useful to include that in your ``.vimrc`` file
 Other notes
 -----------
 
-* flask-praetorian uses the ``pendulum`` to timestamp its JWT tokens with
+* sanic-praetorian uses the ``pendulum`` to timestamp its JWT tokens with
   UTC timestamps

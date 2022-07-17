@@ -1,7 +1,7 @@
-flask_praetorian package
+sanic_praetorian package
 ========================
 
-.. automodule:: flask_praetorian
+.. automodule:: sanic_praetorian
     :members:
     :undoc-members:
     :show-inheritance:
@@ -9,26 +9,26 @@ flask_praetorian package
 Submodules
 ----------
 
-flask_praetorian.base module
+sanic_praetorian.base module
 ----------------------------
 
-.. automodule:: flask_praetorian.base
+.. automodule:: sanic_praetorian.base
     :members:
     :undoc-members:
     :show-inheritance:
 
-flask_praetorian.decorators module
+sanic_praetorian.decorators module
 ----------------------------------
 
-.. automodule:: flask_praetorian.decorators
+.. automodule:: sanic_praetorian.decorators
     :members:
     :undoc-members:
     :show-inheritance:
 
-flask_praetorian.exceptions module
+sanic_praetorian.exceptions module
 ----------------------------------
 
-.. automodule:: flask_praetorian.exceptions
+.. automodule:: sanic_praetorian.exceptions
     :members:
     :undoc-members:
     :show-inheritance:
