@@ -25,7 +25,7 @@ Installation
     python packaging
 
 Install from pypi (**not yet available**)
-.................
+.........................................
 This will install the latest release of sanic-praetorian from pypi via pip::
 
 $ pip install sanic-praetorian

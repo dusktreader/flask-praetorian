@@ -68,7 +68,7 @@ Configuration Settings
      - ``'pbkdf2_sha512'``
    * - ``JWT_ALLOWED_ALGORITHMS``
      - A list of allowed algorithms that may be used to hash the JWT. See `the
-       PyJWT docs <https://pyjwt.readthedocs.io/en/latest/algorithms.html>`_
+       PyJWT docs #algorithms <https://pyjwt.readthedocs.io/en/latest/algorithms.html>`_
        for more details.
      - ``['HS256']``
    * - ``JWT_ALGORITHM``
@@ -76,7 +76,7 @@ Configuration Settings
      - ``'HS256'``
    * - ``JWT_ACCESS_LIFESPAN``
      - The default length of time that a JWT may be used to access a protected
-       endpoint. See `the PyJWT docs
+       endpoint. See `the PyJWT docs #usage
        <https://pyjwt.readthedocs.io/en/latest/usage.html#expiration-time-claim-exp>`_
        for more details.
      - ``{'minutes': 15}``
@@ -107,6 +107,7 @@ Configuration Settings
      - ``None``
    * - ``PRAETORIAN_ROLES_DISABLED``
      - If set, role decorators will not work but rolenames will not be a required field
+     - ``None``
 
 
 .. _user-class-requirements:

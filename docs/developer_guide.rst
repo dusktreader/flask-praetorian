@@ -100,7 +100,7 @@ Useful tools
 ------------
 
 sphinx-view
-..........
+...........
 
 reStructuredText documents and sphinx documentation can be previewed as they
 are edited on your workstation using a tool called

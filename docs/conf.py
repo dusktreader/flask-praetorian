@@ -81,7 +81,8 @@ language = 'en'
 exclude_patterns = []
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+#pygments_style = 'sphinx'
+#pygments_style = 'Zenesque'
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
@@ -98,7 +99,7 @@ html_theme = 'bootstrap'
 # further.  For a list of options available for each theme, see the
 # documentation.
 
-html_theme_options = {}
+#html_theme_options = {}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -107,6 +108,7 @@ html_static_path = ['_static']
 
 # Custom sidebar templates, maps document names to template names.
 
+"""
 html_sidebars = {
     '/': [
         'side-links.html',
@@ -136,10 +138,10 @@ for (root, dirs, files) in os.walk(docs_root):
                 'side-links.html',
                 'searchbox.html',
             ]
+"""
 
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = project_metadata['name'] + 'doc'
 html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
-
