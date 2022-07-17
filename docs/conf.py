@@ -21,6 +21,9 @@ import datetime
 import toml
 import os
 
+import sphinx_bootstrap_theme
+
+
 project_root = os.path.dirname(os.path.dirname(__file__))
 project_metadata = toml.load(
     os.path.join(project_root, 'pyproject.toml')
@@ -52,9 +55,9 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-author = project_metadata['authors']
+author = project_metadata['authors'][0]
 project = project_metadata['name']
-copyright = project_metadata.get('copyright', datetime.datetime.now().year)
+copyright = str(project_metadata.get('copyright', datetime.datetime.now().year))
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -89,7 +92,7 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 
-html_theme = 'guzzle'
+html_theme = 'bootstrap'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -138,3 +141,5 @@ for (root, dirs, files) in os.walk(docs_root):
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = project_metadata['name'] + 'doc'
+html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
+

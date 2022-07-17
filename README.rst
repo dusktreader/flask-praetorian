@@ -14,10 +14,10 @@
  sanic-praetorian
 ******************
 
-**** WORK IN PROGRESS -- docs below are semi-correct, at best ****<br />
-Development branch: sanic<br />
-Probably working branch: master<br />
-Working example: `tests/server.py`<br />
+** WORK IN PROGRESS -- docs below are semi-correct, at best **
+* Development branch: sanic
+* Probably working branch: master
+* Working example: `tests/server.py`
 
 ---------------------------------------------------
 Strong, Simple, and Precise security for Sanic APIs
@@ -62,9 +62,9 @@ and python's `PassLib <http://pythonhosted.org/passlib/>`_ package.
 
 Super-quick Start
 -----------------
- - requirements: `python` versions 3.6+
- - install through pip: `$ pip install flask-praetorian`
- - minimal usage example: `example/basic.py <https://github.com/dusktreader/flask-praetorian/tree/master/example/basic.py>`_
+ - requirements: `python` versions 3.7+
+ - install through pip: `$ pip install sanic-praetorian`
+ - minimal usage example: `example/basic.py <https://github.com/pahrohfit/sanic-praetorian/tree/master/example/basic.py>`_
 
 Documentation
 -------------
