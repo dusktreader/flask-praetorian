@@ -1,6 +1,5 @@
 from sys import path as sys_path
 from os import path as os_path
-from webbrowser import get
 sys_path.insert(0, os_path.join(os_path.dirname(os_path.abspath(__file__)), ".."))
 
 import pytest
@@ -41,7 +40,7 @@ def app(tmpdir_factory):
     # Hack to do some poor code work in the app for some workarounds for broken fucntions under pytest
     sanic_app.config['PYTESTING'] = True
 
-    sanic_app.config.SUPPRESS_SEND = 1 # Don't actually send mails
+    sanic_app.config.SUPPRESS_SEND = 1  # Don't actually send mails
     _mail.init_app(sanic_app)
 
     yield sanic_app
@@ -78,24 +77,6 @@ def validating_user_class():
     This fixture simply fetches the validating user_class to be used in testing
     """
     return ValidatingUser
-
-
-@pytest.fixture(autouse=True)
-#def db_setup(app, db_session):
-def db_setup(app):
-    """
-    Prepares the testing database to hold testing data by creating the schema
-    anew for each test function and then dropping all data after the test runs
-    """
-    """
-    with app.app_context():
-        db.create_all()
-        db.session.commit()
-        yield
-        db.drop_all()
-        db.session.commit()
-    """
-    pass
 
 
 @pytest.fixture(scope="session")
@@ -139,6 +120,7 @@ def client(app):
         yield _client
 
 
+"""
 @pytest.fixture(autouse=True)
 def use_cookie(app, default_guard):
     class withCookie:
@@ -165,13 +147,13 @@ def use_cookie(app, default_guard):
             )
 
     return withCookie
+"""
 
 
 @pytest.fixture()
 def mock_users(user_class, default_guard):
 
-    logger.critical('Mock_Users has been called!')
-    async def _get_user(username: str = None, 
+    async def _get_user(username: str = None,
                         class_name: object = user_class,
                         guard_name: object = default_guard,
                         **kwargs):
@@ -185,7 +167,7 @@ def mock_users(user_class, default_guard):
             if guard_name.pwd_ctx.identify(str(kwargs['password'])):
                 password = kwargs['password']
 
-        email=kwargs.get('email', f"praetorian_{username}@mock.com")
+        email = kwargs.get('email', f"praetorian_{username}@mock.com")
 
         # TODO: This is ugly, gotta be a nicer way
         if kwargs.get('id'):
@@ -215,5 +197,4 @@ def mock_users(user_class, default_guard):
                 is_active=kwargs.get('is_active', True),
             )
 
-    
     return _get_user

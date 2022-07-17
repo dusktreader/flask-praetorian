@@ -1,6 +1,5 @@
 from sys import path as sys_path
 from os import path as os_path
-from tkinter import W
 sys_path.insert(0, os_path.join(os_path.dirname(os_path.abspath(__file__)), ".."))
 
 import sanic_praetorian
@@ -13,6 +12,7 @@ from sanic.log import logger
 from tortoise.contrib.sanic import register_tortoise
 
 from sanic_praetorian import Praetorian
+from sanic_praetorian.exceptions import PraetorianError
 from sanic_mailing import Mail
 
 
@@ -42,7 +42,6 @@ def create_app(db_path=None):
 
     sanic_app.config.FALLBACK_ERROR_FORMAT = "json"
 
-
     _guard.init_app(sanic_app, User)
     sanic_app.ctx.mail = _mail
 
@@ -56,9 +55,8 @@ def create_app(db_path=None):
         try:
             authed_user = await sanic_praetorian.current_user()
             return json({"message": "success", "user": authed_user.username})
-        except Exception as e:
-            authed_user = None
-            return json({"message": "success", "user": authed_user})
+        except PraetorianError:
+            return json({"message": "success", "user": None})
 
     @sanic_app.route("/protected")
     @sanic_praetorian.auth_required

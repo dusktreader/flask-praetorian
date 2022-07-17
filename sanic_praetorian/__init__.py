@@ -17,15 +17,15 @@ from sanic_praetorian.user_mixins import TortoiseUserMixin
 
 
 __all__ = [
-    Praetorian,
-    PraetorianError,
-    auth_required,
-    auth_accepted,
-    roles_required,
-    roles_accepted,
-    current_user,
-    current_user_id,
-    current_rolenames,
-    current_custom_claims,
-    TortoiseUserMixin,
+    "Praetorian",
+    "PraetorianError",
+    "auth_required",
+    "auth_accepted",
+    "roles_required",
+    "roles_accepted",
+    "current_user",
+    "current_user_id",
+    "current_rolenames",
+    "current_custom_claims",
+    "TortoiseUserMixin",
 ]

@@ -59,7 +59,7 @@ class TestPraetorianDecorators:
                  of the given locations: {default_guard.jwt_places}
                 """
         ).replace("\n", "")
-    
+
         assert exc_msg in response.json["message"]
         assert response.status == 401
 
@@ -100,7 +100,7 @@ class TestPraetorianDecorators:
             cookies = Cookies()
             token = await default_guard.encode_jwt_token(the_dude)
             cookies[default_guard.cookie_name] = token
-            _, response = client.get("/protected", cookies = cookies)
+            _, response = client.get("/protected", cookies=cookies)
             assert response.status == 200
 
     async def test_roles_required(self, default_guard, mock_users, client):
@@ -178,7 +178,7 @@ class TestPraetorianDecorators:
         have one of the roles listed. If one of the correct roles are not
         supplied, a 401 error occurs with an informative error message.
         """
-        
+
         the_dude = await mock_users(username='the_dude')
         _, response = client.get(
             "/protected",

@@ -15,8 +15,6 @@ from sanic_praetorian.utilities import (
     current_rolenames,
 )
 
-from sanic.log import logger
-
 
 async def _verify_and_add_jwt(request, optional=False):
     """

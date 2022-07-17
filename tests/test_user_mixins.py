@@ -17,7 +17,6 @@ class TestUserMixin:
             await mixin_guard.authenticate("the_dude", "is_undudelike")
         await the_dude.delete()
 
-
     async def test_totp(self, app, totp_user_class, mock_users):
         totp_guard = sanic_praetorian.Praetorian(app, totp_user_class)
 
@@ -62,6 +61,5 @@ class TestUserMixin:
         # good creds, missing TOTP
         _optional_the_dude = await _totp_optional_guard.authenticate("the_dude", "abides")
         assert _optional_the_dude == the_dude
-        
-        await the_dude.delete()
 
+        await the_dude.delete()

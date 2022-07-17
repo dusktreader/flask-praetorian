@@ -1203,10 +1203,10 @@ class TestPraetorian:
                                     totp=totp.to_json())
 
         # create our default test user
-        the_muggle = await mock_users(username='the_muggle',
-                                      password='human',
-                                      class_name=user_class,
-                                      guard_name=default_guard)
+        await mock_users(username='the_muggle',
+                         password='human',
+                         class_name=user_class,
+                         guard_name=default_guard)
 
         assert the_dude.totp == totp.to_json()
 
@@ -1251,9 +1251,9 @@ class TestPraetorian:
 
         # verify a missing token failure
         with pytest.raises(AuthenticationError) as e:
-            await totp_guard.authenticate_totp('the_dude', None) # Null token provided
+            await totp_guard.authenticate_totp('the_dude', None)  # Null token provided
         with pytest.raises(AuthenticationError) as e:
-            await totp_guard.authenticate('the_dude', 'abides', None) # No token provided
+            await totp_guard.authenticate('the_dude', 'abides', None)  # No token provided
         # the `authenticate` for a TOTP user, not providing `token` is a special return
         assert e.type == TOTPRequired
 

@@ -6,9 +6,8 @@ import re
 import textwrap
 import uuid
 import warnings
-import json
 
-from sanic import Sanic, request, Request
+from sanic import Sanic, Request
 from sanic.log import logger
 
 from sanic_mailing import Message
@@ -269,7 +268,6 @@ class Praetorian:
             DEFAULT_TOTP_ENFORCE,
         )
 
-
         if isinstance(self.access_lifespan, dict):
             self.access_lifespan = pendulum.duration(**self.access_lifespan)
         elif isinstance(self.access_lifespan, str):
@@ -287,10 +285,6 @@ class Praetorian:
             isinstance(self.refresh_lifespan, datetime.timedelta),
             "refresh lifespan was not configured",
         )
-
-        # TODO: Not working
-        #if not app.config.get("DISABLE_PRAETORIAN_ERROR_HANDLER"):
-        #    app.error_handler.add(PraetorianError, PraetorianError.json)
 
         self.is_testing = app.config.get("TESTING", False)
 
@@ -389,11 +383,11 @@ class Praetorian:
             call it, and use that response as the `last_counter` value.
         """
         _last_counter = None
-        if hasattr(user, 'get_cache_verify') and callable (user.get_cache_verify):
+        if hasattr(user, 'get_cache_verify') and callable(user.get_cache_verify):
             _last_counter = await user.get_cache_verify()
         verify = totp_factory.verify(token, user.totp,
                                      last_counter=_last_counter)
-        
+
         """
         Optionally, if our User model has a `cache_verify` function,
         call it, providing the good verification `counter` and `cache_seconds`
@@ -411,8 +405,9 @@ class Praetorian:
 
     async def authenticate_totp(self, username, token):
         """
-        Verifies that a TOTP validates agains the stored 
-            TOTP for that username.
+        Verifies that a TOTP validates agains the stored
+        TOTP for that username.
+
         If verification passes, the matching user instance is returned
         """
         PraetorianError.require_condition(
@@ -424,7 +419,7 @@ class Praetorian:
         If we are called from `authenticate`, we already looked up the user,
             don't waste the DB call again.
         """
-        if type(username) is not 'string':
+        if type(username) != 'string':
             user = await self.user_class.lookup(username=username)
         else:
             user = username
@@ -466,14 +461,14 @@ class Praetorian:
             ),
             "The credentials provided are missing or incorrect",
         )
-        
+
         """
-        If we provided a TOTP token in this `authenicate` call, 
+        If we provided a TOTP token in this `authenicate` call,
             or if the user is required to use TOTP, instead of
             as a seperate call to `authenticate_totp`, then lets do it here.
         Failure to provide a TOTP token, when the user is required to use
-            TOTP, results in a `TOTPRequired` Exception, and the calling 
-            application will be required to either re-call `authenticate` 
+            TOTP, results in a `TOTPRequired` Exception, and the calling
+            application will be required to either re-call `authenticate`
             with all 3 arugements, or call `authenticate_otp` directly.
         """
         if hasattr(user, 'totp') or token:
@@ -954,6 +949,7 @@ class Praetorian:
 
         Returns a dict containing the information sent, along with the
             `result` from mail send.
+
         :param: user:                     The user object to tie claim to
                                           (username, id, email, etc)
         :param: template:                 HTML Template for confirmation email.
@@ -1026,6 +1022,7 @@ class Praetorian:
 
         Returns a dict containing the information sent, along with the
             `result` from mail send.
+
         :param: email:                    The email address to attempt to
                                           send to
         :param: template:                 HTML Template for reset email.
@@ -1107,6 +1104,7 @@ class Praetorian:
 
         Returns a dict containing the information sent, along with the
             `result` from mail send.
+
         :param: email:                    The email address to use
                                           (username, id, email, etc)
         :param: user:                     The user object to tie claim to
@@ -1230,19 +1228,20 @@ class Praetorian:
     async def verify_and_update(self, user=None, password=None):
         """
         Validate a password hash contained in the user object is
-             hashed with the defined hash scheme (PRAETORIAN_HASH_SCHEME).
+        hashed with the defined hash scheme (PRAETORIAN_HASH_SCHEME).
+
         If not, raise an Exception of `LegacySchema`, unless the
-             `password` arguement is provided, in which case an attempt
-             to call `user.save()` will be made, updating the hashed
-             password to the currently desired hash scheme
-             (PRAETORIAN_HASH_SCHEME).
+        `password` arguement is provided, in which case an attempt
+        to call `user.save()` will be made, updating the hashed
+        password to the currently desired hash scheme
+        (PRAETORIAN_HASH_SCHEME).
 
         :param: user:     The user object to tie claim to
                               (username, id, email, etc). *MUST*
                               include the hashed password field,
                               defined as `user.password`
         :param: password: The user's provide password from login.
-                          If present, this is used to validate
+                              If present, this is used to validate
                               and then attempt to update with the
                               new PRAETORIAN_HASH_SCHEME scheme.
         """

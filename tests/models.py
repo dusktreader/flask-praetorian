@@ -41,7 +41,7 @@ class User(Model):
                 return None
         except DoesNotExist:
             return None
-    
+
     @classmethod
     async def identify(cls, id):
         try:

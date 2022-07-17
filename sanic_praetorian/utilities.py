@@ -5,7 +5,6 @@ import warnings
 import json
 
 from sanic import Sanic
-from sanic.log import logger
 import pendulum
 
 from sanic_praetorian.constants import RESERVED_CLAIMS
@@ -18,7 +17,7 @@ def is_valid_json(data):
     """
     try:
         return json.loads(data)
-    except ValueError as _:
+    except ValueError:
         return False
 
 
