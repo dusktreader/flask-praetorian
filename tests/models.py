@@ -83,3 +83,19 @@ class ValidatingUser(User):
 
     def is_valid(self):
         return self.is_active
+
+
+class TotpUser(User, Model, TortoiseUserMixin):
+
+    class Meta:
+        table = "TotpUser"
+
+    totp = fields.CharField(max_length=255, default=None, null=True)
+    totp_last_counter = fields.IntField(default=None, null=True)
+
+    async def cache_verify(self, counter=None, seconds=None):
+        self.totp_last_counter = counter
+        await self.save(update_fields=["totp_last_counter"])
+
+    async def get_cache_verify(self):
+        return self.totp_last_counter

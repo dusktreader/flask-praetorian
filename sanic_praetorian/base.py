@@ -6,6 +6,7 @@ import re
 import textwrap
 import uuid
 import warnings
+import json
 
 from sanic import Sanic, request, Request
 from sanic.log import logger
@@ -13,8 +14,9 @@ from sanic.log import logger
 from sanic_mailing import Message
 
 from passlib.context import CryptContext
+from passlib.totp import TOTP
 
-from sanic_praetorian.utilities import deprecated, duration_from_string
+from sanic_praetorian.utilities import deprecated, duration_from_string, is_valid_json
 
 from sanic_praetorian.exceptions import (
     AuthenticationError,
@@ -35,6 +37,7 @@ from sanic_praetorian.exceptions import (
     MisusedResetToken,
     ConfigurationError,
     PraetorianError,
+    TOTPRequired,
 )
 
 from sanic_praetorian.constants import (
@@ -63,6 +66,7 @@ from sanic_praetorian.constants import (
     REFRESH_EXPIRATION_CLAIM,
     RESERVED_CLAIMS,
     VITAM_AETERNUM,
+    DEFAULT_TOTP_ENFORCE,
     AccessType,
 )
 
@@ -83,6 +87,7 @@ class Praetorian:
         refresh_jwt_token_hook=None,
     ):
         self.pwd_ctx = None
+        self.totp_ctx = None
         self.hash_scheme = None
         self.salt = None
 
@@ -171,6 +176,9 @@ class Praetorian:
             ),
         )
 
+        # TODO: add 'issuser', at the very least
+        self.totp_ctx = TOTP.using()
+
         valid_schemes = self.pwd_ctx.schemes()
         PraetorianError.require_condition(
             self.hash_scheme in valid_schemes or self.hash_scheme is None,
@@ -256,6 +264,11 @@ class Praetorian:
             "PRAETORIAN_RESET_SUBJECT",
             DEFAULT_RESET_SUBJECT,
         )
+        self.totp_enforce = app.config.get(
+            "PRAETORIAN_TOTP_ENFORCE",
+            DEFAULT_TOTP_ENFORCE,
+        )
+
 
         if isinstance(self.access_lifespan, dict):
             self.access_lifespan = pendulum.duration(**self.access_lifespan)
@@ -360,7 +373,82 @@ class Praetorian:
 
         return user_class
 
-    async def authenticate(self, username, password):
+    async def _verify_totp(self, token, user):
+        """
+        Verifies that a plaintext password matches the hashed version of that
+        password using the stored passlib password context
+        """
+        PraetorianError.require_condition(
+            self.totp_ctx is not None,
+            "Praetorian must be initialized before this method is available",
+        )
+        totp_factory = self.totp_ctx.new()
+
+        """
+        Optionally, if a User model has a `get_cache_verify` function,
+            call it, and use that response as the `last_counter` value.
+        """
+        _last_counter = None
+        if hasattr(user, 'get_cache_verify') and callable (user.get_cache_verify):
+            _last_counter = await user.get_cache_verify()
+        verify = totp_factory.verify(token, user.totp,
+                                     last_counter=_last_counter)
+        
+        """
+        Optionally, if our User model has a `cache_verify` function,
+        call it, providing the good verification `counter` and `cache_seconds`
+        to be stored by `cache_verify` function.
+
+        This is for security against replay attacks, and should ideally be kept
+        in a cache, but can be stored in the db
+        """
+        if hasattr(verify, 'counter'):
+            if hasattr(user, 'cache_verify') and callable(user.cache_verify):
+                logger.debug('Updating `User` token verify cache')
+                await user.cache_verify(counter=verify.counter, seconds=verify.cache_seconds)
+
+        return verify
+
+    async def authenticate_totp(self, username, token):
+        """
+        Verifies that a TOTP validates agains the stored 
+            TOTP for that username.
+        If verification passes, the matching user instance is returned
+        """
+        PraetorianError.require_condition(
+            self.user_class is not None,
+            "Praetorian must be initialized before this method is available",
+        )
+
+        """
+        If we are called from `authenticate`, we already looked up the user,
+            don't waste the DB call again.
+        """
+        if type(username) is not 'string':
+            user = await self.user_class.lookup(username=username)
+        else:
+            user = username
+
+        AuthenticationError.require_condition(
+            user is not None
+            and hasattr(user, 'totp')
+            and user.totp
+            and is_valid_json(user.totp),
+            "TOTP challenge is not properly configured for this user",
+        )
+        AuthenticationError.require_condition(
+            user is not None
+            and token is not None
+            and await self._verify_totp(
+                token,
+                user,
+            ),
+            "The credentials provided are missing or incorrect",
+        )
+
+        return user
+
+    async def authenticate(self, username, password, token=None):
         """
         Verifies that a password matches the stored password for that username.
         If verification passes, the matching user instance is returned
@@ -376,8 +464,24 @@ class Praetorian:
                 password,
                 user.password,
             ),
-            "The username and/or password are incorrect",
+            "The credentials provided are missing or incorrect",
         )
+        
+        """
+        If we provided a TOTP token in this `authenicate` call, 
+            or if the user is required to use TOTP, instead of
+            as a seperate call to `authenticate_totp`, then lets do it here.
+        Failure to provide a TOTP token, when the user is required to use
+            TOTP, results in a `TOTPRequired` Exception, and the calling 
+            application will be required to either re-call `authenticate` 
+            with all 3 arugements, or call `authenticate_otp` directly.
+        """
+        if hasattr(user, 'totp') or token:
+            if token:
+                user = await self.authenticate_totp(username, token)
+            elif self.totp_enforce:
+                raise TOTPRequired("Password authentication successful -- "
+                                   f"TOTP still *required* for user '{user.username}'.")
 
         """
         If we are set to PRAETORIAN_HASH_AUTOUPDATE then check our hash
@@ -1157,8 +1261,8 @@ class Praetorian:
                 used_hash = self.pwd_ctx.identify(user.password)
                 desired_hash = self.hash_scheme
                 raise LegacyScheme(
-                    "Hash using non-current scheme '{}'."
-                    "Use '{}' instead.".format(used_hash, desired_hash)
+                    f"Hash using non-current scheme '{used_hash}'."
+                    f"Use '{desired_hash}' instead."
                 )
 
         return user

@@ -11,7 +11,7 @@ from sanic.log import logger
 from sanic_testing.reusable import ReusableClient
 from sanic.exceptions import SanicException
 
-from models import ValidatingUser, MixinUser, User
+from models import ValidatingUser, MixinUser, User, TotpUser
 from server import create_app, _guard, _mail
 
 import nest_asyncio
@@ -62,6 +62,14 @@ def mixin_user_class():
     This fixture simply fetches the mixin user_class to be used in testing
     """
     return MixinUser
+
+
+@pytest.fixture(scope="session")
+def totp_user_class():
+    """
+    This fixture simply fetches the mixin user_class to be used in testing
+    """
+    return TotpUser
 
 
 @pytest.fixture(scope="session")
@@ -188,6 +196,15 @@ def mock_users(user_class, default_guard):
                 roles=kwargs.get('roles', ""),
                 is_active=kwargs.get('is_active', True),
                 id=kwargs['id'],
+            )
+        if kwargs.get('totp'):
+            return await class_name.create(
+                username=username,
+                email=email,
+                password=password,
+                roles=kwargs.get('roles', ""),
+                is_active=kwargs.get('is_active', True),
+                totp=kwargs.get('totp'),
             )
         else:
             return await class_name.create(

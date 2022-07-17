@@ -158,3 +158,11 @@ class ConfigurationError(PraetorianError):
     There was a problem with the configuration
     """
     pass
+
+
+class TOTPRequired(AuthenticationError):
+    """
+    The user requires TOTP authentication, which was not
+        performed yet
+    """
+    pass

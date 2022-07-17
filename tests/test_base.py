@@ -5,6 +5,12 @@ import pytest
 
 from httpx import Cookies
 
+from passlib.exc import (
+    InvalidTokenError,
+    MalformedTokenError,
+    UsedTokenError,
+)
+
 from sanic_praetorian import Praetorian
 from sanic_praetorian.exceptions import (
     AuthenticationError,
@@ -20,6 +26,7 @@ from sanic_praetorian.exceptions import (
     MisusedResetToken,
     PraetorianError,
     LegacyScheme,
+    TOTPRequired,
 )
 from sanic_praetorian.constants import (
     AccessType,
@@ -1135,7 +1142,6 @@ class TestPraetorian:
 
         # create our default test user
         the_dude = await mock_users(username='fuckyou', email="fuck@you.com", password=pbkdf2_sha512_password)
-        from sanic.log import logger
 
         """
         Test the existing model as a baseline
@@ -1176,6 +1182,88 @@ class TestPraetorian:
             the_dude.username, "bcrypt_password"
         )
         assert updated_dude.password != the_dude_old_password
+
+        # put away your toys
+        await the_dude.delete()
+
+    async def test_totp(self, app, user_class, totp_user_class, mock_users, default_guard):
+        """
+        This test verifies the authenticate_totp() function, for use
+        with TOTP two factor authentication.
+        """
+
+        totp_guard = Praetorian(app, totp_user_class)
+        totp = totp_guard.totp_ctx.new()
+
+        # create our default test user
+        the_dude = await mock_users(username='the_dude',
+                                    password='abides',
+                                    class_name=totp_user_class,
+                                    guard_name=totp_guard,
+                                    totp=totp.to_json())
+
+        # create our default test user
+        the_muggle = await mock_users(username='the_muggle',
+                                      password='human',
+                                      class_name=user_class,
+                                      guard_name=default_guard)
+
+        assert the_dude.totp == totp.to_json()
+
+        # create a token for `the_dude`
+        token = totp.generate().token
+        # verify the token value is good for user `the_dude`
+        assert not the_dude.totp_last_counter
+        verify_token = totp.verify(token, the_dude.totp, last_counter=the_dude.totp_last_counter)
+        the_dude = await totp_guard.authenticate_totp('the_dude', totp.generate().token)
+
+        # test if we are updating our replay prevention cache
+        assert verify_token.counter == the_dude.totp_last_counter
+
+        # cleanup and try via `authenticate`
+        the_dude.totp_last_counter = None
+        await the_dude.save(update_fields=["totp_last_counter"])
+        assert not the_dude.totp_last_counter
+        the_dude = await totp_guard.authenticate('the_dude', 'abides', totp.generate().token)
+        assert the_dude.totp_last_counter
+
+        # verify a proper failure if TOTP not configured for user
+        with pytest.raises(AuthenticationError, match=r'TOTP challenge is not properly configured') as e:
+            await default_guard.authenticate_totp('the_muggle', 80085)
+        with pytest.raises(AuthenticationError, match=r'TOTP challenge is not properly configured') as e:
+            await default_guard.authenticate('the_muggle', 'human', 80085)
+
+        # verify a replay failure
+        with pytest.raises(UsedTokenError):
+            totp.verify(token, the_dude.totp, last_counter=the_dude.totp_last_counter)
+        with pytest.raises(UsedTokenError):
+            await totp_guard.authenticate_totp('the_dude', token)
+        with pytest.raises(UsedTokenError):
+            await totp_guard.authenticate('the_dude', 'abides', token)
+
+        # verify a bad token failure
+        with pytest.raises(InvalidTokenError):
+            totp.verify(313373, the_dude.totp, last_counter=the_dude.totp_last_counter)
+        with pytest.raises(InvalidTokenError):
+            await totp_guard.authenticate_totp('the_dude', 313373)
+        with pytest.raises(InvalidTokenError):
+            await totp_guard.authenticate('the_dude', 'abides', 313373)
+
+        # verify a missing token failure
+        with pytest.raises(AuthenticationError) as e:
+            await totp_guard.authenticate_totp('the_dude', None) # Null token provided
+        with pytest.raises(AuthenticationError) as e:
+            await totp_guard.authenticate('the_dude', 'abides', None) # No token provided
+        # the `authenticate` for a TOTP user, not providing `token` is a special return
+        assert e.type == TOTPRequired
+
+        # verify an invalid format token failure
+        with pytest.raises(MalformedTokenError):
+            totp.verify(8008135, the_dude.totp, last_counter=the_dude.totp_last_counter)
+        with pytest.raises(MalformedTokenError):
+            await totp_guard.authenticate_totp('the_dude', 8008135)
+        with pytest.raises(MalformedTokenError):
+            await totp_guard.authenticate('the_dude', 'abides', 8008135)
 
         # put away your toys
         await the_dude.delete()
