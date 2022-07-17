@@ -33,4 +33,10 @@ sanic_praetorian.exceptions module
     :undoc-members:
     :show-inheritance:
 
+sanic_praetorian.constants module
+----------------------------------
 
+.. automodule:: sanic_praetorian.constants
+    :members:
+    :undoc-members:
+    :show-inheritance:
