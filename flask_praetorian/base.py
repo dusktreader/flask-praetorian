@@ -41,6 +41,7 @@ from flask_praetorian.constants import (
     DEFAULT_JWT_ALLOWED_ALGORITHMS,
     DEFAULT_JWT_PLACES,
     DEFAULT_JWT_COOKIE_NAME,
+    DEFAULT_JWT_POST_PARAM_NAME,
     DEFAULT_JWT_HEADER_NAME,
     DEFAULT_JWT_HEADER_TYPE,
     DEFAULT_JWT_REFRESH_LIFESPAN,
@@ -204,6 +205,10 @@ class Praetorian:
         self.cookie_name = app.config.get(
             "JWT_COOKIE_NAME",
             DEFAULT_JWT_COOKIE_NAME,
+        )
+        self.post_param_name = app.config.get(
+            "JWT_POST_PARAM_NAME",
+            DEFAULT_JWT_POST_PARAM_NAME,
         )
         self.header_name = app.config.get(
             "JWT_HEADER_NAME",
@@ -714,6 +719,23 @@ class Praetorian:
         token = match.group(1)
         return token
 
+    def _unpack_post_param(self, form):
+        """
+        Unpacks a jwt token from a request post param
+        (why? see https://stackoverflow.com/a/59363326 @ 'The major caveat is...')
+        """
+        jwt_post_param = form.get(self.post_param_name)
+        MissingToken.require_condition(
+            jwt_post_param is not None,
+            "JWT token not found in post params under '{}'".format(
+                self.post_param_name
+            ),
+        )
+        return jwt_post_param
+
+    def read_token_from_post_param(self):
+        return self._unpack_post_param(flask.request.form)
+
     def read_token_from_header(self):
         """
         Unpacks a jwt token from the current flask request
@@ -836,7 +858,7 @@ class Praetorian:
                                           used
         :param: confirmation_sender:      The sender that shoudl be attached
                                           to the confirmation email. Overrides
-                                          the PRAETORIAN_CONFIRMATION_SENDER
+                                          the PRAETORIAN_CONFIRMRATION_SENDER
                                           config setting
         :param: confirmation_uri:         The uri that should be visited to
                                           complete email registration. Should
