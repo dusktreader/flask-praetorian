@@ -14,7 +14,7 @@ to supply only essential functionality. Instead of trying to anticipate the
 needs of all users, *flask-praetorian* will provide a simple and secure mechanism
 to provide security for APIs specifically.
 
-This extesion offers a batteries-included approach to security for your API.
+This extension offers a batteries-included approach to security for your API.
 For essential security concerns for Flask-based APIs,
 `flask-praetorian <https://github.com/dusktreader/flask-praetorian>`_ should
 supply everything you need.
