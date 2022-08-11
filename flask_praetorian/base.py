@@ -346,7 +346,7 @@ class Praetorian:
                 textwrap.dedent(
                     """
                     Instances of user_class must have a password attribute:
-                    user_instance.rolenames -> <hashed password>
+                    user_instance.password -> <hashed password>
                     """
                 ),
             )
