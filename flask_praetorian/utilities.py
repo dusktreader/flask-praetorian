@@ -65,7 +65,7 @@ def app_context_has_jwt_data():
     """
     Checks if there is already jwt_data added to the app context
     """
-    return hasattr(flask._app_ctx_stack.top, 'jwt_data')
+    return hasattr(flask.g, '_flask_praetorian_jwt_data')
 
 
 def add_jwt_data_to_app_context(jwt_data):
@@ -73,16 +73,16 @@ def add_jwt_data_to_app_context(jwt_data):
     Adds a dictionary of jwt data (presumably unpacked from a token) to the
     top of the flask app's context
     """
-    ctx = flask._app_ctx_stack.top
-    ctx.jwt_data = jwt_data
+    ctx = flask.g
+    ctx._flask_praetorian_jwt_data = jwt_data
 
 
 def get_jwt_data_from_app_context():
     """
     Fetches a dict of jwt token data from the top of the flask app's context
     """
-    ctx = flask._app_ctx_stack.top
-    jwt_data = getattr(ctx, 'jwt_data', None)
+    ctx = flask.g
+    jwt_data = getattr(ctx, '_flask_praetorian_jwt_data', None)
     PraetorianError.require_condition(
         jwt_data is not None,
         """
@@ -97,9 +97,9 @@ def remove_jwt_data_from_app_context():
     """
     Removes the dict of jwt token data from the top of the flask app's context
     """
-    ctx = flask._app_ctx_stack.top
+    ctx = flask.g
     if app_context_has_jwt_data():
-        del ctx.jwt_data
+        del ctx._flask_praetorian_jwt_data
 
 
 def current_user_id():
