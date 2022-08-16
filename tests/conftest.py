@@ -66,7 +66,7 @@ class ValidatingUser(User):
     __mapper_args__ = {"concrete": True}
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def app(tmpdir_factory):
     """
     Initializes the flask app for the test suite. Also prepares a set of routes
