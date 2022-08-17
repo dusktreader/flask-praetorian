@@ -39,9 +39,9 @@ class TestPraetorianUtilities:
         """
         jwt_data = {'a': 1}
         add_jwt_data_to_app_context(jwt_data)
-        assert flask._app_ctx_stack.top.jwt_data == jwt_data
+        assert flask.g._flask_praetorian_jwt_data == jwt_data
         remove_jwt_data_from_app_context()
-        assert not hasattr(flask._app_ctx_stack.top, 'jwt_data')
+        assert not hasattr(flask.g, '_flask_praetorian_jwt_data')
         remove_jwt_data_from_app_context()
 
     def test_current_user_id(self, user_class, db, default_guard):
