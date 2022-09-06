@@ -106,7 +106,7 @@ def login():
 def refresh():
     """
     Refreshes an existing JWT by creating a new one that is a copy of the old
-    except that it has a refrehsed access expiration.
+    except that it has a refreshed access expiration.
     .. example::
        $ curl http://localhost:5000/refresh -X GET \
          -H "Authorization: Bearer <your_token>"

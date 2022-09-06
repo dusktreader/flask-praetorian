@@ -77,7 +77,7 @@ Code contributions should follow best-practices where possible. Use the
 `Zen of Python <https://www.python.org/dev/peps/pep-0020/>`_ as a guideline.
 All code must stick to pep8 style guidelines.
 
-Adding addtional dependencies should be limited except where needed
+Adding additional dependencies should be limited except where needed
 functionality can be easily added through pip packages. Please include
 dependencies that are only applicable to development and testing in the
 dev dependency list. Packages should only be added to the dependency lists if::
