@@ -22,7 +22,7 @@ flask-jwt
 
 The `flask-jwt <https://github.com/mattupstate/flask-jwt>`_ extension was one of
 the original jwt based flask security extensions. It was a mostly fully featured
-securtiy package, and it was highly opinionated. This was the package that the
+security package, and it was highly opinionated. This was the package that the
 precursor to flask-praetorian sought to use. However functionality was limited,
 and while a solution to one particular issue was being pursued, it became
 apparent that flask-jwt had been abandoned.
@@ -95,7 +95,7 @@ This package was the original inspiration for flask-praetorian. It is a fully-
 featured security extension for flask and offers some of the same features as
 flask-praetorian like password verification, role based access, and others.
 However, this extension is meant to be used for flask websites and includes
-wtform components and other things that are not neeeded for flask-based APIs.
+wtform components and other things that are not needed for flask-based APIs.
 Including all the extra stuff is both cumbersome and unnecessary in an API.
 The flask-praetorian extension intends to be a similar batteries-included
 package while offering a simple API with a full set of security tools.

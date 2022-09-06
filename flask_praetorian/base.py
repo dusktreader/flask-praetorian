@@ -461,7 +461,7 @@ class Praetorian:
         :param: override_access_lifespan:  Override's the instance's access
                                            lifespan to set a custom duration
                                            after which the new token's
-                                           accessability will expire. May not
+                                           accessibility will expire. May not
                                            exceed the refresh_lifespan
         :param: override_refresh_lifespan: Override's the instance's refresh
                                            lifespan to set a custom duration
@@ -557,7 +557,7 @@ class Praetorian:
         :param: override_access_lifespan:  Override's the instance's access
                                            lifespan to set a custom duration
                                            after which the new token's
-                                           accessability will expire. May not
+                                           accessibility will expire. May not
                                            exceed the refresh lifespan
         """
         moment = pendulum.now("UTC")
@@ -792,7 +792,7 @@ class Praetorian:
         :param: override_access_lifespan:  Override's the instance's access
                                            lifespan to set a custom duration
                                            after which the new token's
-                                           accessability will expire. May not
+                                           accessibility will expire. May not
                                            exceed the refresh_lifespan
         :param: override_refresh_lifespan: Override's the instance's refresh
                                            lifespan to set a custom duration
@@ -1106,7 +1106,7 @@ class Praetorian:
         Validate a password hash contained in the user object is
              hashed with the defined hash scheme (PRAETORIAN_HASH_SCHEME).
         If not, raise an Exception of `LegacySchema`, unless the
-             `password` arguement is provided, in which case an attempt
+             `password` argument is provided, in which case an attempt
              to call `user.save()` will be made, updating the hashed
              password to the currently desired hash scheme
              (PRAETORIAN_HASH_SCHEME).
