@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Unreleased
 ----------
+
+v1.4.0 - 2022-09-20
+-------------------
 - Dropped support for Python 3.6
 - Use ``flask.g`` for storing JWT info, as ``flask._app_ctx_stack`` is now deprecated:
   https://flask.palletsprojects.com/en/2.2.x/changes/#version-2-2-0
