@@ -33,5 +33,5 @@ toml = "^0.10.0"
 plummet = {version = "^0.2.1", extras = ["time-machine"]}
 
 [build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
