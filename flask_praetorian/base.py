@@ -171,7 +171,7 @@ class Praetorian:
             ),
         )
 
-        self.user_class = self._validate_user_class(user_class)
+        self.user_class = self._validate_user_class(app, user_class)
         self.is_blacklisted = is_blacklisted or (lambda t: False)
         self.encode_jwt_token_hook = encode_jwt_token_hook
         self.refresh_jwt_token_hook = refresh_jwt_token_hook
@@ -280,7 +280,7 @@ class Praetorian:
 
         return app
 
-    def _validate_user_class(self, user_class):
+    def _validate_user_class(self, app, user_class):
         """
         Validates the supplied user_class to make sure that it has the
         class methods and attributes necessary to function correctly.
@@ -318,7 +318,7 @@ class Praetorian:
         try:
             dummy_user = user_class()
         except Exception:
-            flask.current_app.logger.debug(
+            app.logger.debug(
                 "Skipping instance validation because "
                 "user cannot be instantiated without arguments"
             )

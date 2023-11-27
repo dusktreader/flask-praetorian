@@ -85,7 +85,7 @@ class TestPraetorian:
         user_class,
         default_guard,
     ):
-        assert default_guard._validate_user_class(user_class)
+        assert default_guard._validate_user_class(app, user_class)
 
     def test__validate_user_class__fails_if_class_has_no_lookup_classmethod(
         self,
@@ -98,7 +98,7 @@ class TestPraetorian:
                 pass
 
         with pytest.raises(PraetorianError) as err_info:
-            default_guard._validate_user_class(NoLookupUser)
+            default_guard._validate_user_class(app, NoLookupUser)
         assert "must have a lookup class method" in err_info.value.message
 
     def test__validate_user_class__fails_if_class_has_no_identify_classmethod(
@@ -112,7 +112,7 @@ class TestPraetorian:
                 pass
 
         with pytest.raises(PraetorianError) as err_info:
-            default_guard._validate_user_class(NoIdentifyUser)
+            default_guard._validate_user_class(app, NoIdentifyUser)
         assert "must have an identify class method" in err_info.value.message
 
     def test__validate_user_class__fails_if_class_has_no_identity_attribute(
@@ -133,7 +133,7 @@ class TestPraetorian:
                 pass
 
         with pytest.raises(PraetorianError) as err_info:
-            default_guard._validate_user_class(NoIdentityUser)
+            default_guard._validate_user_class(app, NoIdentityUser)
         assert "must have an identity attribute" in err_info.value.message
 
     def test__validate_user_class__fails_if_class_has_no_rolenames_attribute(
@@ -154,7 +154,7 @@ class TestPraetorian:
                 pass
 
         with pytest.raises(PraetorianError) as err_info:
-            default_guard._validate_user_class(NoRolenamesUser)
+            default_guard._validate_user_class(app, NoRolenamesUser)
         assert "must have a rolenames attribute" in err_info.value.message
 
     def test__validate_user_class__skips_rolenames_check_if_roles_are_disabled(
@@ -176,7 +176,7 @@ class TestPraetorian:
 
         app.config["PRAETORIAN_ROLES_DISABLED"] = True
         guard = Praetorian(app, user_class)
-        assert guard._validate_user_class(NoRolenamesUser)
+        assert guard._validate_user_class(app, NoRolenamesUser)
 
     def test__validate_user_class__fails_if_class_has_no_password_attribute(
         self,
@@ -196,7 +196,7 @@ class TestPraetorian:
                 pass
 
         with pytest.raises(PraetorianError) as err_info:
-            default_guard._validate_user_class(NoPasswordUser)
+            default_guard._validate_user_class(app, NoPasswordUser)
         assert "must have a password attribute" in err_info.value.message
 
     def test__validate_user_class__skips_inst_check_if_constructor_req_params(
@@ -216,7 +216,7 @@ class TestPraetorian:
             def lookup(cls, username):
                 pass
 
-        assert default_guard._validate_user_class(EmptyInitBlowsUpUser)
+        assert default_guard._validate_user_class(app, EmptyInitBlowsUpUser)
 
     def test__validate_jwt_data__fails_when_missing_jti(
         self,
