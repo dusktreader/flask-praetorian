@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Unreleased
 ----------
+- Dropped support for Python 3.7
+- Added support for Python 3.11 and 3.12
+- Updated poetry build backend
+- Replaced flake8 with ruff
 
 v1.4.0 - 2022-09-20
 -------------------

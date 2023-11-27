@@ -434,9 +434,7 @@ class Praetorian:
             user is not None,
             "Could not find the requested user",
         )
-        user_validate_method = getattr(
-            user, self.user_class_validation_method, None
-        )
+        user_validate_method = getattr(user, self.user_class_validation_method, None)
         if user_validate_method is None:
             return
         InvalidUserError.require_condition(
@@ -452,7 +450,7 @@ class Praetorian:
         bypass_user_check=False,
         is_registration_token=False,
         is_reset_token=False,
-        **custom_claims
+        **custom_claims,
     ):
         """
         Encodes user data into a jwt token that can be used for authorization
@@ -541,7 +539,7 @@ class Praetorian:
             user,
             override_access_lifespan=VITAM_AETERNUM,
             override_refresh_lifespan=VITAM_AETERNUM,
-            **custom_claims
+            **custom_claims,
         )
 
     def refresh_jwt_token(self, token, override_access_lifespan=None):
@@ -576,9 +574,7 @@ class Praetorian:
             refresh_expiration,
         )
 
-        custom_claims = {
-            k: v for (k, v) in data.items() if k not in RESERVED_CLAIMS
-        }
+        custom_claims = {k: v for (k, v) in data.items() if k not in RESERVED_CLAIMS}
         payload_parts = {
             "iat": moment.int_timestamp,
             "exp": access_expiration,
@@ -727,9 +723,7 @@ class Praetorian:
         jwt_cookie = cookies.get(self.cookie_name)
         MissingToken.require_condition(
             jwt_cookie is not None,
-            "JWT token not found in cookie under '{}'".format(
-                self.cookie_name
-            ),
+            "JWT token not found in cookie under '{}'".format(self.cookie_name),
         )
         return jwt_cookie
 
@@ -783,7 +777,7 @@ class Praetorian:
         user,
         override_access_lifespan=None,
         override_refresh_lifespan=None,
-        **custom_claims
+        **custom_claims,
     ):
         """
         Encodes a jwt token and packages it into a header dict for a given user
@@ -807,7 +801,7 @@ class Praetorian:
             user,
             override_access_lifespan=override_access_lifespan,
             override_refresh_lifespan=override_refresh_lifespan,
-            **custom_claims
+            **custom_claims,
         )
         return {self.header_name: self.header_type + " " + token}
 
@@ -863,9 +857,7 @@ class Praetorian:
         sender = confirmation_sender or self.confirmation_sender
 
         flask.current_app.logger.debug(
-            "Generating token with lifespan: {}".format(
-                override_access_lifespan
-            )
+            "Generating token with lifespan: {}".format(override_access_lifespan)
         )
         custom_token = self.encode_jwt_token(
             user,
@@ -941,9 +933,7 @@ class Praetorian:
         )
 
         flask.current_app.logger.debug(
-            "Generating token with lifespan: {}".format(
-                override_access_lifespan
-            )
+            "Generating token with lifespan: {}".format(override_access_lifespan)
         )
         custom_token = self.encode_jwt_token(
             user,
@@ -1042,9 +1032,7 @@ class Praetorian:
             )
 
             flask.current_app.logger.debug("Sending email to {}".format(email))
-            notification["result"] = flask.current_app.extensions["mail"].send(
-                msg
-            )
+            notification["result"] = flask.current_app.extensions["mail"].send(msg)
 
         return notification
 
@@ -1135,8 +1123,9 @@ class Praetorian:
                 used_hash = self.pwd_ctx.identify(user.password)
                 desired_hash = self.hash_scheme
                 raise LegacyScheme(
-                    "Hash using non-current scheme '{}'."
-                    "Use '{}' instead.".format(used_hash, desired_hash)
+                    "Hash using non-current scheme '{}'." "Use '{}' instead.".format(
+                        used_hash, desired_hash
+                    )
                 )
 
         return user

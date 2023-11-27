@@ -26,6 +26,6 @@ jobs:
       - name: test
         run: poetry run pytest tests
       - name: lint-src
-        run: poetry run flake8 flask_praetorian
+        run: poetry run ruff flask_praetorian
       - name: lint-tests
-        run: poetry run flake8 tests
+        run: poetry run ruff tests

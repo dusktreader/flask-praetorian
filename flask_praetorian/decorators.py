@@ -61,6 +61,7 @@ def auth_accepted(method):
     while being able to access a flask route, and adds the current user to the
     current flask context.
     """
+
     @functools.wraps(method)
     def wrapper(*args, **kwargs):
         _verify_and_add_jwt(optional=True)
@@ -68,6 +69,7 @@ def auth_accepted(method):
             return method(*args, **kwargs)
         finally:
             remove_jwt_data_from_app_context()
+
     return wrapper
 
 
@@ -90,8 +92,9 @@ def roles_required(*required_rolenames):
             try:
                 MissingRoleError.require_condition(
                     current_rolenames().issuperset(role_set),
-                    "This endpoint requires all the following roles: "
-                    "{}".format([", ".join(role_set)]),
+                    "This endpoint requires all the following roles: " "{}".format(
+                        [", ".join(role_set)]
+                    ),
                 )
                 return method(*args, **kwargs)
             finally:
@@ -121,8 +124,9 @@ def roles_accepted(*accepted_rolenames):
             try:
                 MissingRoleError.require_condition(
                     not current_rolenames().isdisjoint(role_set),
-                    "This endpoint requires one of the following roles: "
-                    "{}".format([", ".join(role_set)]),
+                    "This endpoint requires one of the following roles: " "{}".format(
+                        [", ".join(role_set)]
+                    ),
                 )
                 return method(*args, **kwargs)
             finally:
