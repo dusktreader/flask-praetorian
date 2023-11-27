@@ -11,7 +11,7 @@ repository = "https://github.com/dusktreader/flask-praetorian"
 
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
 pyjwt = "^2.0"
 pendulum = "^2.1"
 passlib = "^1.7"
