@@ -4,15 +4,13 @@ Quickstart
 Requirements
 ------------
 
-* Python 3.6+
+* Python 3.8+
 
 Note on Requirements
 ....................
 
-I do not currently plan to support older versions of python. Python 2 support
-is very unlikely to arrive as the original author is a die-hard believer in
-python 3. As for older versions of python 3, my test harnesses depend on some
-features only available in python 3.4 and up.
+This project is only mantained for python versions that have not reached their
+end-of-life. It may work with older versions, but functionality is not checked.
 
 Installation
 ------------

@@ -85,7 +85,7 @@ class TestPraetorian:
         user_class,
         default_guard,
     ):
-        assert default_guard._validate_user_class(user_class)
+        assert default_guard._validate_user_class(app, user_class)
 
     def test__validate_user_class__fails_if_class_has_no_lookup_classmethod(
         self,
@@ -98,7 +98,7 @@ class TestPraetorian:
                 pass
 
         with pytest.raises(PraetorianError) as err_info:
-            default_guard._validate_user_class(NoLookupUser)
+            default_guard._validate_user_class(app, NoLookupUser)
         assert "must have a lookup class method" in err_info.value.message
 
     def test__validate_user_class__fails_if_class_has_no_identify_classmethod(
@@ -112,7 +112,7 @@ class TestPraetorian:
                 pass
 
         with pytest.raises(PraetorianError) as err_info:
-            default_guard._validate_user_class(NoIdentifyUser)
+            default_guard._validate_user_class(app, NoIdentifyUser)
         assert "must have an identify class method" in err_info.value.message
 
     def test__validate_user_class__fails_if_class_has_no_identity_attribute(
@@ -133,7 +133,7 @@ class TestPraetorian:
                 pass
 
         with pytest.raises(PraetorianError) as err_info:
-            default_guard._validate_user_class(NoIdentityUser)
+            default_guard._validate_user_class(app, NoIdentityUser)
         assert "must have an identity attribute" in err_info.value.message
 
     def test__validate_user_class__fails_if_class_has_no_rolenames_attribute(
@@ -154,7 +154,7 @@ class TestPraetorian:
                 pass
 
         with pytest.raises(PraetorianError) as err_info:
-            default_guard._validate_user_class(NoRolenamesUser)
+            default_guard._validate_user_class(app, NoRolenamesUser)
         assert "must have a rolenames attribute" in err_info.value.message
 
     def test__validate_user_class__skips_rolenames_check_if_roles_are_disabled(
@@ -176,7 +176,7 @@ class TestPraetorian:
 
         app.config["PRAETORIAN_ROLES_DISABLED"] = True
         guard = Praetorian(app, user_class)
-        assert guard._validate_user_class(NoRolenamesUser)
+        assert guard._validate_user_class(app, NoRolenamesUser)
 
     def test__validate_user_class__fails_if_class_has_no_password_attribute(
         self,
@@ -196,7 +196,7 @@ class TestPraetorian:
                 pass
 
         with pytest.raises(PraetorianError) as err_info:
-            default_guard._validate_user_class(NoPasswordUser)
+            default_guard._validate_user_class(app, NoPasswordUser)
         assert "must have a password attribute" in err_info.value.message
 
     def test__validate_user_class__skips_inst_check_if_constructor_req_params(
@@ -216,7 +216,7 @@ class TestPraetorian:
             def lookup(cls, username):
                 pass
 
-        assert default_guard._validate_user_class(EmptyInitBlowsUpUser)
+        assert default_guard._validate_user_class(app, EmptyInitBlowsUpUser)
 
     def test__validate_jwt_data__fails_when_missing_jti(
         self,
@@ -274,9 +274,7 @@ class TestPraetorian:
         }
         with pytest.raises(MissingClaimError) as err_info:
             guard._validate_jwt_data(data, AccessType.access)
-        assert "missing {}".format(REFRESH_EXPIRATION_CLAIM) in str(
-            err_info.value
-        )
+        assert "missing {}".format(REFRESH_EXPIRATION_CLAIM) in str(err_info.value)
 
     def test__validate_jwt_data__fails_when_access_has_expired(
         self,
@@ -292,7 +290,7 @@ class TestPraetorian:
                 "2017-05-21 20:54:30"
             ).int_timestamp,
         }
-        with plummet.frozen_time('2017-05-21 19:54:32'):
+        with plummet.frozen_time("2017-05-21 19:54:32"):
             with pytest.raises(ExpiredAccessError):
                 guard._validate_jwt_data(data, AccessType.access)
 
@@ -310,7 +308,7 @@ class TestPraetorian:
                 "2017-05-21 20:54:30"
             ).int_timestamp,
         }
-        with plummet.frozen_time('2017-05-21 19:54:28'):
+        with plummet.frozen_time("2017-05-21 19:54:28"):
             with pytest.raises(EarlyRefreshError):
                 guard._validate_jwt_data(data, AccessType.refresh)
 
@@ -328,7 +326,7 @@ class TestPraetorian:
                 "2017-05-21 20:54:30"
             ).int_timestamp,
         }
-        with plummet.frozen_time('2017-05-21 20:54:32'):
+        with plummet.frozen_time("2017-05-21 20:54:32"):
             with pytest.raises(ExpiredRefreshError):
                 guard._validate_jwt_data(data, AccessType.refresh)
 
@@ -347,7 +345,7 @@ class TestPraetorian:
             ).int_timestamp,
             IS_REGISTRATION_TOKEN_CLAIM: True,
         }
-        with plummet.frozen_time('2017-05-21 19:54:28'):
+        with plummet.frozen_time("2017-05-21 19:54:28"):
             with pytest.raises(MisusedRegistrationToken):
                 guard._validate_jwt_data(data, AccessType.access)
 
@@ -366,7 +364,7 @@ class TestPraetorian:
             ).int_timestamp,
             IS_REGISTRATION_TOKEN_CLAIM: True,
         }
-        with plummet.frozen_time('2017-05-21 19:54:32'):
+        with plummet.frozen_time("2017-05-21 19:54:32"):
             with pytest.raises(MisusedRegistrationToken):
                 guard._validate_jwt_data(data, AccessType.refresh)
 
@@ -385,7 +383,7 @@ class TestPraetorian:
             ).int_timestamp,
             IS_RESET_TOKEN_CLAIM: True,
         }
-        with plummet.frozen_time('2017-05-21 19:54:28'):
+        with plummet.frozen_time("2017-05-21 19:54:28"):
             with pytest.raises(MisusedResetToken):
                 guard._validate_jwt_data(data, AccessType.access)
 
@@ -403,7 +401,7 @@ class TestPraetorian:
                 "2017-05-21 20:54:30"
             ).int_timestamp,
         }
-        with plummet.frozen_time('2017-05-21 19:54:28'):
+        with plummet.frozen_time("2017-05-21 19:54:28"):
             guard._validate_jwt_data(data, AccessType.access)
 
     def test__validate_jwt_data__succeeds_when_refreshing(
@@ -420,7 +418,7 @@ class TestPraetorian:
                 "2017-05-21 20:54:30"
             ).int_timestamp,
         }
-        with plummet.frozen_time('2017-05-21 19:54:32'):
+        with plummet.frozen_time("2017-05-21 19:54:32"):
             guard._validate_jwt_data(data, AccessType.refresh)
 
     def test__validate_jwt_data__succeeds_when_registering(
@@ -438,7 +436,7 @@ class TestPraetorian:
             ).int_timestamp,
             IS_REGISTRATION_TOKEN_CLAIM: True,
         }
-        with plummet.frozen_time('2017-05-21 19:54:28'):
+        with plummet.frozen_time("2017-05-21 19:54:28"):
             guard._validate_jwt_data(data, AccessType.register)
 
     def test_encode_jwt_token(self, app, user_class, validating_user_class):
@@ -463,7 +461,7 @@ class TestPraetorian:
             password=guard.hash_password("abides"),
             roles="admin,operator",
         )
-        moment = plummet.momentize('2017-05-21 18:39:55')
+        moment = plummet.momentize("2017-05-21 18:39:55")
         with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(the_dude)
             token_data = jwt.decode(
@@ -485,7 +483,7 @@ class TestPraetorian:
 
         override_access_lifespan = pendulum.Duration(minutes=1)
         override_refresh_lifespan = pendulum.Duration(hours=1)
-        moment = plummet.momentize('2017-05-21 18:39:55')
+        moment = plummet.momentize("2017-05-21 18:39:55")
         with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(
                 the_dude,
@@ -499,8 +497,7 @@ class TestPraetorian:
             )
             assert token_data["iat"] == moment.int_timestamp
             assert (
-                token_data["exp"]
-                == (moment + override_access_lifespan).int_timestamp
+                token_data["exp"] == (moment + override_access_lifespan).int_timestamp
             )
             assert (
                 token_data[REFRESH_EXPIRATION_CLAIM]
@@ -511,7 +508,7 @@ class TestPraetorian:
 
         override_access_lifespan = pendulum.Duration(hours=1)
         override_refresh_lifespan = pendulum.Duration(minutes=1)
-        moment = plummet.momentize('2017-05-21 18:39:55')
+        moment = plummet.momentize("2017-05-21 18:39:55")
         with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(
                 the_dude,
@@ -545,7 +542,7 @@ class TestPraetorian:
         expected_message = "The user is not valid or has had access revoked"
         assert expected_message in str(err_info.value)
 
-        moment = plummet.momentize('2018-08-18 08:55:12')
+        moment = plummet.momentize("2018-08-18 08:55:12")
         with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(
                 the_dude,
@@ -588,7 +585,7 @@ class TestPraetorian:
             password=guard.hash_password("abides"),
             roles="admin,operator",
         )
-        moment = plummet.momentize('2017-05-21 18:39:55')
+        moment = plummet.momentize("2017-05-21 18:39:55")
         with plummet.frozen_time(moment):
             token = guard.encode_eternal_jwt_token(the_dude)
             token_data = jwt.decode(
@@ -640,7 +637,7 @@ class TestPraetorian:
         db.session.add(the_dude)
         db.session.commit()
 
-        moment = plummet.momentize('2017-05-21 18:39:55')
+        moment = plummet.momentize("2017-05-21 18:39:55")
         with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(the_dude)
         new_moment = (
@@ -668,7 +665,7 @@ class TestPraetorian:
             assert new_token_data["rls"] == "admin,operator"
 
         moment = plummet.momentize("2017-05-21 18:39:55")
-        with plummet.frozen_time('2017-05-21 18:39:55'):
+        with plummet.frozen_time("2017-05-21 18:39:55"):
             token = guard.encode_jwt_token(the_dude)
         new_moment = (
             pendulum.parse("2017-05-21 18:39:55")
@@ -690,7 +687,7 @@ class TestPraetorian:
                 == (new_moment + pendulum.Duration(hours=2)).int_timestamp
             )
 
-        moment = plummet.momentize('2017-05-21 18:39:55')
+        moment = plummet.momentize("2017-05-21 18:39:55")
         with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(
                 the_dude,
@@ -708,14 +705,9 @@ class TestPraetorian:
                 guard.encode_key,
                 algorithms=guard.allowed_algorithms,
             )
-            assert (
-                new_token_data["exp"]
-                == new_token_data[REFRESH_EXPIRATION_CLAIM]
-            )
+            assert new_token_data["exp"] == new_token_data[REFRESH_EXPIRATION_CLAIM]
 
-        expiring_interval = DEFAULT_JWT_ACCESS_LIFESPAN + pendulum.Duration(
-            minutes=1
-        )
+        expiring_interval = DEFAULT_JWT_ACCESS_LIFESPAN + pendulum.Duration(minutes=1)
         validating_guard = Praetorian(app, validating_user_class)
         brandt = validating_user_class(
             username="brandt",
@@ -724,7 +716,7 @@ class TestPraetorian:
         )
         db.session.add(brandt)
         db.session.commit()
-        moment = plummet.momentize('2017-05-21 18:39:55')
+        moment = plummet.momentize("2017-05-21 18:39:55")
         with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(brandt)
         new_moment = moment + expiring_interval
@@ -740,9 +732,7 @@ class TestPraetorian:
         expected_message = "The user is not valid or has had access revoked"
         assert expected_message in str(err_info.value)
 
-        expiring_interval = DEFAULT_JWT_ACCESS_LIFESPAN + pendulum.Duration(
-            minutes=1
-        )
+        expiring_interval = DEFAULT_JWT_ACCESS_LIFESPAN + pendulum.Duration(minutes=1)
         guard = Praetorian(app, user_class)
         bunny = user_class(
             username="bunny",
@@ -750,7 +740,7 @@ class TestPraetorian:
         )
         db.session.add(bunny)
         db.session.commit()
-        moment = plummet.momentize('2017-05-21 18:39:55')
+        moment = plummet.momentize("2017-05-21 18:39:55")
         with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(bunny)
         db.session.delete(bunny)
@@ -762,7 +752,7 @@ class TestPraetorian:
         expected_message = "Could not find the requested user"
         assert expected_message in str(err_info.value)
 
-        moment = plummet.momentize('2018-08-14 09:05:24')
+        moment = plummet.momentize("2018-08-14 09:05:24")
         with plummet.frozen_time(moment):
             token = guard.encode_jwt_token(
                 the_dude,
@@ -810,7 +800,7 @@ class TestPraetorian:
         db.session.add(the_dude)
         db.session.commit()
 
-        with plummet.frozen_time('2017-05-21 18:39:55'):
+        with plummet.frozen_time("2017-05-21 18:39:55"):
             token = guard.encode_jwt_token(the_dude)
 
         client.get(
@@ -824,9 +814,7 @@ class TestPraetorian:
         assert guard.read_token_from_header() == token
         assert guard.read_token() == token
 
-    def test_read_token_from_cookie(
-        self, app, db, user_class, client, use_cookie
-    ):
+    def test_read_token_from_cookie(self, app, db, user_class, client, use_cookie):
         """
         This test verifies that a token may be properly read from a flask
         request's cookies using the configuration settings for cookie
@@ -840,7 +828,7 @@ class TestPraetorian:
         db.session.add(the_dude)
         db.session.commit()
 
-        with plummet.frozen_time('2017-05-21 18:39:55'):
+        with plummet.frozen_time("2017-05-21 18:39:55"):
             token = guard.encode_jwt_token(the_dude)
             with use_cookie(token):
                 client.get(
@@ -864,7 +852,7 @@ class TestPraetorian:
             roles="admin,operator",
         )
 
-        moment = plummet.momentize('2017-05-21 18:39:55')
+        moment = plummet.momentize("2017-05-21 18:39:55")
         with plummet.frozen_time(moment):
             header_dict = guard.pack_header_for_user(the_dude)
             token_header = header_dict.get(DEFAULT_JWT_HEADER_NAME)
@@ -888,7 +876,7 @@ class TestPraetorian:
             assert token_data["id"] == the_dude.id
             assert token_data["rls"] == "admin,operator"
 
-        moment = plummet.momentize('2017-05-21 18:39:55')
+        moment = plummet.momentize("2017-05-21 18:39:55")
         override_access_lifespan = pendulum.Duration(minutes=1)
         override_refresh_lifespan = pendulum.Duration(hours=1)
         with plummet.frozen_time(moment):
@@ -907,8 +895,7 @@ class TestPraetorian:
                 algorithms=guard.allowed_algorithms,
             )
             assert (
-                token_data["exp"]
-                == (moment + override_access_lifespan).int_timestamp
+                token_data["exp"] == (moment + override_access_lifespan).int_timestamp
             )
             assert (
                 token_data[REFRESH_EXPIRATION_CLAIM]
@@ -916,7 +903,7 @@ class TestPraetorian:
             )
             assert token_data["id"] == the_dude.id
 
-        moment = plummet.momentize('2018-08-14 09:08:39')
+        moment = plummet.momentize("2018-08-14 09:08:39")
         with plummet.frozen_time(moment):
             header_dict = guard.pack_header_for_user(
                 the_dude,
@@ -1084,16 +1071,14 @@ class TestPraetorian:
             bypass_user_check=True,
             is_registration_token=True,
         )
-        extracted_user = default_guard.get_user_from_registration_token(
-            reg_token
-        )
+        extracted_user = default_guard.get_user_from_registration_token(reg_token)
         assert extracted_user == the_dude
 
         """
            test to ensure a registration token that is expired
                sets off an 'ExpiredAccessError' exception
         """
-        with plummet.frozen_time('2019-01-30 16:30:00'):
+        with plummet.frozen_time("2019-01-30 16:30:00"):
             expired_reg_token = default_guard.encode_jwt_token(
                 the_dude,
                 bypass_user_check=True,
@@ -1101,11 +1086,9 @@ class TestPraetorian:
                 is_registration_token=True,
             )
 
-        with plummet.frozen_time('2019-01-30 16:40:00'):
+        with plummet.frozen_time("2019-01-30 16:40:00"):
             with pytest.raises(ExpiredAccessError):
-                default_guard.get_user_from_registration_token(
-                    expired_reg_token
-                )
+                default_guard.get_user_from_registration_token(expired_reg_token)
 
     def test_validate_and_update(self, app, user_class, db, default_guard):
         """
@@ -1151,9 +1134,7 @@ class TestPraetorian:
             gets the user entry's password updated and saved.
         """
         the_dude_old_password = the_dude.password
-        updated_dude = default_guard.verify_and_update(
-            the_dude, "bcrypt_password"
-        )
+        updated_dude = default_guard.verify_and_update(the_dude, "bcrypt_password")
         assert updated_dude.password != the_dude_old_password
 
         """
@@ -1222,9 +1203,7 @@ class TestPraetorian:
         the_dude_old_password = the_dude.password
         app.config["PRAETORIAN_HASH_AUTOUPDATE"] = True
         default_guard = Praetorian(app, user_class)
-        updated_dude = default_guard.authenticate(
-            the_dude.username, "bcrypt_password"
-        )
+        updated_dude = default_guard.authenticate(the_dude.username, "bcrypt_password")
         assert updated_dude.password != the_dude_old_password
 
         # put away your toys

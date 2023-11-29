@@ -11,19 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        python-version: ['3.8', '3.9', '3.10', '3.11']
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: get-poetry
-      run: pip install poetry==1.1.14
-    - name: install
-      run: poetry install
-    - name: test
-      run: poetry run pytest tests
-    - name: lint-src
-      run: poetry run flake8 flask_praetorian
-    - name: lint-tests
-      run: poetry run flake8 tests
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: 'x64'
+      - uses: Gr1N/setup-poetry@v8
+        with:
+          poetry-version: 1.4.1
+      - name: install
+        run: poetry install
+      - name: test
+        run: poetry run pytest tests
+      - name: lint-src
+        run: poetry run ruff flask_praetorian
+      - name: lint-tests
+        run: poetry run ruff tests

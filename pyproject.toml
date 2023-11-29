@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flask-praetorian"
-version = "1.4.0"
+version = "1.5.0"
 description = "Strong, Simple, and Precise security for Flask APIs (using jwt)"
 authors = ["Tucker Beck <tucker.beck@gmail.com>"]
 license = "MIT"
@@ -11,27 +11,27 @@ repository = "https://github.com/dusktreader/flask-praetorian"
 
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
 pyjwt = "^2.0"
 pendulum = "^2.1"
 passlib = "^1.7"
-flask-buzz = ">=0.1.7"
+flask-buzz = "^2.0"
 flask-mail = "^0.9.1"
 flask = ">=1.0, <3.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+flask-sqlalchemy = "^3.1"
 flask-cors = "^3.0"
-flask-sqlalchemy = "^2.3"
 pytest = "^6.2.5"
 pytest-flask = "^1.0"
 sphinx = "^1.8"
 sphinx-view = "^0.2.0"
-flake8 = "^3.7"
 bcrypt = "^3.1"
 ipdb = "^0.12.0"
 toml = "^0.10.0"
 plummet = {version = "^0.2.1", extras = ["time-machine"]}
+ruff = "^0.1.6"
 
 [build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

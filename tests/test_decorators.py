@@ -1,4 +1,3 @@
-import textwrap
 import pendulum
 import plummet
 import pytest
@@ -62,7 +61,7 @@ class TestPraetorianDecorators:
         assert response.json["user"] is None
 
         # Token is present and valid
-        with plummet.frozen_time('2017-05-24 10:38:45'):
+        with plummet.frozen_time("2017-05-24 10:38:45"):
             response = client.get(
                 "/kinda_protected",
                 headers=default_guard.pack_header_for_user(self.the_dude),
@@ -85,12 +84,7 @@ class TestPraetorianDecorators:
             headers={},
         )
 
-        exc_msg = textwrap.dedent(
-                f"""
-                Could not find token in any
-                 of the given locations: {default_guard.jwt_places}
-                """
-        ).replace("\n", "")
+        exc_msg = f"Could not find token in any of the given locations: {default_guard.jwt_places}"
 
         assert exc_msg in response.json["message"]
         assert response.status_code == 401
@@ -104,14 +98,10 @@ class TestPraetorianDecorators:
         assert response.status_code == 401
 
         # Token is expired
-        moment = pendulum.parse('2017-05-24 10:18:45')
+        moment = pendulum.parse("2017-05-24 10:18:45")
         with plummet.frozen_time(moment):
             headers = default_guard.pack_header_for_user(self.the_dude)
-        moment = (
-            moment
-            + default_guard.access_lifespan
-            + pendulum.Duration(seconds=1)
-        )
+        moment = moment + default_guard.access_lifespan + pendulum.Duration(seconds=1)
         with plummet.frozen_time(moment):
             response = client.get(
                 "/protected",
@@ -121,7 +111,7 @@ class TestPraetorianDecorators:
             assert "access permission has expired" in response.json["message"]
 
         # Token is present and valid in header or cookie
-        with plummet.frozen_time('2017-05-24 10:38:45'):
+        with plummet.frozen_time("2017-05-24 10:38:45"):
             response = client.get(
                 "/protected",
                 headers=default_guard.pack_header_for_user(self.the_dude),
@@ -150,8 +140,7 @@ class TestPraetorianDecorators:
         )
         assert response.status_code == 403
         assert (
-            "This endpoint requires all the following roles"
-            in response.json["message"]
+            "This endpoint requires all the following roles" in response.json["message"]
         )
 
         # Has one of one required roles
@@ -169,8 +158,7 @@ class TestPraetorianDecorators:
         assert response.status_code == 403
         assert MissingRoleError.__name__ in response.json["error"]
         assert (
-            "This endpoint requires all the following roles"
-            in response.json["message"]
+            "This endpoint requires all the following roles" in response.json["message"]
         )
 
         # Has two of two required roles
