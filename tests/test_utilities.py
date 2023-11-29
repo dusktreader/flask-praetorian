@@ -19,14 +19,13 @@ from flask_praetorian.exceptions import (
 
 
 class TestPraetorianUtilities:
-
     def test_app_context_has_jwt_data(self):
         """
         This test verifies that the app_context_has_jwt_data method can
         determine if jwt_data has been added to the app context yet
         """
         assert not app_context_has_jwt_data()
-        add_jwt_data_to_app_context({'a': 1})
+        add_jwt_data_to_app_context({"a": 1})
         assert app_context_has_jwt_data()
         remove_jwt_data_from_app_context()
         assert not app_context_has_jwt_data()
@@ -37,11 +36,11 @@ class TestPraetorianUtilities:
         It also verifies that attempting to remove the data if it does not
         exist there does not cause an exception
         """
-        jwt_data = {'a': 1}
+        jwt_data = {"a": 1}
         add_jwt_data_to_app_context(jwt_data)
         assert flask.g._flask_praetorian_jwt_data == jwt_data
         remove_jwt_data_from_app_context()
-        assert not hasattr(flask.g, '_flask_praetorian_jwt_data')
+        assert not hasattr(flask.g, "_flask_praetorian_jwt_data")
         remove_jwt_data_from_app_context()
 
     def test_current_user_id(self, user_class, db, default_guard):
@@ -54,9 +53,9 @@ class TestPraetorianUtilities:
         add_jwt_data_to_app_context(jwt_data)
         with pytest.raises(PraetorianError) as err_info:
             current_user()
-        assert 'Could not fetch an id' in str(err_info.value)
+        assert "Could not fetch an id" in str(err_info.value)
 
-        jwt_data = {'id': 31}
+        jwt_data = {"id": 31}
         add_jwt_data_to_app_context(jwt_data)
         assert current_user_id() == 31
 
@@ -70,21 +69,21 @@ class TestPraetorianUtilities:
         add_jwt_data_to_app_context(jwt_data)
         with pytest.raises(PraetorianError) as err_info:
             current_user()
-        assert 'Could not fetch an id' in str(err_info.value)
+        assert "Could not fetch an id" in str(err_info.value)
 
-        jwt_data = {'id': 31}
+        jwt_data = {"id": 31}
         add_jwt_data_to_app_context(jwt_data)
         with pytest.raises(PraetorianError) as err_info:
             current_user()
-        assert 'Could not identify the current user' in str(err_info.value)
+        assert "Could not identify the current user" in str(err_info.value)
 
         the_dude = user_class(
             id=13,
-            username='TheDude',
+            username="TheDude",
         )
         db.session.add(the_dude)
         db.session.commit()
-        jwt_data = {'id': 13}
+        jwt_data = {"id": 13}
         add_jwt_data_to_app_context(jwt_data)
         assert current_user() is the_dude
 
@@ -96,13 +95,13 @@ class TestPraetorianUtilities:
         """
         jwt_data = {}
         add_jwt_data_to_app_context(jwt_data)
-        assert current_rolenames() == set([
-            'non-empty-but-definitely-not-matching-subset'
-        ])
+        assert current_rolenames() == set(
+            ["non-empty-but-definitely-not-matching-subset"]
+        )
 
-        jwt_data = {'rls': 'admin,operator'}
+        jwt_data = {"rls": "admin,operator"}
         add_jwt_data_to_app_context(jwt_data)
-        assert current_rolenames() == set(['admin', 'operator'])
+        assert current_rolenames() == set(["admin", "operator"])
 
     def test_current_custom_claims(self, user_class, db, default_guard):
         """
@@ -112,14 +111,14 @@ class TestPraetorianUtilities:
         """
         jwt_data = dict(
             id=13,
-            jti='whatever',
-            duder='brief',
-            el_duderino='not brief',
+            jti="whatever",
+            duder="brief",
+            el_duderino="not brief",
         )
         add_jwt_data_to_app_context(jwt_data)
         assert current_custom_claims() == dict(
-            duder='brief',
-            el_duderino='not brief',
+            duder="brief",
+            el_duderino="not brief",
         )
 
     def test_duration_from_string_success(self):
@@ -128,19 +127,19 @@ class TestPraetorianUtilities:
         parse a duration from a string with expected formats
         """
         expected_duration = pendulum.duration(days=12, hours=1, seconds=1)
-        computed_duration = duration_from_string('12d1h1s')
+        computed_duration = duration_from_string("12d1h1s")
         assert computed_duration == expected_duration
 
         expected_duration = pendulum.duration(months=1, hours=2, minutes=3)
-        computed_duration = duration_from_string('1 Month 2 Hours 3 minutes')
+        computed_duration = duration_from_string("1 Month 2 Hours 3 minutes")
         assert computed_duration == expected_duration
 
         expected_duration = pendulum.duration(days=1, minutes=2, seconds=3)
-        computed_duration = duration_from_string('1day,2min,3sec')
+        computed_duration = duration_from_string("1day,2min,3sec")
         assert computed_duration == expected_duration
 
         expected_duration = pendulum.duration(months=1, minutes=2)
-        computed_duration = duration_from_string('1mo,2m')
+        computed_duration = duration_from_string("1mo,2m")
         assert computed_duration == expected_duration
 
     def test_duration_from_string_fails(self):
@@ -149,6 +148,6 @@ class TestPraetorianUtilities:
         ConfiguationError exception if there was a problem parsing the string
         """
         with pytest.raises(ConfigurationError):
-            duration_from_string('12x1y1z')
+            duration_from_string("12x1y1z")
         with pytest.raises(ConfigurationError):
-            duration_from_string('')
+            duration_from_string("")

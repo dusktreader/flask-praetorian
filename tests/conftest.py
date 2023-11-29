@@ -234,27 +234,24 @@ def clean_flask_app_config(app):
 
 @pytest.fixture(autouse=True)
 def use_cookie(client, default_guard):
-
     class withCookie:
         guard = default_guard
         _client = client
-        server_name = "localhost.localdomain"
 
         def __init__(self, token):
             self.token = token
 
         def __enter__(self):
             self._client.set_cookie(
-                self.server_name,
                 self.guard.cookie_name,
-                self.token,
+                value=self.token,
                 expires=None,
             )
             return self
 
         def __exit__(self, *_):
             self._client.delete_cookie(
-                self.server_name, self.guard.cookie_name
+                self.guard.cookie_name,
             )
 
     return withCookie
