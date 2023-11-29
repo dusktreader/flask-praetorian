@@ -15,8 +15,10 @@ jobs:
     - uses: actions/setup-python@v2
       with:
         python-version: 3.8.9
-    - name: get-poetry
-      run: pip install poetry==1.1.6
+        architecture: 'x64'
+    - uses: Gr1N/setup-poetry@v8
+      with:
+        poetry-version: 1.4.1
     - name: login
       run: poetry config http-basic.pypi dusktreader ${{ secrets.PYPI_PASSWORD }}
     - name: build
