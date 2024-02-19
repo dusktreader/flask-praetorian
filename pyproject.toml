@@ -17,7 +17,7 @@ pendulum = "^2.1"
 passlib = "^1.7"
 flask-buzz = "^2.0"
 flask-mail = "^0.9.1"
-flask = ">=1.0, <3.0"
+flask = ">=2.0, <4.0"
 
 [tool.poetry.group.dev.dependencies]
 flask-sqlalchemy = "^3.1"
