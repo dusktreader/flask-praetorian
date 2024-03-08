@@ -859,7 +859,7 @@ class Praetorian:
             template = fh.read()
 
         return self.send_token_email(
-            email=user.email,
+            email=email,
             template=template,
             action_sender=self.reset_sender,
             action_uri=self.reset_uri,
@@ -917,7 +917,7 @@ class Praetorian:
 
         PraetorianError.require_condition(
             action_sender,
-            "A sender is required to send a token bearking email",
+            "A sender is required to send a token bearing email",
         )
 
         PraetorianError.require_condition(
