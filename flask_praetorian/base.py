@@ -44,7 +44,6 @@ from flask_praetorian.constants import (
     DEFAULT_JWT_HEADER_NAME,
     DEFAULT_JWT_HEADER_TYPE,
     DEFAULT_JWT_REFRESH_LIFESPAN,
-    DEFAULT_JWT_RESET_LIFESPAN,
     DEFAULT_USER_CLASS_VALIDATION_METHOD,
     DEFAULT_CONFIRMATION_TEMPLATE,
     DEFAULT_CONFIRMATION_SUBJECT,
@@ -193,10 +192,6 @@ class Praetorian:
             "JWT_REFRESH_LIFESPAN",
             DEFAULT_JWT_REFRESH_LIFESPAN,
         )
-        self.reset_lifespan = app.config.get(
-            "JWT_RESET_LIFESPAN",
-            DEFAULT_JWT_RESET_LIFESPAN,
-        )
         self.jwt_places = app.config.get(
             "JWT_PLACES",
             DEFAULT_JWT_PLACES,
@@ -232,6 +227,10 @@ class Praetorian:
             "PRAETORIAN_CONFIRMATION_SUBJECT",
             DEFAULT_CONFIRMATION_SUBJECT,
         )
+        self.confirmation_lifespan = app.config.get(
+            'PRAETORIAN_CONFIRMATION_LIFESPAN',
+            DEFAULT_JWT_ACCESS_LIFESPAN,
+        )
 
         self.reset_template = app.config.get(
             "PRAETORIAN_RESET_TEMPLATE",
@@ -246,6 +245,10 @@ class Praetorian:
         self.reset_subject = app.config.get(
             "PRAETORIAN_RESET_SUBJECT",
             DEFAULT_RESET_SUBJECT,
+        )
+        self.reset_lifespan = app.config.get(
+            'PRAETORIAN_RESET_LIFESPAN',
+            DEFAULT_JWT_ACCESS_LIFESPAN,
         )
 
         if isinstance(self.access_lifespan, dict):
@@ -805,200 +808,106 @@ class Praetorian:
         )
         return {self.header_name: self.header_type + " " + token}
 
-    def send_registration_email(
-        self,
-        email,
-        user=None,
-        template=None,
-        confirmation_sender=None,
-        confirmation_uri=None,
-        subject=None,
-        override_access_lifespan=None,
-    ):
+    def send_registration_email(self, email, user):
         """
-        Sends a registration email to a new user, containing a time expiring
-            token usable for validation.  This requires your application
-            is initialized with a `mail` extension, which supports
-            Flask-Mail's `Message()` object and a `send()` method.
+        Sends a registration email to a new user, containing a time expiring token for
+        validation.  This requires your application is initialized with a `mail`
+        extension, which supports Flask-Mail's `Message()` object and a `send()` method.
 
-        Returns a dict containing the information sent, along with the
-            `result` from mail send.
-        :param: user:                     The user object to tie claim to
-                                          (username, id, email, etc)
-        :param: template:                 HTML Template for confirmation email.
-                                          If not provided, a stock entry is
-                                          used
-        :param: confirmation_sender:      The sender that shoudl be attached
-                                          to the confirmation email. Overrides
-                                          the PRAETORIAN_CONFIRMATION_SENDER
-                                          config setting
-        :param: confirmation_uri:         The uri that should be visited to
-                                          complete email registration. Should
-                                          usually be a uri to a frontend or
-                                          external service that calls a
-                                          'finalize' method in the api to
-                                          complete registration. Will override
-                                          the PRAETORIAN_CONFIRMATION_URI
-                                          config setting
-        :param: subject:                  The registration email subject.
-                                          Will override the
-                                          PRAETORIAN_CONFIRMATION_SUBJECT
-                                          config setting.
-        :param: override_access_lifespan: Overrides the JWT_ACCESS_LIFESPAN
-                                          to set an access lifespan for the
-                                          registration token.
+        Returns a dict containing the information sent
+
+        :param: email: The email address to attempt to send to
+        :param: user:  The user object for which the reset email should be sent
         """
-        if subject is None:
-            subject = self.confirmation_subject
-
-        if confirmation_uri is None:
-            confirmation_uri = self.confirmation_uri
-
-        sender = confirmation_sender or self.confirmation_sender
-
-        flask.current_app.logger.debug(
-            "Generating token with lifespan: {}".format(override_access_lifespan)
-        )
         custom_token = self.encode_jwt_token(
             user,
-            override_access_lifespan=override_access_lifespan,
+            override_access_lifespan=self.confirmation_lifespan,
             bypass_user_check=True,
             is_registration_token=True,
         )
 
+        with open(self.confirmation_template) as fh:
+            template = fh.read()
+
         return self.send_token_email(
             email,
-            user=user,
             template=template,
-            action_sender=sender,
-            action_uri=confirmation_uri,
-            subject=subject,
+            action_sender=self.confirmation_sender,
+            action_uri=self.confirmation_uri,
+            subject=self.confirmation_subject,
             custom_token=custom_token,
         )
 
-    def send_reset_email(
-        self,
-        email,
-        template=None,
-        reset_sender=None,
-        reset_uri=None,
-        subject=None,
-        override_access_lifespan=None,
-    ):
+    def send_reset_email(self, email, user):
         """
-        Sends a password reset email to a user, containing a time expiring
-            token usable for validation.  This requires your application
-            is initialized with a `mail` extension, which supports
-            Flask-Mail's `Message()` object and a `send()` method.
+        Sends a password reset email to a user, containing a time expiring token for
+        validation.  This requires your application is initialized with a `mail`
+        extension, which supports Flask-Mail's `Message()` object and a `send()` method.
 
-        Returns a dict containing the information sent, along with the
-            `result` from mail send.
-        :param: email:                    The email address to attempt to
-                                          send to
-        :param: template:                 HTML Template for reset email.
-                                          If not provided, a stock entry is
-                                          used
-        :param: confirmation_sender:      The sender that shoudl be attached
-                                          to the reset email. Overrides
-                                          the PRAETORIAN_RESET_SENDER
-                                          config setting
-        :param: confirmation_uri:         The uri that should be visited to
-                                          complete password reset. Should
-                                          usually be a uri to a frontend or
-                                          external service that calls the
-                                          'validate_reset_token()' method in
-                                          the api to complete reset. Will
-                                          override the PRAETORIAN_RESET_URI
-                                          config setting
-        :param: subject:                  The reset email subject.
-                                          Will override the
-                                          PRAETORIAN_RESET_SUBJECT
-                                          config setting.
-        :param: override_access_lifespan: Overrides the JWT_ACCESS_LIFESPAN
-                                          to set an access lifespan for the
-                                          registration token.
+        Returns a dict containing the information sent
+
+        :param: email: The email address to attempt to send to
+        :param: user:  The user object for which the reset email should be sent
         """
-        if subject is None:
-            subject = self.reset_subject
-
-        if reset_uri is None:
-            reset_uri = self.reset_uri
-
-        sender = reset_sender or self.reset_sender
-
-        user = self.user_class.lookup(email)
-        MissingUserError.require_condition(
-            user is not None,
-            "Could not find the requested user",
-        )
-
-        flask.current_app.logger.debug(
-            "Generating token with lifespan: {}".format(override_access_lifespan)
-        )
         custom_token = self.encode_jwt_token(
             user,
-            override_access_lifespan=override_access_lifespan,
-            bypass_user_check=False,
+            override_access_lifespan=self.reset_lifespan,
             is_reset_token=True,
         )
 
+        with open(self.reset_template) as fh:
+            template = fh.read()
+
         return self.send_token_email(
-            user.email,
-            user=user,
+            email=email,
             template=template,
-            action_sender=sender,
-            action_uri=reset_uri,
-            subject=subject,
+            action_sender=self.reset_sender,
+            action_uri=self.reset_uri,
+            subject=self.reset_subject,
             custom_token=custom_token,
         )
 
     def send_token_email(
         self,
         email,
-        user=None,
-        template=None,
-        action_sender=None,
-        action_uri=None,
-        subject=None,
-        override_access_lifespan=None,
-        custom_token=None,
+        template,
+        action_sender,
+        action_uri,
+        subject,
+        custom_token,
     ):
         """
-        Sends an email to a user, containing a time expiring
-            token usable for several actions.  This requires
-            your application is initialized with a `mail` extension,
-            which supports Flask-Mail's `Message()` object and
-            a `send()` method.
+        Sends an email containing a time expiring token and a clickable url to
+        complete an action with said token. Your flask application must be initialized
+        with a `mail` extension, which supports Flask-Mail's `Message()` object and a
+        `send()` method.
 
-        Returns a dict containing the information sent, along with the
-            `result` from mail send.
-        :param: email:                    The email address to use
-                                          (username, id, email, etc)
-        :param: user:                     The user object to tie claim to
-                                          (username, id, email, etc)
-        :param: template:                 HTML Template for confirmation email.
-                                          If not provided, a stock entry is
-                                          used
-        :param: action_sender:            The sender that should be attached
-                                          to the confirmation email.
-        :param: action_uri:               The uri that should be visited to
-                                          complete the token action.
-        :param: subject:                  The email subject.
-        :param: override_access_lifespan: Overrides the JWT_ACCESS_LIFESPAN
-                                          to set an access lifespan for the
-                                          registration token.
-        :param: custom_token:             The token to be carried as the
-                                          email's payload
+        Returns a dict containing the information sent
+
+        :param: email:         The email address to which the message should be sent
+        :param: template:      HTML Template for confirmation email.
+                               If not provided, a stock entry is
+                               used
+        :param: action_sender: The sender that should be attached
+                               to the confirmation email.
+        :param: action_uri:    The uri that should be visited to
+                               complete the token action.
+        :param: subject:       The email subject.
+        :param: custom_token:  The token to be carried as the
+                               email's payload
         """
+        PraetorianError.require_condition(
+            custom_token,
+            "A custom_token is required to send notification email",
+        )
         notification = {
-            "result": None,
-            "message": None,
-            "user": str(user),
-            "email": email,
-            "token": custom_token,
-            "subject": subject,
-            "confirmation_uri": action_uri,  # backwards compatibility
-            "action_uri": action_uri,
+            'result': None,
+            'message': None,
+            'email': email,
+            'token': custom_token,
+            'subject': subject,
+            'confirmation_uri': action_uri,  # backwards compatibility
+            'action_uri': action_uri,
         }
 
         PraetorianError.require_condition(
@@ -1008,19 +917,15 @@ class Praetorian:
 
         PraetorianError.require_condition(
             action_sender,
-            "A sender is required to send confirmation email",
+            "A sender is required to send a token bearing email",
         )
 
         PraetorianError.require_condition(
-            custom_token,
-            "A custom_token is required to send notification email",
+            template,
+            "A template is required to send a token bearing email",
         )
 
-        if template is None:
-            with open(self.confirmation_template) as fh:
-                template = fh.read()
-
-        with PraetorianError.handle_errors("fail sending email"):
+        with PraetorianError.handle_errors('Failed to send token-bearking email'):
             jinja_tmpl = jinja2.Template(template)
             notification["message"] = jinja_tmpl.render(notification).strip()
 
@@ -1032,7 +937,7 @@ class Praetorian:
             )
 
             flask.current_app.logger.debug("Sending email to {}".format(email))
-            notification["result"] = flask.current_app.extensions["mail"].send(msg)
+            flask.current_app.extensions['mail'].send(msg)
 
         return notification
 
