@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Unreleased
 ----------
+
+v1.5.0 - 2023-11-38
+-------------------
 - Added support for Python 3.12
 - Added support for Flask 3.x
 - Dropped support for Flask 1.x
