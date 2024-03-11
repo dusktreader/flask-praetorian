@@ -934,7 +934,7 @@ class TestPraetorian:
             assert token_data["el_duderino"] == "not brief"
 
     def test_send_token_email__renders_an_email_template_and_sends_the_message_with_the_token(
-        self, app, db, user_class, default_guard,
+        self, app, db, user_class, default_guard, mail,
     ):
         # create our default test user
         the_dude = user_class(username='TheDude')
@@ -950,21 +950,20 @@ class TestPraetorian:
               </body>
             </html>
         """
-        with app.mail.record_messages() as outbox:
-            notify = default_guard.send_token_email(
-                email='the.dude@abides.com',
-                template=template,
-                action_sender='TheStranger@mystery.com',
-                action_uri="action.mystery.com",
-                subject="Have it your way, Dude",
-                custom_token="sasparilla",
-            )
+        notify = default_guard.send_token_email(
+            email='the.dude@abides.com',
+            template=template,
+            action_sender='TheStranger@mystery.com',
+            action_uri="action.mystery.com",
+            subject="Have it your way, Dude",
+            custom_token="sasparilla",
+        )
 
-            token = notify['token']
+        token = notify['token']
 
-            # test our own interpretation and what we got back from flask_mail
-            assert token in notify['message']
-            assert notify['message'] == outbox[0].html
+        # test our own interpretation and what we got back from flask_mailman
+        assert token in notify['message']
+        assert notify['message'] == app.extensions['mailman'].outbox[0].body
 
     def test_send_token_email__raises_exception_if_action_sender_is_not_defined(
             self, app, user_class, default_guard,
@@ -1006,13 +1005,12 @@ class TestPraetorian:
         db.session.add(the_dude)
         db.session.commit()
 
-        with app.mail.record_messages() as outbox:
-            notify = default_guard.send_reset_email("the.dude@abides.com", the_dude)
-            token = notify['token']
+        notify = default_guard.send_reset_email("the.dude@abides.com", the_dude)
+        token = notify['token']
 
-            # test our own interpretation and what we got back from flask_mail
-            assert token in notify["message"]
-            assert notify["message"] == outbox[0].html
+        # test our own interpretation and what we got back from flask_mailman
+        assert token in notify["message"]
+        assert notify['message'] == app.extensions['mailman'].outbox[0].body
 
         # test our token is good
         jwt_data = default_guard.extract_jwt_token(
@@ -1057,16 +1055,15 @@ class TestPraetorian:
         db.session.add(the_dude)
         db.session.commit()
 
-        with app.mail.record_messages() as outbox:
-            notify = default_guard.send_registration_email(
-                'the.dude@abides.com',
-                the_dude,
-            )
-            token = notify['token']
+        notify = default_guard.send_registration_email(
+            'the.dude@abides.com',
+            the_dude,
+        )
+        token = notify['token']
 
-            # test our own interpretation and what we got back from flask_mail
-            assert token in notify["message"]
-            assert notify["message"] == outbox[0].html
+        # test our own interpretation and what we got back from flask_mailman
+        assert token in notify["message"]
+        assert notify['message'] == app.extensions['mailman'].outbox[0].body
 
         # test our token is good
         jwt_data = default_guard.extract_jwt_token(

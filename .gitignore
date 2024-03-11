@@ -13,6 +13,8 @@ docs/build/*
 .flake8
 .pytest_cache/*
 .vscode
+.coverage
+.python-version
 
 ### Emacs template
 # -*- mode: gitignore; -*-

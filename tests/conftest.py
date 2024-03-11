@@ -5,7 +5,7 @@ import flask_praetorian
 from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_praetorian import Praetorian
-from flask_mail import Mail
+from flask_mailman import Mail
 
 
 _db = SQLAlchemy()
@@ -215,7 +215,7 @@ def default_guard():
 @pytest.fixture(scope="session")
 def mail():
     """
-    This fixture simply fetches the db instance to be used in testing
+    This fixture simply fetches the mail instance to be used in testing
     """
     return _mail
 
