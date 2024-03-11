@@ -490,12 +490,16 @@ class Praetorian:
 
         if override_refresh_lifespan is None:
             refresh_lifespan = self.refresh_lifespan
+        elif isinstance(override_refresh_lifespan, dict):
+            refresh_lifespan = pendulum.duration(**override_refresh_lifespan)
         else:
             refresh_lifespan = override_refresh_lifespan
         refresh_expiration = (moment + refresh_lifespan).int_timestamp
 
         if override_access_lifespan is None:
             access_lifespan = self.access_lifespan
+        elif isinstance(override_access_lifespan, dict):
+            access_lifespan = pendulum.duration(**override_access_lifespan)
         else:
             access_lifespan = override_access_lifespan
         access_expiration = min(
@@ -569,6 +573,8 @@ class Praetorian:
 
         if override_access_lifespan is None:
             access_lifespan = self.access_lifespan
+        elif isinstance(override_access_lifespan, dict):
+            access_lifespan = pendulum.duration(**override_access_lifespan)
         else:
             access_lifespan = override_access_lifespan
         refresh_expiration = data[REFRESH_EXPIRATION_CLAIM]

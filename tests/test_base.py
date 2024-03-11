@@ -506,6 +506,30 @@ class TestPraetorian:
             assert token_data["id"] == the_dude.id
             assert token_data["rls"] == "admin,operator"
 
+        override_access_lifespan = dict(minutes=1)
+        override_refresh_lifespan = dict(hours=1)
+        moment = plummet.momentize("2017-05-21 18:39:55")
+        with plummet.frozen_time(moment):
+            token = guard.encode_jwt_token(
+                the_dude,
+                override_access_lifespan=override_access_lifespan,
+                override_refresh_lifespan=override_refresh_lifespan,
+            )
+            token_data = jwt.decode(
+                token,
+                guard.encode_key,
+                algorithms=guard.allowed_algorithms,
+            )
+            assert token_data["iat"] == moment.int_timestamp
+            assert (
+                token_data["exp"] == (moment + pendulum.duration(**override_access_lifespan)).int_timestamp
+            )
+            assert (
+                token_data[REFRESH_EXPIRATION_CLAIM] == (moment + pendulum.duration(**override_refresh_lifespan)).int_timestamp
+            )
+            assert token_data["id"] == the_dude.id
+            assert token_data["rls"] == "admin,operator"
+
         override_access_lifespan = pendulum.Duration(hours=1)
         override_refresh_lifespan = pendulum.Duration(minutes=1)
         moment = plummet.momentize("2017-05-21 18:39:55")
