@@ -13,6 +13,7 @@ Unreleased
 - Added support for Flask 3.x
 - Dropped support for Flask 1.x
 - Switched from Flask-Mail to Flask-Mailman
+- Added support for setting override lifespans with dict
 
 
 v1.5.0 - 2023-11-38
