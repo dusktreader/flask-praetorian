@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+Unreleased
+----------
+- Added support for Python 3.12
+- Added support for Flask 3.x
+- Dropped support for Flask 1.x
+- Switched from Flask-Mail to Flask-Mailman
+
 
 v1.5.0 - 2023-11-38
 -------------------

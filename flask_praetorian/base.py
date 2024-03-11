@@ -8,7 +8,7 @@ import textwrap
 import uuid
 import warnings
 
-from flask_mail import Message
+from flask_mailman import EmailMessage
 
 from passlib.context import CryptContext
 
@@ -911,7 +911,7 @@ class Praetorian:
         }
 
         PraetorianError.require_condition(
-            "mail" in flask.current_app.extensions,
+            "mailman" in flask.current_app.extensions,
             "Your app must have a mail extension enabled to register by email",
         )
 
@@ -929,15 +929,16 @@ class Praetorian:
             jinja_tmpl = jinja2.Template(template)
             notification["message"] = jinja_tmpl.render(notification).strip()
 
-            msg = Message(
-                html=notification["message"],
-                sender=action_sender,
-                subject=notification["subject"],
-                recipients=[notification["email"]],
+            msg = EmailMessage(
+                notification["subject"],
+                notification["message"],
+                action_sender,
+                [notification["email"]],
             )
 
             flask.current_app.logger.debug("Sending email to {}".format(email))
-            flask.current_app.extensions['mail'].send(msg)
+            msg.content_subtype = "html"
+            msg.send(msg)
 
         return notification
 
