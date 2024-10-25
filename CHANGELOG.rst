@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 Unreleased
 ----------
 
+v1.5.1 - 2024-10-25
+-------------------
+- Updated dependencies in poetry.lock to shut up dependabot.
+
 v1.5.0 - 2023-11-38
 -------------------
 - Added support for Python 3.12
