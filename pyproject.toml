@@ -21,7 +21,7 @@ flask-mailman = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 flask-sqlalchemy = "^3.1"
-flask-cors = "^3.0"
+flask-cors = ">=3,<5"
 pytest = "^7"
 pytest-flask = "^1.0"
 sphinx = "^1.8"
