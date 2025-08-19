@@ -1,10 +1,13 @@
 import flask
 import pendulum
 import pytest
+from datetime import datetime
+from uuid import uuid4
 
 from flask_praetorian.utilities import (
     add_jwt_data_to_app_context,
     app_context_has_jwt_data,
+    is_jsonable,
     remove_jwt_data_from_app_context,
     current_user,
     current_user_id,
@@ -151,3 +154,19 @@ class TestPraetorianUtilities:
             duration_from_string("12x1y1z")
         with pytest.raises(ConfigurationError):
             duration_from_string("")
+
+    def test_is_jsonable(self):
+        """
+        This test verifies that the is_jsonable method returns True for
+        json-serializable objects and False for non-serializable ones
+        """
+        assert is_jsonable(False)
+        assert is_jsonable(1)
+        assert is_jsonable(2.0)
+        assert is_jsonable("")
+        assert is_jsonable([])
+        assert is_jsonable({})
+        assert is_jsonable(None)
+        assert not is_jsonable(set({}))
+        assert not is_jsonable(datetime.now())
+        assert not is_jsonable(uuid4())

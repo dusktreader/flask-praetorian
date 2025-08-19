@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 Unreleased
 ----------
 
+v1.6.2 - 2024-10-25
+-------------------
+- Added support for UUIDs in the ``id`` field.
+
+Note:
+-----
+I accidently published v1.6.1 last time, so there's a jump in the version numbers here
+
 v1.5.1 - 2024-10-25
 -------------------
 - Updated dependencies in poetry.lock to shut up dependabot.

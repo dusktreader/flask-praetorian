@@ -12,7 +12,7 @@ from flask_mailman import EmailMessage
 
 from passlib.context import CryptContext
 
-from flask_praetorian.utilities import deprecated, duration_from_string
+from flask_praetorian.utilities import deprecated, duration_from_string, is_jsonable
 
 from flask_praetorian.exceptions import (
     AuthenticationError,
@@ -511,7 +511,7 @@ class Praetorian:
             "iat": moment.int_timestamp,
             "exp": access_expiration,
             "jti": str(uuid.uuid4()),
-            "id": user.identity,
+            "id": user.identity if is_jsonable(user.identity) else str(user.identity),
             "rls": ",".join(user.rolenames),
             REFRESH_EXPIRATION_CLAIM: refresh_expiration,
         }
