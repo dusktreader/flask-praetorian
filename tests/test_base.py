@@ -2,6 +2,8 @@ import jwt
 import pendulum
 import plummet
 import pytest
+from dataclasses import dataclass
+from uuid import UUID, uuid4
 
 from flask_praetorian import Praetorian
 from flask_praetorian.exceptions import (
@@ -624,6 +626,64 @@ class TestPraetorian:
                 == (moment + VITAM_AETERNUM).int_timestamp
             )
             assert token_data["id"] == the_dude.id
+
+    def test_encode_uuid_jwt_token(self, app, user_class):
+        """
+        This test verifies that the encode_jwt_token correctly encodes jwt data
+        when the model class uses a UUID for the identity.
+        """
+        users = []
+
+        @dataclass
+        class UUIDUser:
+            id: UUID
+            username: str
+            password: str
+            email: str
+            roles: str
+
+            @property
+            def rolenames(self):
+                try:
+                    return self.roles.split(",")
+                except Exception:
+                    return []
+
+            @classmethod
+            def lookup(cls, username):
+                for user in users:
+                    if user.username == username:
+                        return user
+                return None
+
+            @classmethod
+            def identify(cls, id):
+                for user in users:
+                    if user.id == id:
+                        return user
+                return None
+
+            @property
+            def identity(self):
+                return self.id
+
+        guard = Praetorian(app, UUIDUser)
+        the_dude = user_class(
+            id=uuid4(),
+            username="TheDude",
+            password=guard.hash_password("abides"),
+            roles="admin,operator",
+        )
+
+        token = guard.encode_jwt_token(the_dude)
+        token_data = jwt.decode(
+            token,
+            guard.encode_key,
+            algorithms=guard.allowed_algorithms,
+        )
+        assert token_data["id"] == str(the_dude.id)
+        assert UUID(token_data["id"]) == the_dude.id
+
 
     def test_refresh_jwt_token(
         self,
